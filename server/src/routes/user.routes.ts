@@ -1,11 +1,12 @@
 import { PrismaClient, User } from "@prisma/client";
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import {
     comparePassword,
     encryptPassword,
     generateToken,
 } from "../utils/auth.utils";
 import { sendError } from "../utils/error.util";
+import { Decimal } from "@prisma/client/runtime/library";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,9 @@ router.get("/", async (req, res) => {
     console.log("Getting all users");
 
     try {
-        const users = await prisma.user.findMany();
+        const users = await prisma.user.findMany({
+            include: { currLocation: true },
+        });
         res.status(200).send(users);
     } catch (error) {
         res.status(500).send({ error: "Something went wrong" });
@@ -33,6 +36,16 @@ router.get("/rt", async (req, res) => {
     }
 });
 
+router.get("/location", async (req, res) => {
+    console.log("Getting all locations");
+    try {
+        const location = await prisma.location.findMany();
+        res.status(200).send(location);
+    } catch (error) {
+        res.status(500).send({ error: "Something went wrong" });
+    }
+});
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -45,22 +58,55 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
-    const currData: User = { ...req.body };
-
+router.post("/", async (req: Request, res: Response): Promise<void> => {
     try {
-        const encPass = await encryptPassword(currData.password);
+        const userData = { ...req.body }; // Extract user details and location
 
-        if (encPass) {
-            currData.password = encPass;
-        } else {
-            res.status(500).send({ error: "Error in Password Field" });
+        if (!userData.longitude || !userData.latitude) {
+            res.status(400).send({
+                error: "Longitude and Latitude are required.",
+            });
             return;
         }
 
-        const user = await prisma.user.create({ data: currData });
+        const longitude = new Decimal(userData.longitude);
+        const latitude = new Decimal(userData.latitude);
+
+        delete userData.longitude;
+        delete userData.latitude;
+
+        let location = await prisma.location.findFirst({
+            where: {
+                longitude: longitude,
+                latitude: latitude,
+            },
+        });
+
+        if (!location) {
+            location = await prisma.location.create({
+                data: {
+                    longitude: longitude,
+                    latitude: latitude,
+                },
+            });
+        }
+
+        const encPass = await encryptPassword(userData.password);
+        if (!encPass) {
+            res.status(500).send({ error: "Error in Password Encryption" });
+            return;
+        }
+        userData.password = encPass;
+
+        const user = await prisma.user.create({
+            data: {
+                ...userData,
+                locationId: location.id,
+            },
+        });
 
         const token = await generateToken({ userId: user.id });
+
         res.status(201).send({ user, token });
     } catch (error) {
         sendError(res, error as Error);
@@ -114,8 +160,17 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     try {
-        await prisma.user.delete({
-            where: { id: id },
+        await prisma.appointment.deleteMany({ where: { userId: id } });
+        await prisma.prescription.deleteMany({ where: { userId: id } });
+        await prisma.report.deleteMany({ where: { userId: id } });
+        await prisma.ratings.deleteMany({ where: { userId: id } });
+
+        const deletedUser = await prisma.user.delete({
+            where: { id },
+        });
+
+        await prisma.location.deleteMany({
+            where: { id: deletedUser.locationId },
         });
 
         res.status(200).send({ message: "User deleted" });
