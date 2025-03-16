@@ -12,3 +12,119 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id            String         @id @default(cuid())
+  email         String?        @unique
+  name          String
+  password      String
+  phone         String
+  role          UserRole       @default(PATIENT)
+  currLocation  Location       @relation(fields: [locationId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  reports       Report[]
+  ratings       Ratings[]
+  locationId    String
+}
+
+model Hospital {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  parentName    String
+  password      String
+  specialities  Speciality[]
+  phone         String
+  documents     String[]
+  currLocation  Location       @relation(fields: [locationId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  timings       Timing[]       @relation("Timings")
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  reports       Report[]
+  ratings       Ratings[]
+  locationId    String
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+model Location {
+  id        String     @id @default(cuid())
+  longitude Decimal
+  latitude  Decimal
+  Hospital  Hospital[]
+  User      User[]
+}
+
+model Timing {
+  id         String   @id @default(cuid())
+  hospitalId String
+  day        String
+  startTime  String
+  endTime    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Hospital   Hospital @relation("Timings", fields: [hospitalId], references: [id])
+}
+
+model Appointment {
+  id         String   @id @default(cuid())
+  hospitalId String
+  userId     String
+  date       DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Hospital   Hospital @relation(fields: [hospitalId], references: [id])
+  User       User     @relation(fields: [userId], references: [id])
+}
+
+model Prescription {
+  id            String   @id @default(cuid())
+  appointmentId String
+  userId        String
+  hospitalId    String
+  prescription  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  Hospital      Hospital @relation(fields: [hospitalId], references: [id])
+  User          User     @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id            String   @id @default(cuid())
+  appointmentId String
+  userId        String
+  hospitalId    String
+  report        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  Hospital      Hospital @relation(fields: [hospitalId], references: [id])
+  User          User     @relation(fields: [userId], references: [id])
+}
+
+model Ratings {
+  id         String   @id @default(cuid())
+  hospitalId String
+  userId     String
+  rating     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Hospital   Hospital @relation(fields: [hospitalId], references: [id])
+  User       User     @relation(fields: [userId], references: [id])
+}
+
+model Speciality {
+  id         String    @id @default(cuid())
+  name       String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  Hospital   Hospital? @relation(fields: [hospitalId], references: [id])
+  hospitalId String?
+}
