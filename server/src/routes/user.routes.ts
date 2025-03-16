@@ -25,22 +25,12 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/rt", async (req, res) => {
+router.get("/reset", async (req, res) => {
     console.log("Resetting database");
 
     try {
         await prisma.user.deleteMany({});
         res.status(200).send({ message: "Database reset" });
-    } catch (error) {
-        res.status(500).send({ error: "Something went wrong" });
-    }
-});
-
-router.get("/location", async (req, res) => {
-    console.log("Getting all locations");
-    try {
-        const location = await prisma.location.findMany();
-        res.status(200).send(location);
     } catch (error) {
         res.status(500).send({ error: "Something went wrong" });
     }
@@ -58,7 +48,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/register", async (req: Request, res: Response): Promise<void> => {
     try {
         const userData = { ...req.body }; // Extract user details and location
 
@@ -116,7 +106,40 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
+    let { longitude, latitude } = req.body;
+
+    if (!email || !password) {
+        res.status(400).send({ error: "Email and Password are required" });
+        return;
+    }
+
+    if (!longitude || !latitude) {
+        res.status(400).send({
+            error: "Longitude and Latitude are required.",
+        });
+        return;
+    }
+
     try {
+        longitude = new Decimal(longitude);
+        latitude = new Decimal(latitude);
+
+        let location = await prisma.location.findFirst({
+            where: {
+                longitude: longitude,
+                latitude: latitude,
+            },
+        });
+
+        if (!location) {
+            location = await prisma.location.create({
+                data: {
+                    longitude: longitude,
+                    latitude: latitude,
+                },
+            });
+        }
+
         const user = await prisma.user.findUnique({
             where: { email: email },
         });
@@ -132,6 +155,12 @@ router.post("/login", async (req, res) => {
             res.status(401).send({ error: "Invalid Credentials" });
             return;
         }
+
+        await prisma.location.delete({
+            where: { id: user.locationId },
+        });
+
+        user.locationId = location.id;
 
         const token = await generateToken({ id: user.id });
         res.status(200).send({ token });
