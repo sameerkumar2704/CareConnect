@@ -1,5 +1,6 @@
 import express from "express";
 import userRouter from "./routes/user.routes";
+import hospitalRouter from "./routes/hospital.routes";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 
@@ -16,12 +17,14 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/hospitals", hospitalRouter);
 
 app.get("/reset", async (req, res) => {
     // Reset the database
 
     await prisma.user.deleteMany({});
     await prisma.location.deleteMany({});
+    await prisma.hospital.deleteMany({});
 
     res.status(200).send({ message: "Database reset" });
 });

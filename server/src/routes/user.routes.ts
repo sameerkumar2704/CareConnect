@@ -50,7 +50,7 @@ router.get("/:id", async (req, res) => {
 
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
     try {
-        const userData = { ...req.body }; // Extract user details and location
+        const userData = { ...req.body };
 
         if (!userData.longitude || !userData.latitude) {
             res.status(400).send({
@@ -170,16 +170,62 @@ router.post("/login", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-    const { id } = req.params;
-    const currData: User = { ...req.body };
-
     try {
-        const user = await prisma.user.update({
+        const { id } = req.params;
+
+        const user = prisma.user.findFirst({
             where: { id: id },
-            data: currData,
         });
 
-        res.status(200).send(user);
+        if (!user) {
+            res.status(404).send({ error: "User not found" });
+            return;
+        }
+
+        const userData: User = { ...req.body };
+
+        const token = await generateToken({ userId: userData.id });
+
+        res.status(201).send({ user, token });
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+});
+
+router.put("/resetpassword/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: id },
+        });
+
+        if (!user) {
+            res.status(404).send({ error: "User not found" });
+            return;
+        }
+
+        const { password } = req.body;
+
+        const isMatch = await comparePassword(password, user.password);
+
+        if (!isMatch) {
+            res.status(401).send({ error: "Invalid Credentials" });
+            return;
+        }
+
+        const encPass = await encryptPassword(password);
+        if (!encPass) {
+            res.status(500).send({ error: "Error in Password Encryption" });
+            return;
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: id },
+            data: { password: encPass },
+        });
+
+        res.status(200).send(updatedUser);
     } catch (error) {
         sendError(res, error as Error);
     }
