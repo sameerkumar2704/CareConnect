@@ -1,4 +1,4 @@
-import { PrismaClient, User } from "@prisma/client";
+import { Location, PrismaClient, User } from "@prisma/client";
 import { Router, Request, Response } from "express";
 import {
     comparePassword,
@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
             include: { currLocation: true },
         });
 
-        console.log("Users :- ", users);
+        console.log("Users := ", users);
 
         res.status(200).send(users);
     } catch (error) {
@@ -53,14 +53,14 @@ router.get("/:id", async (req, res) => {
 
     const { id } = req.params;
 
-    console.log("ID :- ", id);
+    console.log("ID := ", id);
 
     try {
         const user = await prisma.user.findUnique({
             where: { id: id },
         });
 
-        console.log("User :- ", user);
+        console.log("User := ", user);
 
         res.status(200).send(user);
     } catch (error) {
@@ -78,7 +78,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
     try {
         const userData = { ...req.body };
 
-        console.log("User Data :- ", userData);
+        console.log("User Data := ", userData);
 
         if (!userData.longitude || !userData.latitude) {
             throw new Error("Longitude and Latitude are required.");
@@ -87,8 +87,8 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
         const longitude = new Decimal(userData.longitude);
         const latitude = new Decimal(userData.latitude);
 
-        console.log("Latitude :- ", latitude);
-        console.log("Longitude :- ", longitude);
+        console.log("Latitude := ", latitude);
+        console.log("Longitude := ", longitude);
 
         delete userData.longitude;
         delete userData.latitude;
@@ -139,6 +139,8 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
 
         sendError(res, error as Error);
     }
+
+    reqE();
 });
 
 router.post("/login", async (req, res) => {
@@ -163,8 +165,8 @@ router.post("/login", async (req, res) => {
         longitude = new Decimal(longitude);
         latitude = new Decimal(latitude);
 
-        console.log("Latitude :- ", latitude);
-        console.log("Longitude :- ", longitude);
+        console.log("Latitude := ", latitude);
+        console.log("Longitude := ", longitude);
 
         let location = await prisma.location.findFirst({
             where: {
@@ -172,6 +174,16 @@ router.post("/login", async (req, res) => {
                 latitude: latitude,
             },
         });
+
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User Not Found");
+        }
 
         console.log("Location If Already There :=", location);
 
@@ -182,17 +194,27 @@ router.post("/login", async (req, res) => {
                     latitude: latitude,
                 },
             });
+
             console.log("Location Created :=", location);
-        }
 
-        const user = await prisma.user.findUnique({
-            where: { email: email },
-        });
+            const prevLocation = await prisma.location.findFirst({
+                where: { id: user.locationId },
+            });
 
-        console.log("User :- ", user);
+            if (!prevLocation) {
+                throw new Error("Previous location not found");
+            }
 
-        if (!user) {
-            throw new Error("User Not Found");
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { locationId: location.id },
+            });
+
+            await prisma.location.deleteMany({
+                where: { id: prevLocation.id },
+            });
+
+            console.log("Previous Location Deleted");
         }
 
         const isMatch = await comparePassword(password, user.password);
@@ -201,24 +223,20 @@ router.post("/login", async (req, res) => {
             throw new Error("Invalid Credentials");
         }
 
-        await prisma.location.delete({
-            where: { id: user.locationId },
-        });
-
-        console.log("Previous Location Deleted");
-
-        user.locationId = location.id;
-
         const token = await generateToken({ id: user.id });
 
         console.log("Generated Token :=", token);
 
         res.status(200).send({ token });
     } catch (error) {
+        reqS("error");
+
         reqER(error as Error);
 
         sendError(res, error as Error);
     }
+
+    reqE();
 });
 
 router.put("/:id", async (req, res) => {
@@ -227,13 +245,13 @@ router.put("/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        console.log("ID :- ", id);
+        console.log("ID := ", id);
 
         const user = prisma.user.findFirst({
             where: { id: id },
         });
 
-        console.log("User :- ", user);
+        console.log("User := ", user);
 
         if (!user) {
             throw new Error("User not found");
@@ -241,7 +259,7 @@ router.put("/:id", async (req, res) => {
 
         const userData: User = { ...req.body };
 
-        console.log("User Data :- ", userData);
+        console.log("User Data := ", userData);
 
         const token = await generateToken({ userId: userData.id });
 
@@ -253,6 +271,8 @@ router.put("/:id", async (req, res) => {
 
         sendError(res, error as Error);
     }
+
+    reqE();
 });
 
 router.put("/resetpassword/:id", async (req, res) => {
@@ -261,13 +281,13 @@ router.put("/resetpassword/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        console.log("ID :- ", id);
+        console.log("ID := ", id);
 
         const user = await prisma.user.findUnique({
             where: { id: id },
         });
 
-        console.log("User :- ", user);
+        console.log("User := ", user);
 
         if (!user) {
             throw new Error("User not found");
@@ -295,6 +315,8 @@ router.put("/resetpassword/:id", async (req, res) => {
 
         sendError(res, error as Error);
     }
+
+    reqE();
 });
 
 router.delete("/:id", async (req, res) => {
@@ -303,7 +325,7 @@ router.delete("/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        console.log("ID :- ", id);
+        console.log("ID := ", id);
 
         await prisma.appointment.deleteMany({ where: { userId: id } });
         await prisma.prescription.deleteMany({ where: { userId: id } });
@@ -330,6 +352,8 @@ router.delete("/:id", async (req, res) => {
 
         sendError(res, error as Error);
     }
+
+    reqE();
 });
 
 export default router;
