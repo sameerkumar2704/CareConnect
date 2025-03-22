@@ -19,18 +19,20 @@ const Dashboard = () => {
   return (
     <div className="bg-gray-50">
       {/* Hero Section with Search */}
-      <div className="bg-gradient-to-r from-cyan-700 via-teal-500 to-blue-300 text-center py-16 px-6 flex flex-col gap-4">
-        <h1 className="text-4xl md:text-5xl font-black text-white">
-          Find the Right Professional for Your Needs
-        </h1>
-        <p className="text-lg text-white">
-          Easily book appointments with top-rated professionals in your area.
-        </p>
+      <div className="bg-gradient-to-r from-cyan-700 via-teal-500 to-blue-300 text-center py-16 px-6 flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
+          <h1 className="text-4xl md:text-5xl font-black text-white">
+            Find the Right Professional for Your Needs
+          </h1>
+          <p className="text-lg text-gray-200">
+            Easily book appointments with top-rated professionals in your area.
+          </p>
+        </div>
         <div className="flex justify-center">
           <input
             type="text"
             placeholder="Search doctors, specialists, or services..."
-            className="w-full max-w-2xl text-white px-6 py-3 border border-gray-300 rounded-l-full focus:outline-none text-lg"
+            className="w-full max-w-2xl text-white px-6 py-3 border-2 border-white rounded-l-full focus:outline-none text-lg"
           />
           <button className="bg-white text-[#4fadb1] px-6 py-3 rounded-r-full text-lg hover:bg-gray-100 cursor-pointer transition">
             Search
