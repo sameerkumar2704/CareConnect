@@ -1,5 +1,3 @@
-import React from "react";
-
 const features = [
     { title: "Find Nearby Hospitals", description: "Quickly locate hospitals and clinics based on your location." },
     { title: "Doctor Appointments", description: "Easily book appointments with healthcare professionals." },
