@@ -1,16 +1,44 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { API_URL } from "../utils/contants";
 
 const Contact = () => {
-    const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+    const [formData, setFormData] = useState({ name: "", email: "", message: "", phone: "" });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const { name, email, message, phone } = formData;
+
+        // Check edge Cases
+        if (!name || !email || !message) {
+            alert("Please fill in all the required fields.");
+            return;
+        }
+
+        if (phone && !/^\d{10}$/.test(phone)) {
+            alert("Please enter a valid phone number.");
+            return;
+        }
+
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            alert("Please enter a valid email address.");
+            return;
+        }
+
+        const response = await axios.post(`${API_URL}/contact`, formData);
+
+        if (response.status !== 201) {
+            alert("Something went wrong. Please try again later.");
+            return;
+        }
+
         alert("Your message has been sent!");
-        setFormData({ name: "", email: "", message: "" }); // Reset form after submission
+        setFormData({ name: "", email: "", message: "", phone: "" }); // Reset form after submission
     };
 
     return (
@@ -46,6 +74,15 @@ const Contact = () => {
                             required
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00979D]"
                         />
+                        <input
+                            type="tel"
+                            name="phone"
+                            placeholder="Your Phone Number"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00979D]"
+                        />
                         <textarea
                             name="message"
                             placeholder="Your Message"
@@ -57,7 +94,7 @@ const Contact = () => {
                         />
                         <button
                             type="submit"
-                            className="w-full bg-[#00979D] hover:bg-[#007b86] text-white font-semibold py-3 rounded-md transition duration-300"
+                            className="w-full cursor-pointer bg-[#00979D] hover:bg-[#007b86] text-white font-semibold py-3 rounded-md transition duration-300"
                         >
                             Send Message
                         </button>
