@@ -6,7 +6,9 @@ import AuthForm from "./components/AuthForm";
 
 const App: React.FC = () => {
   return (
-    <div>
+    <div style={{
+      fontFamily: "OpenSans, sans-serif"
+    }}>
       <Navbar />
       <Routes>
         <Route path="/" element={<Dashboard />} />
