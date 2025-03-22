@@ -8,13 +8,11 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate(); // Hook for navigation
 
-  const [active, setActive] = useState([false, false, false, false]);
-
   return (
     <div>
       {/* Primary Navbar  */}
-      <div className="bg-[#00ADB5] flex justify-between items-center text-white py-4 px-6">
-        <div className="flex gap-4 justify-center w-full">
+      <div className="bg-[#00ADB5] md:flex justify-between items-center text-white py-4 px-6">
+        <div className="flex gap-4 md:justify-center w-full py-2">
           <div className="flex gap-2 items-center">
             <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faPhone} />
             <p>+91234567890</p>
@@ -24,7 +22,7 @@ const Navbar = () => {
             <p>careconnent@gmail.com</p>
           </div>
         </div>
-        <div className="flex gap-8 w-full justify-center">
+        <div className="flex gap-8 w-full md:justify-center py-2">
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faFacebook} />
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faTwitter} />
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faInstagram} />
@@ -42,10 +40,10 @@ const Navbar = () => {
             CareConnect
           </Link>
           <div className="hidden md:flex text-lg space-x-6">
-            <div onClick={() => setActive([true, false, false, false])} className={`cursor-pointer hover:text-[#60BDBB] ${active[0] && "text-[#60bdbb]"}`}>Home</div>
-            <div onClick={() => setActive([false, true, false, false])} className={`cursor-pointer hover:text-[#60BDBB] ${active[1] && "text-[#60bdbb]"}`}>About</div>
-            <div onClick={() => setActive([false, false, true, false])} className={`cursor-pointer hover:text-[#60BDBB] ${active[2] && "text-[#60bdbb]"}`}>Services</div>
-            <div onClick={() => setActive([false, false, false, true])} className={`cursor-pointer hover:text-[#60BDBB] ${active[3] && "text-[#60bdbb]"}`}>Contact</div>
+            <Link to="/" className={`cursor-pointer hover:text-[#60BDBB]`}>Home</Link>
+            <Link to={"/about"} className={`cursor-pointer hover:text-[#60BDBB]`}>About</Link>
+            <Link to={"/services"} className={`cursor-pointer hover:text-[#60BDBB]`}>Services</Link>
+            <Link to={"/contact"} className={`cursor-pointer hover:text-[#60BDBB]`}>Contact</Link>
           </div>
 
           {/* Sign In Button (Desktop) */}
@@ -69,13 +67,13 @@ const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         <div
-          className={`md:hidden flex flex-col bg-blue-500 text-white mt-2 rounded-lg overflow-hidden transition-all duration-300 ${isOpen ? "max-h-96 p-4" : "max-h-0 p-0"
+          className={`md:hidden flex flex-col gap-4 text-xl rounded-lg overflow-hidden ${isOpen ? "max-h-96 p-4" : "max-h-0 p-0"
             }`}
         >
-          <Link to="/" className="py-2 hover:text-gray-200">Home</Link>
-          <Link to="/about" className="py-2 hover:text-gray-200">About</Link>
-          <Link to="/services" className="py-2 hover:text-gray-200">Services</Link>
-          <Link to="/contact" className="py-2 hover:text-gray-200">Contact</Link>
+          <Link to="/">Home</Link>
+          <Link to="/about">About</Link>
+          <Link to="/services">Services</Link>
+          <Link to="/contact">Contact</Link>
 
           {/* Sign In Button (Mobile) */}
           <button
@@ -83,7 +81,7 @@ const Navbar = () => {
               setIsOpen(false); // Close menu
               navigate("/auth"); // Navigate to AuthForm
             }}
-            className="mt-4 bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100"
+            className="bg-[#00ADB5] text-white px-4 py-2 rounded-lg  hover:shadow-lg cursor-pointer transition duration-300"
           >
             Sign In
           </button>
