@@ -1,6 +1,8 @@
 import express from "express";
 import userRouter from "./routes/user.routes";
 import hospitalRouter from "./routes/hospital.routes";
+import contactRouter from "./routes/contact.routes";
+
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 
@@ -18,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/hospitals", hospitalRouter);
+app.use("/api/contact", contactRouter);
 
 app.get("/reset", async (req, res) => {
     // Reset the database

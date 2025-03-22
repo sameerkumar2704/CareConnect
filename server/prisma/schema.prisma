@@ -128,3 +128,12 @@ model Speciality {
   Hospital   Hospital? @relation(fields: [hospitalId], references: [id])
   hospitalId String?
 }
+
+model Feedback {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}

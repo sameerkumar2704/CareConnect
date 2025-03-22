@@ -1,4 +1,4 @@
-import { Location, PrismaClient, User } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { Router, Request, Response } from "express";
 import {
     comparePassword,
