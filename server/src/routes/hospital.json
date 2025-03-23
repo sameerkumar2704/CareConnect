@@ -1,92 +1,92 @@
 [
   {
-    "parentName": "Apollo Hospitals",
+    "name": "Apollo Hospitals",
     "email": "apollo@example.com",
     "password": "securepassword123",
     "longitude": "77.5946",
     "latitude": "12.9716",
     "phone": "+91-9876543210",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Fortis Healthcare",
+    "name": "Fortis Healthcare",
     "email": "fortis@example.com",
     "password": "strongpassword456",
     "longitude": "72.8777",
     "latitude": "19.0760",
     "phone": "+91-8765432109",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Max Healthcare",
+    "name": "Max Healthcare",
     "email": "max@example.com",
     "password": "password789",
     "longitude": "77.2090",
     "latitude": "28.6139",
     "phone": "+91-7654321098",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Manipal Hospitals",
+    "name": "Manipal Hospitals",
     "email": "manipal@example.com",
     "password": "manipalpass123",
     "longitude": "80.2707",
     "latitude": "13.0827",
     "phone": "+91-6543210987",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "AIIMS Delhi",
+    "name": "AIIMS Delhi",
     "email": "aiims@example.com",
     "password": "aiimspass456",
     "longitude": "77.2100",
     "latitude": "28.6140",
     "phone": "+91-5432109876",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Medanta - The Medicity",
+    "name": "Medanta - The Medicity",
     "email": "medanta@example.com",
     "password": "medantapass789",
     "longitude": "76.9815",
     "latitude": "28.4595",
     "phone": "+91-4321098765",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Narayana Health",
+    "name": "Narayana Health",
     "email": "narayana@example.com",
     "password": "narayanapass101",
     "longitude": "77.5937",
     "latitude": "12.9718",
     "phone": "+91-3210987654",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Columbia Asia Hospitals",
+    "name": "Columbia Asia Hospitals",
     "email": "columbia@example.com",
     "password": "columbiapass202",
     "longitude": "77.6682",
     "latitude": "12.9725",
     "phone": "+91-2109876543",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Kokilaben Dhirubhai Ambani Hospital",
+    "name": "Kokilaben Dhirubhai Ambani Hospital",
     "email": "kokilaben@example.com",
     "password": "kokilabenpass303",
     "longitude": "72.8258",
     "latitude": "19.0896",
     "phone": "+91-1098765432",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   },
   {
-    "parentName": "Tata Memorial Hospital",
+    "name": "Tata Memorial Hospital",
     "email": "tata@example.com",
     "password": "tatapass404",
     "longitude": "72.8295",
     "latitude": "18.9939",
     "phone": "+91-9876543211",
-    "specialities": ["cm8lkgwrx0001i0q0lm1vxknc", "cm8lkgwrx0002i0q0w1ufcsro", "cm8lkgwrx0003i0q0dfxyayax"]
+    "specialities": ["cm8lzk7kx0000ep32ffng0eg1", "cm8lzk7kx0001ep32s9u56j1t", "cm8lzk7kx0002ep32xwkz2zw9"]
   }
 ]
