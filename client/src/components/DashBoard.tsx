@@ -1,21 +1,57 @@
-const specialties = [
-  "dentist",
-  "dermatologist",
-  "cardiologist",
-  "pediatrician",
-  "psychologist",
-  "orthopedic",
-  "neurologist",
-  "general_physician"
-];
-
-const steps = [
-  { id: 1, text: "Search for a Professional", image: "search.webp" },
-  { id: 2, text: "Book an Appointment", image: "book.webp" },
-  { id: 3, text: "Get Quality Care", image: "care.webp" }
-];
+import { useEffect, useState } from "react";
+import { Hospital, Specialty, User } from "../model/user.model";
+import axios from "axios";
+import { API_URL } from "../utils/contants";
+import SpecialtyCard from "./Cards/Speciality";
+import HospitalCard from "./Cards/Hospital";
 
 const Dashboard = () => {
+
+  const [doctors, setDoctos] = useState<Hospital[]>([]);
+  const [specialists, setSpecialists] = useState<Specialty[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch doctors
+    const fetchDoctors = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API_URL}/hospitals/top`);
+
+        if (response.status !== 200) {
+          throw new Error("An error occurred while fetching doctors");
+        }
+
+        setDoctos(response.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Fetch specialties
+    const fetchSpecialties = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API_URL}/speciality/top`);
+
+        if (response.status !== 200) {
+          throw new Error("An error occurred while fetching specialties");
+        }
+
+        setSpecialists(response.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDoctors();
+    fetchSpecialties();
+  }, [])
+
   return (
     <div className="bg-gray-50">
       {/* Hero Section with Search */}
@@ -42,49 +78,34 @@ const Dashboard = () => {
 
       <div className="p-8 md:p-12">
         {/* Browse by Specialty */}
-        <h2 className="text-5xl font-bold text-center">Browse by Specialty</h2>
-        <h6 className="text-center text-lg text-gray-600 mt-4">
-          Find the right professional for your needs by browsing through our
-          specialties.
-        </h6>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Services</h1>
+          <h2 className="text-5xl font-bold text-center">Browse by Specialty</h2>
+          <h6 className="text-center text-lg text-gray-600 mt-4">
+            Find the right professional for your needs by browsing through our
+            specialties.
+          </h6>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
-          {specialties.map((specialty) => (
-            <div
-              key={specialty}
-              className="bg-white hover:bg-[#20b2b7] hover:text-white hover:scale-110 transition duration-150 cursor-pointer p-6 rounded-xl shadow-md flex flex-col items-center transition hover:shadow-lg"
-            >
-              <img
-                src={`/src/images/${specialty}.webp`}
-                alt={specialty}
-                className="w-32 h-32 object-cover rounded-full mb-6"
-              />
-              <p className="text-xl font-semibold">
-                {specialty.charAt(0).toUpperCase() + specialty.slice(1)}
-              </p>
-            </div>
+          {!loading && specialists && specialists.map((specialty) => (
+            <SpecialtyCard key={specialty.id} name={specialty.name} description={specialty.description} />
           ))}
         </div>
-
-        {/* How It Works */}
-        <div className="bg-gray-100 mt-16 py-12 rounded-xl">
-          <h2 className="text-3xl font-bold text-center mb-10">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 md:px-16">
-            {steps.map((step) => (
-              <div
-                key={step.id}
-                className="bg-white p-8 rounded-xl shadow-md flex flex-col items-center text-center transition hover:shadow-lg"
-              >
-                <img
-                  src={`/src/images/${step.image}`}
-                  alt={step.text}
-                  className="w-32 h-32 object-cover mb-6"
-                />
-                <p className="text-xl font-semibold text-blue-600">
-                  {step.id}. {step.text}
-                </p>
-              </div>
-            ))}
-          </div>
+      </div>
+      <div className="bg-gray-100">
+        {/* Browse by Specialty */}
+        <div className="flex flex-col py-12 gap-2">
+          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
+          <h2 className="text-5xl font-bold text-center">Browse by Hospital</h2>
+          <h6 className="text-center text-lg text-gray-600 mt-4">
+            Find the right medical assurance by browsing through our
+            hospitals.
+          </h6>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
+          {!loading && doctors && doctors.map((doctor) => (
+            <HospitalCard key={doctor.id} specialities={doctor.specialities} parentName={doctor.parentName} description={doctor.phone} />
+          ))}
         </div>
       </div>
     </div>

@@ -35,7 +35,7 @@ model Hospital {
   email         String         @unique
   parentName    String
   password      String
-  specialities  Speciality[]
+  specialities  Speciality[]   @relation("HospitalSpecialities")
   phone         String
   documents     String[]
   currLocation  Location       @relation(fields: [locationId], references: [id])
@@ -47,6 +47,15 @@ model Hospital {
   reports       Report[]
   ratings       Ratings[]
   locationId    String
+}
+
+model Speciality {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  hospitals   Hospital[] @relation("HospitalSpecialities")
 }
 
 enum UserRole {
@@ -118,15 +127,6 @@ model Ratings {
   updatedAt  DateTime @updatedAt
   Hospital   Hospital @relation(fields: [hospitalId], references: [id])
   User       User     @relation(fields: [userId], references: [id])
-}
-
-model Speciality {
-  id         String    @id @default(cuid())
-  name       String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  Hospital   Hospital? @relation(fields: [hospitalId], references: [id])
-  hospitalId String?
 }
 
 model Feedback {

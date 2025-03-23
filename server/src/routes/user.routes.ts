@@ -48,6 +48,7 @@ router.get("/reset", async (req, res) => {
     reqE();
 });
 
+
 router.get("/:id", async (req, res) => {
     reqS("get user by id");
 

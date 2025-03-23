@@ -12,8 +12,11 @@ const router = Router();
 const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
+    console.log("Fetching all hospitals");
     try {
-        const hospitals = await prisma.hospital.findMany();
+        const hospitals = await prisma.hospital.findMany({
+            include: { specialities: true },
+        });
         res.status(200).send(hospitals);
     } catch (error) {
         sendError(res, error as Error);
@@ -28,6 +31,21 @@ router.get("/reset", async (req, res) => {
         res.status(200).send({ message: "Database reset" });
     } catch (error) {
         res.status(500).send({ error: "Something went wrong" });
+    }
+});
+
+router.get("/top", async (req, res) => {
+    try {
+        const hospitals = await prisma.hospital.findMany({
+            take: 8,
+            include: { specialities: true },
+        });
+        res.status(200).send(hospitals);
+    } catch (error) {
+        res.status(500).send({
+            message: "An error occurred while fetching hospitals",
+            error,
+        });
     }
 });
 
@@ -46,6 +64,8 @@ router.get("/:id", async (req, res) => {
 router.post("/register", async (req, res) => {
     try {
         const hospitalData = { ...req.body };
+
+        console.log("Hospital Data := ", hospitalData);
 
         if (!hospitalData.longitude || !hospitalData.latitude) {
             res.status(400).send({
@@ -83,12 +103,32 @@ router.post("/register", async (req, res) => {
         }
         hospitalData.password = encPass;
 
+        const specialities: string[] = hospitalData.specialities;
+
+        const specialitiesData = await prisma.speciality.findMany({
+            where: {
+                id: {
+                    in: specialities,
+                },
+            },
+        });
+
+        console.log("Specialities Data := ", specialitiesData);
+
         const hospital = await prisma.hospital.create({
             data: {
                 ...hospitalData,
                 locationId: location.id,
+                specialities: {
+                    connect: specialitiesData.map((speciality) => ({
+                        id: speciality.id,
+                    })),
+                },
             },
+            include: { specialities: true },
         });
+
+        console.log("Created Hospital :=", hospital);
 
         const token = await generateToken({ userId: hospital.id });
 
@@ -150,17 +190,8 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     try {
-        await prisma.appointment.deleteMany({ where: { userId: id } });
-        await prisma.prescription.deleteMany({ where: { userId: id } });
-        await prisma.report.deleteMany({ where: { userId: id } });
-        await prisma.ratings.deleteMany({ where: { userId: id } });
-
         const deletedHospital = await prisma.hospital.delete({
             where: { id },
-        });
-
-        await prisma.location.deleteMany({
-            where: { id: deletedHospital.locationId },
         });
 
         res.status(200).send({ message: "Hospital deleted" });
