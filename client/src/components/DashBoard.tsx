@@ -104,7 +104,7 @@ const Dashboard = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
           {!loading && doctors && doctors.map((doctor) => (
-            <HospitalCard key={doctor.id} specialities={doctor.specialities} parentName={doctor.parentName} description={doctor.phone} />
+            <HospitalCard key={doctor.id} specialities={doctor.specialities} parentName={doctor.name} description={doctor.phone} />
           ))}
         </div>
       </div>

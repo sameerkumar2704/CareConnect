@@ -18,7 +18,7 @@ export interface Specialty {
 
 export interface Hospital {
     id: string;
-    parentName: string;
+    name: string;
     email: string;
     password: string;
     phone: string;
