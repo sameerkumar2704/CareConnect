@@ -33,8 +33,11 @@ model User {
 model Hospital {
   id            String         @id @default(cuid())
   email         String         @unique
-  parentName    String
+  name          String
   password      String
+  parentId      String?
+  parent        Hospital?      @relation("HospitalSelfRelation", fields: [parentId], references: [id])
+  children      Hospital[]     @relation("HospitalSelfRelation")
   specialities  Speciality[]   @relation("HospitalSpecialities")
   phone         String
   documents     String[]
@@ -60,7 +63,6 @@ model Speciality {
 
 enum UserRole {
   PATIENT
-  DOCTOR
   ADMIN
 }
 

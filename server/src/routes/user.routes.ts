@@ -4,7 +4,10 @@ import {
     comparePassword,
     encryptPassword,
     generateToken,
+    verifyToken,
 } from "../utils/auth.utils";
+import { JWT_SECRET } from "../utils/constants.utils";
+import jwt from "jsonwebtoken";
 import { sendError } from "../utils/error.util";
 import { Decimal } from "@prisma/client/runtime/library";
 import { reqE, reqER, reqS } from "../utils/logger.utils";
@@ -47,7 +50,6 @@ router.get("/reset", async (req, res) => {
 
     reqE();
 });
-
 
 router.get("/:id", async (req, res) => {
     reqS("get user by id");
@@ -232,6 +234,51 @@ router.post("/login", async (req, res) => {
     } catch (error) {
         reqS("error");
 
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/verify", async (req, res) => {
+    reqS("verify user");
+
+    try {
+        const { token } = req.body;
+
+        console.log("Token := ", token);
+
+        const decodedAuthToken = jwt.verify(token, JWT_SECRET as string);
+
+        console.log("ID := ", decodedAuthToken);
+
+        if (!decodedAuthToken) {
+            throw new Error("Invalid Token");
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id:
+                    typeof decodedAuthToken === "object" &&
+                    "id" in decodedAuthToken
+                        ? decodedAuthToken.id
+                        : undefined,
+            },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        res.status(200).send({
+            ok: "Valid Token",
+            user,
+        });
+    } catch (error) {
         reqER(error as Error);
 
         sendError(res, error as Error);

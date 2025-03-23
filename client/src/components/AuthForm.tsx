@@ -18,9 +18,9 @@ const AuthForm = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#A9E2E3] to-[#00979D] px-4">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4">
             <div className="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-md border-t-4 border-[#00979D] animate-fadeIn">
-                
+
                 {/* CareConnect Branding */}
                 <div className="text-center mb-6">
                     <h1 className="text-2xl font-bold text-[#00979D]">CareConnect</h1>

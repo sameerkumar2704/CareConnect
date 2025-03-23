@@ -12,6 +12,7 @@ const UnProtectedRoute = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!loading) {
             if (user) {
+                alert("You are already logged in");
                 navigate("/");
             }
         }

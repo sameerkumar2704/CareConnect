@@ -30,6 +30,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const token = localStorage.getItem("eWauthToken");
 
+                console.log(token);
+
                 if (!token) {
                     setUser(null);
                     setAdmin(null);

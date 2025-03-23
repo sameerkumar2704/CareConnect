@@ -1,18 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faTwitter, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/auth";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
+
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location])
+
+  const auth = useAuth();
+
+  if (!auth) {
+    console.error("Auth context not found");
+    return null;
+  }
+
+  const { user, setUser, loading, admin, setAdmin } = auth;
 
   return (
     <div>
       {/* Primary Navbar  */}
       <div className="bg-[#00ADB5] md:flex items-center text-white py-4">
-        <div className="flex gap-4 w-full px-12">
+        <div className="flex gap-4 w-full px-12 py-4 md:py-0 justify-center md:justify-start">
           <div className="flex gap-2 items-center">
             <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faPhone} />
             <p>+91234567890</p>
@@ -22,7 +38,7 @@ const Navbar = () => {
             <p>careconnent@gmail.com</p>
           </div>
         </div>
-        <div className="flex gap-8 w-full justify-end px-12">
+        <div className="flex gap-8 w-full justify-center md:justify-end px-12">
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faFacebook} />
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faTwitter} />
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faInstagram} />
@@ -46,17 +62,31 @@ const Navbar = () => {
             <Link to={"/about"} className={`cursor-pointer hover:text-[#60BDBB]`}>About</Link>
             <Link to={"/services"} className={`cursor-pointer hover:text-[#60BDBB]`}>Services</Link>
             <Link to={"/contact"} className={`cursor-pointer hover:text-[#60BDBB]`}>Contact</Link>
+            {!loading && admin && <Link to={"/admin"} className={`cursor-pointer hover:text-[#60BDBB]`}>Admin</Link>}
           </div>
 
           {/* Sign In Button (Desktop) */}
-          <div className="hidden md:block">
+          {!loading && (!user ? <div className="hidden md:block">
             <button
               onClick={() => navigate("/auth")}
               className="text-white bg-[#4fadb1] px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer transition duration-300"
             >
               Sign In
             </button>
-          </div>
+          </div> : <div className="hidden md:block">
+            <button
+              onClick={() => {
+
+                if (!confirm("Are you sure you want to logout?")) return;
+                setUser(null);
+                localStorage.removeItem("eWauthToken");
+                setAdmin(null);
+                alert("Logged out successfully");
+              }}
+              className="text-white bg-[#4fadb1] px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer transition duration-300"
+            >
+              Logout
+            </button></div>)}
 
           {/* Mobile Menu Button */}
           <button
@@ -69,27 +99,42 @@ const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         <div
-          className={`md:hidden flex flex-col gap-4 text-xl rounded-lg overflow-hidden ${isOpen ? "max-h-96 p-4" : "max-h-0 p-0"
+          style={{
+            fontFamily: "RaleWay, sans-serif"
+          }}
+          className={`md:hidden flex flex-col gap-4 font-semibold text-xl rounded-lg overflow-hidden ${isOpen ? "max-h-96 p-4" : "max-h-0 p-0"
             }`}
         >
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/services">Services</Link>
-          <Link to="/contact">Contact</Link>
+          <Link to="/" className={`cursor-pointer hover:text-[#60BDBB]`}>Home</Link>
+          <Link to={"/about"} className={`cursor-pointer hover:text-[#60BDBB]`}>About</Link>
+          <Link to={"/services"} className={`cursor-pointer hover:text-[#60BDBB]`}>Services</Link>
+          <Link to={"/contact"} className={`cursor-pointer hover:text-[#60BDBB]`}>Contact</Link>
+          {!loading && admin && <Link to={"/admin"} className={`cursor-pointer hover:text-[#60BDBB]`}>Admin</Link>}
 
           {/* Sign In Button (Mobile) */}
-          <button
+          {!loading && (!user ? <button
             onClick={() => {
-              setIsOpen(false); // Close menu
-              navigate("/auth"); // Navigate to AuthForm
+              setIsOpen(false);
+              navigate("/auth");
             }}
             className="bg-[#00ADB5] text-white px-4 py-2 rounded-lg  hover:shadow-lg cursor-pointer transition duration-300"
           >
             Sign In
-          </button>
+          </button> : <button
+            onClick={() => {
+              setIsOpen(false);
+              if (!confirm("Are you sure you want to logout?")) return;
+              setUser(null);
+              localStorage.removeItem("eWauthToken");
+              alert("Logged out successfully");
+            }}
+            className="bg-[#00ADB5] text-white px-4 py-2 rounded-lg  hover:shadow-lg cursor-pointer transition duration-300"
+          >
+            Logout
+          </button>)}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

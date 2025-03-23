@@ -80,7 +80,7 @@ const Dashboard = () => {
         {/* Browse by Specialty */}
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Services</h1>
-          <h2 className="text-5xl font-bold text-center">Browse by Specialty</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Specialty</h2>
           <h6 className="text-center text-lg text-gray-600 mt-4">
             Find the right professional for your needs by browsing through our
             specialties.
@@ -92,11 +92,11 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
-      <div className="bg-gray-100">
+      <div className="p-8 md:p-12 bg-gray-100">
         {/* Browse by Specialty */}
         <div className="flex flex-col py-12 gap-2">
           <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
-          <h2 className="text-5xl font-bold text-center">Browse by Hospital</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
           <h6 className="text-center text-lg text-gray-600 mt-4">
             Find the right medical assurance by browsing through our
             hospitals.

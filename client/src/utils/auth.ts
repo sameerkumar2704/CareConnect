@@ -70,7 +70,7 @@ export const signUser = async (details: User) => {
 };
 
 export const verifyToken = async (token: string) => {
-    const response = await fetch(`${API_URL}/api/auth/verify`, {
+    const response = await fetch(`${API_URL}/users/verify`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -85,5 +85,5 @@ export const verifyToken = async (token: string) => {
         throw Error(data.error);
     }
 
-    return { ok: "Valid Token", role: data.user.role, _id: data.user.userId };
+    return { ok: "Valid Token", role: data.user.role, _id: data.user.id };
 };

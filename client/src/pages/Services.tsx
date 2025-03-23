@@ -33,7 +33,7 @@ const Services = () => {
     return (
         <div className="py-12">
             <div style={{ fontFamily: "RaleWay" }} className="text-5xl font-bold text-center text-[#00ADB5]">Services</div>
-            <div className="grid grid-cols-2 px-4 md:grid-cols-4 gap-8 py-8">
+            <div className="grid grid-cols-1 justify-items-center rounded-lg px-4 md:grid-cols-4 gap-8 py-8">
                 {services.map((service, index) => {
                     return <ServiceCard key={index} link={service.link} title={service.title} description={service.description} image={service.image} />
                 })}
