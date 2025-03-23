@@ -11,8 +11,8 @@ const Navbar = () => {
   return (
     <div>
       {/* Primary Navbar  */}
-      <div className="bg-[#00ADB5] md:flex justify-between items-center text-white py-4 px-6">
-        <div className="flex gap-4 md:justify-center w-full py-2">
+      <div className="bg-[#00ADB5] md:flex items-center text-white py-4">
+        <div className="flex gap-4 w-full px-12">
           <div className="flex gap-2 items-center">
             <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faPhone} />
             <p>+91234567890</p>
@@ -22,7 +22,7 @@ const Navbar = () => {
             <p>careconnent@gmail.com</p>
           </div>
         </div>
-        <div className="flex gap-8 w-full md:justify-center py-2">
+        <div className="flex gap-8 w-full justify-end px-12">
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faFacebook} />
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faTwitter} />
           <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faInstagram} />
@@ -39,7 +39,9 @@ const Navbar = () => {
 
             CareConnect
           </Link>
-          <div className="hidden md:flex text-lg space-x-6">
+          <div style={{
+            fontFamily: "RaleWay, sans-serif"
+          }} className="hidden md:flex text-lg font-semibold space-x-6">
             <Link to="/" className={`cursor-pointer hover:text-[#60BDBB]`}>Home</Link>
             <Link to={"/about"} className={`cursor-pointer hover:text-[#60BDBB]`}>About</Link>
             <Link to={"/services"} className={`cursor-pointer hover:text-[#60BDBB]`}>Services</Link>

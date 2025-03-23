@@ -5,6 +5,7 @@ import Dashboard from "./components/DashBoard";
 import AuthForm from "./components/AuthForm";
 import About from "./components/About";
 import Contact from "./components/Contact";
+import Services from "./pages/Services";
 
 const App: React.FC = () => {
   return (
@@ -16,7 +17,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Dashboard />} />
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Dashboard />} />
+        <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />
       </Routes>
     </div>

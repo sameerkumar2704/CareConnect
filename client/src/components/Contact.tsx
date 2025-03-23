@@ -42,7 +42,9 @@ const Contact = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#A9E2E3] to-[#00979D] px-6 py-12 flex flex-col items-center">
+        <div style={{
+            fontFamily: "RaleWay, sans-serif",
+        }} className="min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-6 py-12 flex flex-col items-center">
             {/* Page Header */}
             <div className="text-center text-white max-w-3xl">
                 <h1 className="text-4xl font-bold">Get in Touch</h1>
@@ -103,7 +105,7 @@ const Contact = () => {
 
                 {/* Contact Information */}
                 <div className="bg-white shadow-md rounded-lg p-6 border-t-4 border-[#00979D] flex flex-col justify-center">
-                    <h2 className="text-2xl font-semibold text-gray-800 text-center">Contact Information</h2>
+                    <h2 className="text-3xl font-semibold text-gray-800 text-center">Contact Information</h2>
                     <div className="mt-6 space-y-4">
                         <p className="flex items-center space-x-2 text-gray-600">
                             <i className="fas fa-map-marker-alt text-[#00979D]"></i>

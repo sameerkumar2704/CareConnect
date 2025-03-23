@@ -24,9 +24,9 @@ const getAccurateLocation = () => {
                 reject(`Error: ${error.message}`);
             },
             {
-                enableHighAccuracy: true, // Uses GPS for highest accuracy
-                timeout: 20000, // Wait up to 20 seconds to get the most accurate location
-                maximumAge: 0, // Always fetch a fresh location (no cache)
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 0,
             }
         );
     });

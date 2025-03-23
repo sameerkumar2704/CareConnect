@@ -14,7 +14,9 @@ const teamMembers = [
 
 const About = () => {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#A9E2E3] to-[#00979D] px-6 py-12">
+        <div style={{
+            fontFamily: "RaleWay, sans-serif"
+        }} className="min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-6 py-12">
             {/* Hero Section */}
             <div className="max-w-4xl mx-auto text-center text-white">
                 <h1 className="text-4xl font-bold mb-4">About CareConnect</h1>
