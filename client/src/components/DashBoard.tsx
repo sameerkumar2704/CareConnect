@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Hospital, Specialty, User } from "../model/user.model";
+import { Hospital, Specialty } from "../model/user.model";
 import axios from "axios";
 import { API_URL } from "../utils/contants";
 import SpecialtyCard from "./Cards/Speciality";
