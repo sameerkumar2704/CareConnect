@@ -7,19 +7,28 @@ import {
     generateToken,
 } from "../utils/auth.utils";
 import { Decimal } from "@prisma/client/runtime/library";
+import { reqE, reqS } from "../utils/logger.utils";
 
 const router = Router();
 const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
-    console.log("Fetching all hospitals");
+    console.log("Fetching hospitals...");
     try {
+        const searchQuery = req.query.search as string;
+
         const hospitals = await prisma.hospital.findMany({
+            where: searchQuery
+                ? { name: { contains: searchQuery, mode: "insensitive" } }
+                : {},
             include: { specialities: true },
+            take: 10,
         });
+
         res.status(200).send(hospitals);
     } catch (error) {
-        sendError(res, error as Error);
+        console.error("Error fetching hospitals:", error);
+        res.status(500).send({ message: "Internal Server Error" });
     }
 });
 
@@ -62,6 +71,8 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
+    reqS("Hospital Registration Request");
+
     try {
         const hospitalData = { ...req.body };
 
@@ -71,7 +82,6 @@ router.post("/register", async (req, res) => {
             res.status(400).send({
                 error: "Longitude and Latitude are required.",
             });
-            return;
         }
 
         const longitude = new Decimal(hospitalData.longitude);
@@ -81,54 +91,45 @@ router.post("/register", async (req, res) => {
         delete hospitalData.latitude;
 
         let location = await prisma.location.findFirst({
-            where: {
-                longitude: longitude,
-                latitude: latitude,
-            },
+            where: { longitude, latitude },
         });
 
         if (!location) {
             location = await prisma.location.create({
-                data: {
-                    longitude: longitude,
-                    latitude: latitude,
-                },
+                data: { longitude, latitude },
             });
         }
 
         const encPass = await encryptPassword(hospitalData.password);
         if (!encPass) {
             res.status(500).send({ error: "Error in Password Encryption" });
-            return;
         }
         hospitalData.password = encPass;
 
-        const specialities: string[] = hospitalData.specialities;
-
-        const specialitiesData = await prisma.speciality.findMany({
-            where: {
-                id: {
-                    in: specialities,
-                },
-            },
-        });
-
-        console.log("Specialities Data := ", specialitiesData);
+        delete hospitalData.confirmPassword;
+        const hospitalID = hospitalData.hospital;
+        delete hospitalData.hospital;
 
         const hospital = await prisma.hospital.create({
             data: {
                 ...hospitalData,
                 locationId: location.id,
-                specialities: {
-                    connect: specialitiesData.map((speciality) => ({
-                        id: speciality.id,
-                    })),
-                },
+                parentId: hospitalID || null,
             },
-            include: { specialities: true },
+            include: { specialities: true, parent: true },
         });
 
         console.log("Created Hospital :=", hospital);
+
+        // Fetch parent hospital with updated children
+        if (hospitalData.hospital) {
+            const updatedParent = await prisma.hospital.findUnique({
+                where: { id: hospitalData.hospital },
+                include: { children: true },
+            });
+
+            res.status(201).send({ hospital, parent: updatedParent });
+        }
 
         const token = await generateToken({ userId: hospital.id });
 
@@ -136,6 +137,8 @@ router.post("/register", async (req, res) => {
     } catch (error) {
         sendError(res, error as Error);
     }
+
+    reqE();
 });
 
 router.post("/login", async (req, res) => {

@@ -4,7 +4,6 @@ import {
     comparePassword,
     encryptPassword,
     generateToken,
-    verifyToken,
 } from "../utils/auth.utils";
 import { JWT_SECRET } from "../utils/constants.utils";
 import jwt from "jsonwebtoken";
@@ -150,12 +149,12 @@ router.post("/login", async (req, res) => {
     reqS("login user");
 
     try {
-        const { email, password } = req.body;
+        const { email, phone, password } = req.body;
 
         let { longitude, latitude } = req.body;
 
         if (!email || !password) {
-            throw new Error("Email and Password are Required");
+            throw new Error("Email or Phone and Password are Required");
         }
 
         console.log("Email := ", email);
@@ -178,8 +177,11 @@ router.post("/login", async (req, res) => {
             },
         });
 
-        const user = await prisma.user.findUnique({
-            where: { email: email },
+        // Either email or Phone anyone should be there
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [{ email: email }, { phone: phone }],
+            },
         });
 
         console.log("User := ", user);

@@ -6,6 +6,7 @@ import specialityRouter from "./routes/speciality.routes";
 
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
+import { CLIENT_URL } from "./utils/constants.utils";
 
 const app = express();
 
@@ -13,7 +14,7 @@ const prisma = new PrismaClient();
 
 app.use(
     cors({
-        origin: "https://carecont.vercel.app",
+        origin: `${CLIENT_URL}`,
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,

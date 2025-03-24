@@ -1,9 +1,10 @@
 import React from "react";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Dashboard from "./components/DashBoard";
-import AuthForm from "./components/AuthForm";
-import About from "./components/About";
-import Contact from "./components/Contact";
+import Dashboard from "./pages/DashBoard";
+import AuthFormUser from "./pages/Auth/AuthFormUser";
+import AuthFormHospital from "./pages/Auth/AuthFormHospital";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 import Services from "./pages/Services";
 import Layout from "./Layout";
 import Auth from "./pages/Auth";
@@ -29,11 +30,11 @@ const App: React.FC = () => {
             },
             {
               path: "/auth/user",
-              element: <UnProtectedRoute><AuthForm /></UnProtectedRoute>
+              element: <UnProtectedRoute><AuthFormUser /></UnProtectedRoute>
             },
             {
               path: "/auth/hospital",
-              element: <UnProtectedRoute><AuthForm /></UnProtectedRoute>
+              element: <UnProtectedRoute><AuthFormHospital /></UnProtectedRoute>
             }
           ]
         },
@@ -48,7 +49,7 @@ const App: React.FC = () => {
         {
           path: "/contact",
           element: <Contact />
-        }
+        },
       ]
     }
   ]
@@ -61,7 +62,7 @@ const App: React.FC = () => {
     }}>
       {/* <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/auth" element={<AuthForm />} />
+        <Route path="/auth" element={<AuthFormUser />} />
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />

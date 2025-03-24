@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Hospital, Specialty } from "../model/user.model";
 import axios from "axios";
 import { API_URL } from "../utils/contants";
-import SpecialtyCard from "./Cards/Speciality";
-import HospitalCard from "./Cards/Hospital";
+import SpecialtyCard from "../components/Cards/Speciality";
+import HospitalCard from "../components/Cards/Hospital";
 
 const Dashboard = () => {
 

@@ -4,8 +4,6 @@ import { PrismaClient } from "@prisma/client";
 const router = Router();
 const prisma = new PrismaClient();
 
-console.log(prisma);
-
 router.get("/", async (req, res) => {
     try {
         const messages = await prisma.feedback.findMany();

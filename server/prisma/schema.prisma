@@ -18,7 +18,7 @@ model User {
   email         String?        @unique
   name          String
   password      String
-  phone         String
+  phone         String         @unique
   role          UserRole       @default(PATIENT)
   currLocation  Location       @relation(fields: [locationId], references: [id])
   createdAt     DateTime       @default(now())
@@ -39,7 +39,7 @@ model Hospital {
   parent        Hospital?      @relation("HospitalSelfRelation", fields: [parentId], references: [id])
   children      Hospital[]     @relation("HospitalSelfRelation")
   specialities  Speciality[]   @relation("HospitalSpecialities")
-  phone         String
+  phone         String         @unique
   documents     String[]
   currLocation  Location       @relation(fields: [locationId], references: [id])
   createdAt     DateTime       @default(now())
