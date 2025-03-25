@@ -1,56 +1,46 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Hospital, Specialty } from "../model/user.model";
-import axios from "axios";
 import { API_URL } from "../utils/contants";
 import SpecialtyCard from "../components/Cards/Speciality";
 import HospitalCard from "../components/Cards/Hospital";
 
 const Dashboard = () => {
-
+  const navigate = useNavigate();
   const [doctors, setDoctos] = useState<Hospital[]>([]);
   const [specialists, setSpecialists] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch doctors
     const fetchDoctors = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/hospitals/top`);
-
-        if (response.status !== 200) {
-          throw new Error("An error occurred while fetching doctors");
-        }
-
-        setDoctos(response.data);
+        const response = await fetch(`${API_URL}/hospitals/top`);
+        const data = await response.json();
+        setDoctos(data);
       } catch (error) {
         console.log(error);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    // Fetch specialties
     const fetchSpecialties = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/speciality/top`);
-
-        if (response.status !== 200) {
-          throw new Error("An error occurred while fetching specialties");
-        }
-
-        setSpecialists(response.data);
+        const response = await fetch(`${API_URL}/speciality/top`);
+        const data = await response.json();
+        setSpecialists(data);
       } catch (error) {
         console.log(error);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchDoctors();
     fetchSpecialties();
-  }, [])
+  }, []);
 
   return (
     <div className="bg-gray-50">
@@ -87,25 +77,34 @@ const Dashboard = () => {
           </h6>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
-          {!loading && specialists && specialists.map((specialty) => (
-            <SpecialtyCard key={specialty.id} name={specialty.name} description={specialty.description} />
-          ))}
+          {!loading &&
+            specialists.map((specialty) => (
+              <SpecialtyCard key={specialty.id} name={specialty.name} description={specialty.description} />
+            ))}
         </div>
       </div>
+
       <div className="p-8 md:p-12 bg-gray-100">
-        {/* Browse by Specialty */}
+        {/* Browse by Hospital */}
         <div className="flex flex-col py-12 gap-2">
           <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
           <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
           <h6 className="text-center text-lg text-gray-600 mt-4">
-            Find the right medical assurance by browsing through our
-            hospitals.
+            Find the right medical assurance by browsing through our hospitals.
           </h6>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
-          {!loading && doctors && doctors.map((doctor) => (
-            <HospitalCard key={doctor.id} specialities={doctor.specialities} parentName={doctor.name} description={doctor.phone} />
-          ))}
+          {!loading &&
+            doctors.map((hospital) => (
+              <HospitalCard
+                key={hospital.id}
+                id={hospital.id} // Pass hospital ID for navigation
+                specialities={hospital.specialities}
+                parentName={hospital.name}
+                description={hospital.phone}
+                onReadMore={() => navigate(`/hospital/${hospital.id}`)} // Read More button action
+              />
+            ))}
         </div>
       </div>
     </div>

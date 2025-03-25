@@ -12,6 +12,9 @@ import UnProtectedRoute from "./utils/routeProtection/unprotectedRoute";
 import PaymentPage from "./pages/Payment";
 import SuccessPage from "./pages/Payment/Success";
 import CancelPage from "./pages/Payment/Cancel";
+import Hospitals from "./pages/Hospitals";
+import SpecializationsPage from "./pages/Specializations";
+import HospitalDetails from "./pages/HospitalDetails";
 
 const App: React.FC = () => {
 
@@ -64,6 +67,18 @@ const App: React.FC = () => {
         {
           path: "/cancel",
           element: <CancelPage />
+        },
+        {
+          path: "/hospitals",
+          element: <Hospitals />
+        },
+        {
+          path: "/specializations",
+          element: <SpecializationsPage />
+        },
+        {
+          path: "/hospital/:id",
+          element: <HospitalDetails/>
         }
       ]
     }
