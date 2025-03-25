@@ -9,6 +9,9 @@ import Services from "./pages/Services";
 import Layout from "./Layout";
 import Auth from "./pages/Auth";
 import UnProtectedRoute from "./utils/routeProtection/unprotectedRoute";
+import Hospitals from "./pages/Hospitals";
+import SpecializationsPage from "./pages/Specializations";
+import HospitalDetails from "./pages/HospitalDetails";
 
 const App: React.FC = () => {
 
@@ -50,6 +53,18 @@ const App: React.FC = () => {
           path: "/contact",
           element: <Contact />
         },
+        {
+          path: "/hospitals",
+          element: <Hospitals />
+        },
+        {
+          path: "/specializations",
+          element: <SpecializationsPage />
+        },
+        {
+          path: "/hospital/:id",
+          element: <HospitalDetails />
+        }
       ]
     }
   ]
