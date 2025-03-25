@@ -9,6 +9,9 @@ import Services from "./pages/Services";
 import Layout from "./Layout";
 import Auth from "./pages/Auth";
 import UnProtectedRoute from "./utils/routeProtection/unprotectedRoute";
+import PaymentPage from "./pages/Payment";
+import SuccessPage from "./pages/Payment/Success";
+import CancelPage from "./pages/Payment/Cancel";
 
 const App: React.FC = () => {
 
@@ -50,6 +53,18 @@ const App: React.FC = () => {
           path: "/contact",
           element: <Contact />
         },
+        {
+          path: "/payment",
+          element: <PaymentPage />
+        },
+        {
+          path: "/success",
+          element: <SuccessPage />
+        },
+        {
+          path: "/cancel",
+          element: <CancelPage />
+        }
       ]
     }
   ]
@@ -58,7 +73,7 @@ const App: React.FC = () => {
 
   return (
     <div style={{
-      fontFamily: "OpenSans, sans-serif"
+      fontFamily: "RaleWay, sans-serif"
     }}>
       {/* <Routes>
         <Route path="/" element={<Dashboard />} />
