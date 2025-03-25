@@ -15,6 +15,7 @@ import CancelPage from "./pages/Payment/Cancel";
 import Hospitals from "./pages/Hospitals";
 import SpecializationsPage from "./pages/Specializations";
 import HospitalDetails from "./pages/HospitalDetails";
+import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
 
@@ -78,7 +79,11 @@ const App: React.FC = () => {
         },
         {
           path: "/hospital/:id",
-          element: <HospitalDetails/>
+          element: <HospitalDetails />
+        },
+        {
+          path: "*",
+          element: <NotFound />
         }
       ]
     }

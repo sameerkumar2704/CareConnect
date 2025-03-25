@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Hospital, Specialty } from "../model/user.model";
 import { API_URL } from "../utils/contants";
 import SpecialtyCard from "../components/Cards/Speciality";
 import HospitalCard from "../components/Cards/Hospital";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [doctors, setDoctos] = useState<Hospital[]>([]);
   const [specialists, setSpecialists] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,6 +65,33 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <div className="p-8 md:p-12 bg-gray-100">
+        {/* Browse by Hospital */}
+        <div className="flex flex-col py-12 gap-2">
+          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
+          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
+          <h6 className="text-center text-lg text-gray-600 mt-4">
+            Find the right medical assurance by browsing through our hospitals.
+          </h6>
+        </div>
+        {loading && <LoadingSpinner />}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 md:px-4 md:px-12 py-8">
+          {!loading && doctors &&
+            doctors.map((hospital) => (
+              <HospitalCard
+                key={hospital.id}
+                id={hospital.id} // Pass hospital ID for navigation
+                specialities={hospital.specialities}
+                parentName={hospital.name}
+                description={hospital.phone}
+                email={hospital.email}
+                image={"/Services/Hospital.jpg"}
+              />
+            ))}
+
+        </div>
+      </div>
+
       <div className="p-8 md:p-12">
         {/* Browse by Specialty */}
         <div className="flex flex-col gap-2">
@@ -76,37 +102,17 @@ const Dashboard = () => {
             specialties.
           </h6>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
-          {!loading &&
+        {loading && <LoadingSpinner />}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12 md:py-8">
+          {!loading && specialists &&
             specialists.map((specialty) => (
-              <SpecialtyCard key={specialty.id} name={specialty.name} description={specialty.description} />
+              <SpecialtyCard key={specialty.id} id={specialty.id} name={specialty.name} description={specialty.description} />
             ))}
+
         </div>
       </div>
 
-      <div className="p-8 md:p-12 bg-gray-100">
-        {/* Browse by Hospital */}
-        <div className="flex flex-col py-12 gap-2">
-          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
-          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
-          <h6 className="text-center text-lg text-gray-600 mt-4">
-            Find the right medical assurance by browsing through our hospitals.
-          </h6>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-12 py-8">
-          {!loading &&
-            doctors.map((hospital) => (
-              <HospitalCard
-                key={hospital.id}
-                id={hospital.id} // Pass hospital ID for navigation
-                specialities={hospital.specialities}
-                parentName={hospital.name}
-                description={hospital.phone}
-                onReadMore={() => navigate(`/hospital/${hospital.id}`)} // Read More button action
-              />
-            ))}
-        </div>
-      </div>
+
     </div>
   );
 };
