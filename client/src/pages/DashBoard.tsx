@@ -81,7 +81,7 @@ const Dashboard = () => {
               <HospitalCard
                 key={hospital.id}
                 id={hospital.id} // Pass hospital ID for navigation
-                specialities={hospital.specialities}
+                // specialities={hospital.specialities}
                 parentName={hospital.name}
                 description={hospital.phone}
                 email={hospital.email}

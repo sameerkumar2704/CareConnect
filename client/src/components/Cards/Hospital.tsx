@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Specialty } from "../../model/user.model";
+// import { Specialty } from "../../model/user.model";
 
 const HospitalCard = ({
     id,
     parentName,
     description,
-    specialities,
+    // specialities,
     email,
     image, // Added image prop
 }: {
     id: string;
     parentName: string;
     description: string;
-    specialities: Specialty[];
+    // specialities: Specialty[];
     email: string;
     image: string; // Image URL
 }) => {
