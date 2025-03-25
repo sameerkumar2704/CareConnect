@@ -6,10 +6,10 @@ const features = [
 ];
 
 const teamMembers = [
-    { name: "Harshit Singla", image: "src/images/placeholder-male.jpg" },
-    { name: "Sameer Kumar", image: "src/images/placeholder-male.jpg" },
-    { name: "Karan Kapoor", image: "src/images/placeholder-male.jpg" },
-    { name: "Harshit Behal", image: "src/images/placeholder-male.jpg" }
+    { name: "Harshit Singla", image: "../src/images/placeholder-male.jpg" },
+    { name: "Sameer Kumar", image: "../src/images/placeholder-male.jpg" },
+    { name: "Karan Kapoor", image: "../src/images/placeholder-male.jpg" },
+    { name: "Harshit Behal", image: "../src/images/placeholder-male.jpg" }
 ];
 
 const About = () => {
