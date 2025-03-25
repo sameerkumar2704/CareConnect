@@ -65,6 +65,26 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <div className="p-8 md:p-12">
+        {/* Browse by Specialty */}
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Services</h1>
+          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Specialty</h2>
+          <h6 className="text-center text-lg text-gray-600 mt-4">
+            Find the right professional for your needs by browsing through our
+            specialties.
+          </h6>
+        </div>
+        {loading && <LoadingSpinner />}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12 md:py-8">
+          {!loading && specialists &&
+            specialists.map((specialty) => (
+              <SpecialtyCard key={specialty.id} id={specialty.id} name={specialty.name} description={specialty.description} />
+            ))}
+
+        </div>
+      </div>
+
       <div className="p-8 md:p-12 bg-gray-100">
         {/* Browse by Hospital */}
         <div className="flex flex-col py-12 gap-2">
@@ -92,25 +112,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="p-8 md:p-12">
-        {/* Browse by Specialty */}
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Services</h1>
-          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Specialty</h2>
-          <h6 className="text-center text-lg text-gray-600 mt-4">
-            Find the right professional for your needs by browsing through our
-            specialties.
-          </h6>
-        </div>
-        {loading && <LoadingSpinner />}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12 md:py-8">
-          {!loading && specialists &&
-            specialists.map((specialty) => (
-              <SpecialtyCard key={specialty.id} id={specialty.id} name={specialty.name} description={specialty.description} />
-            ))}
 
-        </div>
-      </div>
 
 
     </div>
