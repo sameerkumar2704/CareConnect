@@ -8,7 +8,7 @@ const ServiceCard = ({ title, description, image, link }: { title: string, descr
     }} className="cursor-pointer rounded-lg max-w-sm">
       <div className="overflow-hidden rounded-xl shadow-lg bg-white">
         <div className="py-6 px-4">
-          <h2 className="text-2xl text-center font-semibold text-gray-900">
+          <h2 className="text-3xl text-center font-semibold text-gray-900">
             {title}
           </h2>
         </div>
