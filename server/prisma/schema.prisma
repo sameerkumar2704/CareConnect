@@ -50,6 +50,7 @@ model Hospital {
   reports       Report[]
   ratings       Ratings[]
   locationId    String
+  fees          Int
 }
 
 model Speciality {

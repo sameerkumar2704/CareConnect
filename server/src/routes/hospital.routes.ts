@@ -116,7 +116,7 @@ router.post("/register", async (req, res) => {
                 locationId: location.id,
                 parentId: hospitalID || null,
             },
-            include: { specialities: true, parent: true },
+            include: { parent: true },
         });
 
         console.log("Created Hospital :=", hospital);
