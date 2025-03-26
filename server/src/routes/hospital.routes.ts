@@ -115,6 +115,7 @@ router.post("/register", async (req, res) => {
                 ...hospitalData,
                 locationId: location.id,
                 parentId: hospitalID || null,
+                fees: 1000,
             },
             include: { parent: true },
         });
@@ -142,17 +143,30 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-    const { email, password } = req.body;
+    const { email, phone, password } = req.body;
 
-    if (!email || !password) {
-        res.status(400).send({ error: "Email and Password are required" });
+    if (!email && !phone) {
+        res.status(400).send({ error: "Email or Phone is required" });
+        return;
+    }
+
+    if (!password) {
+        res.status(400).send({ error: "Password are required" });
         return;
     }
 
     try {
-        const hospital = await prisma.hospital.findUnique({
-            where: { email: email },
-        });
+        let hospital = null;
+
+        if (email || email === "") {
+            hospital = await prisma.hospital.findUnique({
+                where: { email: email },
+            });
+        } else {
+            hospital = await prisma.hospital.findUnique({
+                where: { phone: phone },
+            });
+        }
 
         if (!hospital) {
             res.status(404).send({ error: "Hospital not found" });

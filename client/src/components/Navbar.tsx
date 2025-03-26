@@ -22,9 +22,7 @@ const Navbar = () => {
 
   const { user, setUser, loading, admin, setAdmin } = auth;
 
-  useEffect(() => {
-    setUser(user);
-  }, [user])
+  console.log("User", user);
 
   return (
     <div>

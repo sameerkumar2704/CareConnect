@@ -151,104 +151,104 @@ router.post("/login", async (req, res) => {
     reqS("login user");
 
     try {
-        const { email, phone, password } = req.body;
-
-        let { longitude, latitude } = req.body;
+        const { email, phone, password, longitude, latitude } = req.body;
 
         if (!phone && !email) {
-            throw new Error("Atleast one of Phone or Email is Required");
+            res.status(400).json({ error: "At least one of Phone or Email is required" });
         }
 
         if (!password) {
-            throw new Error("Password is Required");
+            res.status(400).json({ error: "Password is required" });
         }
 
-        console.log("Email := ", email);
-        console.log("Password := ", password);
-
-        if (!longitude || !latitude) {
-            throw new Error("Latitude and Longitude are Required");
+        if (longitude === undefined || latitude === undefined) {
+            res.status(400).json({ error: "Latitude and Longitude are required" });
         }
 
-        longitude = new Decimal(longitude);
-        latitude = new Decimal(latitude);
+        const longDecimal = new Decimal(longitude);
+        const latDecimal = new Decimal(latitude);
 
-        console.log("Latitude := ", latitude);
-        console.log("Longitude := ", longitude);
+        console.log("Email:", email);
+        console.log("Password:", password);
+        console.log("Latitude:", latDecimal);
+        console.log("Longitude:", longDecimal);
 
         let location = await prisma.location.findFirst({
             where: {
-                longitude: longitude,
-                latitude: latitude,
+                longitude: longDecimal,
+                latitude: latDecimal,
             },
         });
 
-        // Either email or Phone anyone should be there
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [{ email: email }, { phone: phone }],
-            },
-        });
+        // Find user by email or phone
+        let user = null;
 
-        console.log("User := ", user);
-
-        if (!user) {
-            throw new Error("User Not Found");
+        if (!email || email.trim() === "") {
+            user = await prisma.user.findFirst({ where: { phone } });
+        } else {
+            user = await prisma.user.findFirst({ where: { email } });
         }
 
-        console.log("Location If Already There :=", location);
+        console.log("User:", user);
+
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+
+        console.log("Existing Location:", location);
 
         if (!location) {
             location = await prisma.location.create({
                 data: {
-                    longitude: longitude,
-                    latitude: latitude,
+                    longitude: longDecimal,
+                    latitude: latDecimal,
                 },
             });
 
-            console.log("Location Created :=", location);
+            console.log("New Location Created:", location);
 
-            const prevLocation = await prisma.location.findFirst({
-                where: { id: user.locationId },
-            });
+            if (user.locationId) {
+                const prevLocation = await prisma.location.findFirst({
+                    where: { id: user.locationId },
+                });
 
-            if (!prevLocation) {
-                throw new Error("Previous location not found");
+                if (prevLocation) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { locationId: location.id },
+                    });
+
+                    await prisma.location.deleteMany({
+                        where: { id: prevLocation.id },
+                    });
+
+                    console.log("Previous Location Deleted");
+                }
             }
-
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { locationId: location.id },
-            });
-
-            await prisma.location.deleteMany({
-                where: { id: prevLocation.id },
-            });
-
-            console.log("Previous Location Deleted");
         }
 
         const isMatch = await comparePassword(password, user.password);
 
         if (!isMatch) {
-            throw new Error("Invalid Credentials");
+            res.status(401).json({ error: "Invalid credentials" });
         }
 
         const token = await generateToken({ id: user.id });
 
-        console.log("Generated Token :=", token);
+        console.log("Generated Token:", token);
 
-        res.status(200).send({ token });
+        res.status(200).json({ token, user });
     } catch (error) {
         reqS("error");
-
         reqER(error as Error);
-
-        sendError(res, error as Error);
+        console.error("Error in /login:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 
     reqE();
 });
+
 
 router.post("/verify", async (req, res) => {
     reqS("verify user");

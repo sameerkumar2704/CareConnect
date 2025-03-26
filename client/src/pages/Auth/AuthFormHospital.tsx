@@ -59,70 +59,95 @@ const AuthFormHospital = () => {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setLoading(true);
 
-        e.preventDefault();
+        try {
+            // Validation checks before API call
+            if (!formData.phone && !formData.email) {
+                alert("Either Mobile number or Email is required");
+                setLoading(false);
+                return;
+            }
 
-        if (!formData.phone && !formData.email) {
-            alert("Either Mobile number or Email is required");
-            setLoading(false);
-            return;
+            if (isSignUp && (!formData.phone || formData.phone.trim() === "")) {
+                alert("Mobile number is required");
+                setLoading(false);
+                return;
+            }
+
+            if (isSignUp && formData.password !== formData.confirmPassword) {
+                alert("Passwords do not match");
+                setLoading(false);
+                return;
+            }
+
+            if (!isHospital && (!formData.hospital || formData.hospital.trim() === "")) {
+                alert("Please select a hospital");
+                setLoading(false);
+                return;
+            }
+
+            // Fetch user location
+            let location;
+            try {
+                location = await getHighlyAccurateLocation();
+            } catch (error) {
+                alert("Failed to retrieve location. Please enable GPS and try again.");
+                setLoading(false);
+                return;
+            }
+
+            const updatedFormData = {
+                ...formData,
+                latitude: location.lat,
+                longitude: location.lon
+            };
+
+            let response;
+
+            try {
+                response = isSignUp
+                    ? await axios.post(`${API_URL}/hospitals/register`, updatedFormData)
+                    : await axios.post(`${API_URL}/hospitals/login`, updatedFormData);
+            } catch (error) {
+                console.error("API Error:", error);
+
+                if (axios.isAxiosError(error)) {
+                    const message = error.response?.data?.error || "An unexpected error occurred.";
+                    alert(message);
+                } else {
+                    alert("An error occurred. Please try again.");
+                }
+
+                setLoading(false);
+                return;
+            }
+
+            // Handle API response
+            if ((isSignUp && response.status !== 201) || (!isSignUp && response.status !== 200)) {
+                alert(response.data?.error || "An unexpected error occurred.");
+                setLoading(false);
+                return;
+            }
+
+            alert(isSignUp ? "Account created successfully" : "Logged in successfully");
+            console.log("User Data:", response.data);
+
+            // Reset form state
+            setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
+            setUser(response.data.token);
+            localStorage.setItem("eWauthToken", response.data.token);
+            navigate("/");
+
+        } catch (error) {
+            alert("An unexpected error occurred. Please try again.");
+            console.error(error);
         }
 
-        if (!formData.name || formData.name === "") {
-            alert("Name is required");
-            setLoading(false);
-            return;
-        }
-
-        if (isSignUp && (!formData.phone || formData.phone === "")) {
-            alert("Mobile number is required");
-            setLoading(false);
-            return;
-        }
-
-        if (isSignUp && formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match");
-            setLoading(false);
-            return;
-        }
-
-        if (!isHospital && !formData.hospital) {
-            alert("Please select a hospital");
-            setLoading(false);
-            return;
-        }
-
-        const location = await getHighlyAccurateLocation();
-
-        const updatedFormData = { ...formData, latitude: location.lat, longitude: location.lon };
-
-        const response = isSignUp ? await axios.post(`${API_URL}/hospitals/register`, updatedFormData)
-            : await axios.post(`${API_URL}/hospitals/login`, updatedFormData);
-
-
-
-        if (!isSignUp && response.status !== 200) {
-            alert(response.data.error);
-            setLoading(false);
-            return;
-        }
-
-        if (isSignUp && response.status !== 201) {
-            alert(response.data.error);
-            setLoading(false);
-            return;
-        }
-
-        alert(isSignUp ? "Account created successfully" : "Logged in successfully");
-        setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
         setLoading(false);
-        console.log(response.data);
-        navigate("/");
-        setUser(response.data.user);
-        localStorage.setItem("eWauthToken", response.data.token);
-        window.location.reload();
     };
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4 py-8">
@@ -273,7 +298,7 @@ const AuthFormHospital = () => {
                         type="submit"
                         className="w-full bg-[#00979D] hover:bg-[#007D80] text-white font-semibold py-3 rounded-md transition duration-300"
                     >
-                        {isSignUp ? "Sign Up" : "Login"}
+                        {loading ? "Please Wait..." : (isSignUp ? "Sign Up" : "Login")}
                     </button>
                 </form>
 

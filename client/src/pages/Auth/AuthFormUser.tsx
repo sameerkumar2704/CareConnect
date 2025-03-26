@@ -44,41 +44,49 @@ const AuthFormUser = () => {
             return;
         }
 
-        const location = await getHighlyAccurateLocation();
-
-        const updatedFormData = { ...formData, latitude: location.lat, longitude: location.lon };
-
-        let response = null;
-
         try {
-            response = isSignUp ? await axios.post(`${API_URL}/users/register`, updatedFormData) : await axios.post(`${API_URL}/users/login`, updatedFormData);
+            const location = await getHighlyAccurateLocation();
+            const updatedFormData = { ...formData, latitude: location.lat, longitude: location.lon };
+
+            let response = null;
+            if (isSignUp) {
+                response = await axios.post(`${API_URL}/users/register`, updatedFormData);
+            } else {
+                response = await axios.post(`${API_URL}/users/login`, updatedFormData);
+            }
+
+            if (!isSignUp && response.status !== 200) {
+                alert(response.data.error || "Login failed. Please try again.");
+                setLoading(false);
+                return;
+            }
+
+            if (isSignUp && response.status !== 201) {
+                alert(response.data.error || "Account creation failed. Please try again.");
+                setLoading(false);
+                return;
+            }
+
+            alert(isSignUp ? "Account created successfully" : "Logged in successfully");
+            setUser(response.data.user);
+            localStorage.setItem("eWauthToken", response.data.token);
+            navigate("/");
         } catch (error) {
-            console.error(error);
-            alert(error);
             setLoading(false);
-            return;
-        }
-        if (!isSignUp && response.status !== 200) {
-            alert(response.data.error);
-            setLoading(false);
-            return;
-        }
 
-        if (isSignUp && response.status !== 201) {
-            alert(response.data.error);
-            setLoading(false);
-            return;
-        }
+            let errorMessage = "An unexpected error occurred. Please try again.";
 
-        alert(isSignUp ? "Account created successfully" : "Logged in successfully");
-        setLoading(false);
-        console.log(response.data);
-        console.log(response.data);
-        navigate("/");
-        setUser(response.data.user);
-        localStorage.setItem("eWauthToken", response.data.token);
-        window.location.reload();
+            if (axios.isAxiosError(error)) {
+                errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            console.error("Error:", error);
+            alert(errorMessage);
+        }
     };
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4">
@@ -182,7 +190,7 @@ const AuthFormUser = () => {
                         type="submit"
                         className="w-full bg-[#00979D] hover:bg-[#007D80] text-white font-semibold py-3 rounded-md transition duration-300"
                     >
-                        {isSignUp ? "Sign Up" : "Login"}
+                        {loading ? "Please Wait..." : (isSignUp ? "Sign Up" : "Login")}
                     </button>
                 </form>
 
