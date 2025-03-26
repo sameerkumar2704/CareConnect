@@ -158,13 +158,13 @@ router.post("/login", async (req, res) => {
     try {
         let hospital = null;
 
-        if (email || email === "") {
+        if (email) {
             hospital = await prisma.hospital.findUnique({
-                where: { email: email },
+                where: { email },
             });
-        } else {
+        } else if (phone) {
             hospital = await prisma.hospital.findUnique({
-                where: { phone: phone },
+                where: { phone },
             });
         }
 
