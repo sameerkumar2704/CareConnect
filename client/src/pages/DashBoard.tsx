@@ -57,7 +57,7 @@ const Dashboard = () => {
           <input
             type="text"
             placeholder="Search doctors, specialists, or services..."
-            className="w-full text-white px-3 md:px-6 py-3 border-2 border-white rounded-l-full focus:outline-none text-sm md:text-lg"
+            className="w-full max-w-2xl text-white px-3 md:px-6 py-3 border-2 border-white rounded-l-full focus:outline-none text-sm md:text-lg"
           />
           <button className="bg-white text-[#4fadb1] px-3 md:px-6 md:py-3 rounded-r-full text-sm md:text-lg hover:bg-gray-100 cursor-pointer transition">
             Search
