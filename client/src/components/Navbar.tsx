@@ -26,7 +26,7 @@ const Navbar = () => {
     <div>
       {/* Top Contact Bar */}
       <div className="bg-[#00ADB5] flex flex-wrap items-center text-white py-4 px-6 justify-center md:justify-between">
-        <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start">
+        <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start">
           <div className="flex items-center gap-2">
             <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faPhone} />
             <p className="text-sm md:text-base">+91234567890</p>
@@ -96,7 +96,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden flex flex-col gap-4 font-semibold text-xl bg-white shadow-lg rounded-lg p-4">
+          <div className="md:hidden flex flex-col gap-4 font-semibold text-md bg-white shadow-lg rounded-lg p-4">
             <Link to="/" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Home</Link>
             <Link to="/about" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>About</Link>
             <Link to="/services" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Services</Link>

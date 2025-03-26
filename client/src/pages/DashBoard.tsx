@@ -44,12 +44,12 @@ const Dashboard = () => {
   return (
     <div className="bg-gray-50">
       {/* Hero Section with Search */}
-      <div className="bg-gradient-to-r from-cyan-700 via-teal-500 to-blue-300 text-center py-16 px-6 flex flex-col gap-8">
+      <div className="bg-gradient-to-r from-cyan-700 via-teal-500 to-blue-300 text-center py-8 px-3 md:py-16 md:px-6 flex flex-col gap-8">
         <div className="flex flex-col gap-4">
-          <h1 className="text-4xl md:text-5xl font-black text-white">
+          <h1 className="text-2xl md:text-5xl font-black text-white">
             Find the Right Professional for Your Needs
           </h1>
-          <p className="text-lg text-gray-200">
+          <p className="md:text-lg text-sm text-gray-200">
             Easily book appointments with top-rated professionals in your area.
           </p>
         </div>
@@ -57,26 +57,26 @@ const Dashboard = () => {
           <input
             type="text"
             placeholder="Search doctors, specialists, or services..."
-            className="w-full max-w-2xl text-white px-6 py-3 border-2 border-white rounded-l-full focus:outline-none text-lg"
+            className="w-full text-white px-3 md:px-6 py-3 border-2 border-white rounded-l-full focus:outline-none text-sm md:text-lg"
           />
-          <button className="bg-white text-[#4fadb1] px-6 py-3 rounded-r-full text-lg hover:bg-gray-100 cursor-pointer transition">
+          <button className="bg-white text-[#4fadb1] px-3 md:px-6 md:py-3 rounded-r-full text-sm md:text-lg hover:bg-gray-100 cursor-pointer transition">
             Search
           </button>
         </div>
       </div>
 
-      <div className="p-8 md:p-12">
+      <div className="p-6 md:p-12">
         {/* Browse by Specialty */}
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Services</h1>
-          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Specialty</h2>
-          <h6 className="text-center text-lg text-gray-600 mt-4">
+          <h2 className="text-2xl md:text-5xl font-bold text-center">Browse by Specialty</h2>
+          <h6 className="text-center text-sm md:text-lg text-gray-600">
             Find the right professional for your needs by browsing through our
             specialties.
           </h6>
         </div>
         {loading && <LoadingSpinner />}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12 md:py-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12">
           {!loading && specialists &&
             specialists.map((specialty) => (
               <SpecialtyCard key={specialty.id} id={specialty.id} name={specialty.name} description={specialty.description} />
@@ -85,17 +85,17 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="p-8 md:p-12 bg-gray-100">
+      <div className="p-6 md:p-12 bg-gray-100">
         {/* Browse by Hospital */}
         <div className="flex flex-col py-12 gap-2">
           <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
-          <h2 className="text-4xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
-          <h6 className="text-center text-lg text-gray-600 mt-4">
+          <h2 className="text-2xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
+          <h6 className="text-center text-sm md:text-lg text-gray-600">
             Find the right medical assurance by browsing through our hospitals.
           </h6>
         </div>
         {loading && <LoadingSpinner />}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 md:px-4 md:px-12 py-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 md:px-12 md:py-8">
           {!loading && doctors &&
             doctors.map((hospital) => (
               <HospitalCard

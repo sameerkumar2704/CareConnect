@@ -40,11 +40,11 @@ const HospitalCard = ({
             <img
                 src={image}
                 alt={parentName}
-                className="w-full h-15 md:h-40 object-cover rounded-lg"
+                className="w-full h-20 md:h-40 object-cover rounded-lg"
             />
 
             {/* Hospital Name */}
-            <p className="text-[0.75rem] md:text-xl font-semibold duration-100 group-hover:text-white">
+            <p className="text-[0.9rem] md:text-xl font-semibold duration-100 group-hover:text-white">
                 {parentName.charAt(0).toUpperCase() + parentName.slice(1)}
             </p>
 
@@ -79,7 +79,7 @@ const HospitalCard = ({
                     overflow: isExpanded ? "visible" : "hidden",
                     textOverflow: "ellipsis",
                 }}
-                className="text-gray-600 text-[0.6rem] md:text-base duration-100 group-hover:text-white"
+                className="text-gray-600 text-[0.7rem] md:text-base duration-100 group-hover:text-white"
             >
                 {description}
             </p>
@@ -94,7 +94,7 @@ const HospitalCard = ({
                     overflow: isExpanded ? "visible" : "hidden",
                     textOverflow: "ellipsis",
                 }}
-                className="text-gray-600 text-[0.45rem] md:text-base duration-100 group-hover:text-white"
+                className="text-gray-600 text-[0.7rem] md:text-base duration-100 group-hover:text-white"
             >
                 {email}
             </p>
@@ -102,7 +102,7 @@ const HospitalCard = ({
             {/* Read More Section */}
             <p
                 onClick={handleReadMoreClick}
-                className="text-[#20b2b7] text-[0.65rem] md:text-base font-semibold flex items-center relative z-10 duration-100 group-hover:text-white cursor-pointer"
+                className="text-[#20b2b7] text-[0.75rem] md:text-base font-semibold flex items-center relative z-10 duration-100 group-hover:text-white cursor-pointer"
             >
                 {isExpanded ? "Show Less" : "Read More →"}
             </p>
