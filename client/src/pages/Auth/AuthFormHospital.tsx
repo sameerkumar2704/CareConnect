@@ -3,12 +3,18 @@ import { API_URL } from "../../utils/contants";
 import { Hospital } from "../../model/user.model";
 import axios from "axios";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope, faEye, faEyeSlash, faHospital, faLock, faPhone, faUserDoctor } from "@fortawesome/free-solid-svg-icons";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const AuthFormHospital = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
     const [isHospital, setIsHospital] = useState<boolean>(true);
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>("");
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [disabled, setDisabled] = useState<boolean>(false);
     const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
 
     useEffect(() => {
@@ -16,43 +22,61 @@ const AuthFormHospital = () => {
     }, []);
 
     const fetchHospitals = async (query: string) => {
+        setLoading(true);
         try {
             const { data } = await axios.get(`${API_URL}/hospitals?search=${query}`);
             setHospitals(data.slice(0, 10));
         } catch (error) {
             console.error("Error fetching hospitals", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+
+        if (e.target.name == "hospital") {
+
+            if (disabled) return;
+
+            setDisabled(true);
+        }
+
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+
         e.preventDefault();
 
         if (!formData.phone && !formData.email) {
             alert("Either Mobile number or Email is required");
+            setLoading(false);
             return;
         }
 
         if (!formData.name || formData.name === "") {
             alert("Name is required");
+            setLoading(false);
             return;
         }
 
         if (isSignUp && (!formData.phone || formData.phone === "")) {
             alert("Mobile number is required");
+            setLoading(false);
             return;
         }
 
         if (isSignUp && formData.password !== formData.confirmPassword) {
             alert("Passwords do not match");
+            setLoading(false);
             return;
         }
 
         if (!isHospital && !formData.hospital) {
             alert("Please select a hospital");
+            setLoading(false);
             return;
         }
 
@@ -67,17 +91,19 @@ const AuthFormHospital = () => {
 
         if (!isSignUp && response.status !== 200) {
             alert(response.data.error);
+            setLoading(false);
             return;
         }
 
         if (isSignUp && response.status !== 201) {
             alert(response.data.error);
+            setLoading(false);
             return;
         }
 
         alert(isSignUp ? "Account created successfully" : "Logged in successfully");
         setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
-
+        setLoading(false);
     };
 
     return (
@@ -118,6 +144,8 @@ const AuthFormHospital = () => {
                             required
                             className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                         />
+                        <FontAwesomeIcon icon={isHospital ? faHospital : faUserDoctor} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
                     </div>}
 
                     {/* Mobile and Email Section */}
@@ -132,6 +160,8 @@ const AuthFormHospital = () => {
                                 onChange={handleChange}
                                 className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             />
+                            <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
                         </div>
                         <div className="flex items-center justify-center my-2">
                             <div className="w-full border-b border-gray-300"></div>
@@ -147,6 +177,7 @@ const AuthFormHospital = () => {
                                 onChange={handleChange}
                                 className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             />
+                            <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
                     </div>
 
@@ -170,8 +201,8 @@ const AuthFormHospital = () => {
                                 onChange={handleChange}
                                 className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             >
-                                <option value="">Select a hospital</option>
-                                {hospitals.length > 0 ? (
+                                <option disabled={disabled} value="">Select a hospital</option>
+                                {!loading && hospitals.length > 0 ? (
                                     hospitals.map((hospital) => (
                                         <option key={hospital.id} value={hospital.id}>{hospital.name}</option>
                                     ))
@@ -179,18 +210,19 @@ const AuthFormHospital = () => {
                                     <option disabled>No Hospital found</option>
                                 )}
                             </select>
-                            {hospitals.length === 0 && (
+                            {!loading && hospitals.length === 0 && (
                                 <p className="text-red-500 text-sm mt-2">
                                     No Hospital found. Please register your hospital first.
                                 </p>
                             )}
+                            {loading && <LoadingSpinner />}
                         </div>
                     )}
 
                     {/* Password Fields */}
                     <div className="relative">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="Password"
                             value={formData.password}
@@ -198,11 +230,13 @@ const AuthFormHospital = () => {
                             required
                             className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                         />
+                        <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" />
                     </div>
                     {isSignUp && (
                         <div className="relative">
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="confirmPassword"
                                 placeholder="Confirm Password"
                                 value={formData.confirmPassword}
@@ -210,7 +244,10 @@ const AuthFormHospital = () => {
                                 required
                                 className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             />
+                            <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" />
                         </div>
+
                     )}
 
                     {/* Submit Button */}
@@ -227,13 +264,14 @@ const AuthFormHospital = () => {
                     {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                     <button
                         onClick={() => setIsSignUp(!isSignUp)}
+                        disabled={loading}
                         className="text-[#00979D] font-semibold hover:underline"
                     >
-                        {isSignUp ? "Login" : "Sign Up"}
+                        {loading ? "Please Wait..." :(isSignUp ? "Login" : "Sign Up")}
                     </button>
                 </p>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

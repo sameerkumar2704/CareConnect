@@ -2,9 +2,13 @@ import axios from "axios";
 import React, { useState } from "react";
 import { API_URL } from "../../utils/contants";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope, faEye, faEyeSlash, faLock, faPhone } from "@fortawesome/free-solid-svg-icons";
 
 const AuthFormUser = () => {
-    const [isSignUp, setIsSignUp] = useState(false);
+    const [isSignUp, setIsSignUp] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ email: "", phone: "", password: "", confirmPassword: "" });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -12,15 +16,18 @@ const AuthFormUser = () => {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
         e.preventDefault();
 
         if (!formData.phone && !formData.email) {
             alert("Either Mobile number or Email is required");
+            setLoading(false);
             return;
         }
 
         if (isSignUp && formData.password !== formData.confirmPassword) {
             alert("Passwords do not match");
+            setLoading(false);
             return;
         }
 
@@ -32,13 +39,19 @@ const AuthFormUser = () => {
 
         if (!isSignUp && response.status !== 200) {
             alert(response.data.error);
+            setLoading(false);
             return;
         }
 
         if (isSignUp && response.status !== 201) {
             alert(response.data.error);
+            setLoading(false);
             return;
         }
+
+        alert(isSignUp ? "Account created successfully" : "Logged in successfully");
+        setLoading(false);
+        console.log(response.data);
     };
 
     return (
@@ -75,7 +88,7 @@ const AuthFormUser = () => {
                                 onChange={handleChange}
                                 className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             />
-                            <i className="fas fa-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
 
                         {/* OR Divider */}
@@ -95,14 +108,14 @@ const AuthFormUser = () => {
                                 onChange={handleChange}
                                 className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             />
-                            <i className="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
                     </div>
 
                     {/* Password Input */}
                     <div className="relative">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="Password"
                             value={formData.password}
@@ -110,14 +123,15 @@ const AuthFormUser = () => {
                             required
                             className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                         />
-                        <i className="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" />
                     </div>
 
                     {/* Confirm Password (for Signup) */}
                     {isSignUp && (
                         <div className="relative">
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="confirmPassword"
                                 placeholder="Confirm Password"
                                 value={formData.confirmPassword}
@@ -125,7 +139,8 @@ const AuthFormUser = () => {
                                 required
                                 className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                             />
-                            <i className="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" />
                         </div>
                     )}
 
@@ -152,7 +167,7 @@ const AuthFormUser = () => {
                         onClick={() => setIsSignUp(!isSignUp)}
                         className="text-[#00979D] font-semibold hover:underline"
                     >
-                        {isSignUp ? "Login" : "Sign Up"}
+                        {loading ? "Please Wait..." : (isSignUp ? "Login" : "Sign Up")}
                     </button>
                 </p>
             </div>
