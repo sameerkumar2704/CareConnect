@@ -163,7 +163,7 @@ router.post("/login", async (req, res) => {
                 where: { email },
             });
         } else if (phone) {
-            hospital = await prisma.hospital.findUnique({
+            hospital = await prisma.hospital.findFirst({
                 where: { phone },
             });
         }
