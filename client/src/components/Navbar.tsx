@@ -22,6 +22,10 @@ const Navbar = () => {
 
   const { user, setUser, loading, admin, setAdmin } = auth;
 
+  useEffect(() => {
+    setUser(user);
+  }, [user])
+
   return (
     <div>
       {/* Top Contact Bar */}
@@ -105,22 +109,54 @@ const Navbar = () => {
 
             {/* Sign In/Logout Button for Mobile */}
             {!loading && (
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  if (user) {
-                    if (!confirm("Are you sure you want to logout?")) return;
-                    setUser(null);
-                    localStorage.removeItem("eWauthToken");
-                    alert("Logged out successfully");
-                  } else {
-                    navigate("/auth");
-                  }
-                }}
-                className="bg-[#00ADB5] text-white px-4 py-2 rounded-lg hover:shadow-lg transition duration-300"
-              >
-                {user ? "Logout" : "Sign In"}
-              </button>
+              <div className="hidden md:block">
+                {user ? (
+                  <button
+                    onClick={() => {
+                      if (!confirm("Are you sure you want to logout?")) return;
+                      setUser(null);
+                      localStorage.removeItem("eWauthToken");
+                      setAdmin(null);
+                      alert("Logged out successfully");
+                    }}
+                    className="text-white bg-[#4fadb1] px-4 py-2 rounded-lg hover:shadow-lg transition duration-300"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/auth")}
+                    className="text-white bg-[#4fadb1] px-4 py-2 rounded-lg hover:shadow-lg transition duration-300"
+                  >
+                    Sign In
+                  </button>
+                )}
+              </div>
+            )}{!loading && (
+              <div className="md:hidden block">
+                {user ? (
+                  <button
+                    onClick={() => {
+                      if (!confirm("Are you sure you want to logout?")) return;
+                      setUser(null);
+                      localStorage.removeItem("eWauthToken");
+                      setAdmin(null);
+                      alert("Logged out successfully");
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-white bg-[#4fadb1] px-4 py-2 rounded-lg hover:shadow-lg transition duration-300"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/auth")}
+                    className="w-full text-white bg-[#4fadb1] px-4 py-2 rounded-lg hover:shadow-lg transition duration-300"
+                  >
+                    Sign In
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}

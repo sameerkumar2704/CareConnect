@@ -6,6 +6,8 @@ import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faEye, faEyeSlash, faHospital, faLock, faPhone, faUserDoctor } from "@fortawesome/free-solid-svg-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/auth";
 
 const AuthFormHospital = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
@@ -16,6 +18,17 @@ const AuthFormHospital = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
+
+    const navigate = useNavigate();
+
+    const auth = useAuth();
+
+    if (!auth) {
+        console.error("Auth context not found");
+        return;
+    }
+
+    const { setUser } = auth;
 
     useEffect(() => {
         fetchHospitals("");
@@ -104,6 +117,11 @@ const AuthFormHospital = () => {
         alert(isSignUp ? "Account created successfully" : "Logged in successfully");
         setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
         setLoading(false);
+        console.log(response.data);
+        navigate("/");
+        setUser(response.data.user);
+        localStorage.setItem("eWauthToken", response.data.token);
+        window.location.reload();
     };
 
     return (
@@ -267,7 +285,7 @@ const AuthFormHospital = () => {
                         disabled={loading}
                         className="text-[#00979D] font-semibold hover:underline"
                     >
-                        {loading ? "Please Wait..." :(isSignUp ? "Login" : "Sign Up")}
+                        {loading ? "Please Wait..." : (isSignUp ? "Login" : "Sign Up")}
                     </button>
                 </p>
             </div >

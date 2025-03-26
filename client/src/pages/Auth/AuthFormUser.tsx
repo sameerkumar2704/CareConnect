@@ -4,12 +4,25 @@ import { API_URL } from "../../utils/contants";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faEye, faEyeSlash, faLock, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/auth";
 
 const AuthFormUser = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ email: "", phone: "", password: "", confirmPassword: "" });
+
+    const auth = useAuth();
+
+    if (!auth) {
+        console.error("Auth context not found");
+        return null;
+    }
+
+    const { setUser } = auth;
+
+    const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,8 +48,16 @@ const AuthFormUser = () => {
 
         const updatedFormData = { ...formData, latitude: location.lat, longitude: location.lon };
 
-        const response = isSignUp ? await axios.post(`${API_URL}/auth/user/register`, updatedFormData) : await axios.post(`${API_URL}/auth/user/login`, updatedFormData);
+        let response = null;
 
+        try {
+            response = isSignUp ? await axios.post(`${API_URL}/users/register`, updatedFormData) : await axios.post(`${API_URL}/users/login`, updatedFormData);
+        } catch (error) {
+            console.error(error);
+            alert(error);
+            setLoading(false);
+            return;
+        }
         if (!isSignUp && response.status !== 200) {
             alert(response.data.error);
             setLoading(false);
@@ -52,6 +73,11 @@ const AuthFormUser = () => {
         alert(isSignUp ? "Account created successfully" : "Logged in successfully");
         setLoading(false);
         console.log(response.data);
+        console.log(response.data);
+        navigate("/");
+        setUser(response.data.user);
+        localStorage.setItem("eWauthToken", response.data.token);
+        window.location.reload();
     };
 
     return (

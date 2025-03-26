@@ -121,10 +121,12 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
             return;
         }
         userData.password = encPass;
+        delete userData.confirmPassword;
 
         const user = await prisma.user.create({
             data: {
                 ...userData,
+                name: "User",
                 locationId: location.id,
             },
         });
@@ -153,8 +155,12 @@ router.post("/login", async (req, res) => {
 
         let { longitude, latitude } = req.body;
 
-        if (!email || !password) {
-            throw new Error("Email or Phone and Password are Required");
+        if (!phone && !email) {
+            throw new Error("Atleast one of Phone or Email is Required");
+        }
+
+        if (!password) {
+            throw new Error("Password is Required");
         }
 
         console.log("Email := ", email);
