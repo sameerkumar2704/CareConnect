@@ -115,7 +115,7 @@ router.post("/register", async (req, res) => {
                 ...hospitalData,
                 locationId: location.id,
                 parentId: hospitalID || null,
-                fees: 1000,
+                fees: Number(hospitalData.fees),
             },
             include: { parent: true },
         });

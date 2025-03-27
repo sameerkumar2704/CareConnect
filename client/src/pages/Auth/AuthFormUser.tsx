@@ -1,17 +1,20 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { API_URL } from "../../utils/contants";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faEye, faEyeSlash, faLock, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faEye, faEyeSlash, faLock, faPerson, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
+import { validateName, validatePassword, validatePhone } from "../../utils/validations";
 
 const AuthFormUser = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({ email: "", phone: "", password: "", confirmPassword: "" });
+    const [errors, setErrors] = useState<string>("");
+    const [formErrors, setFormErrors] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
+    const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
 
     const auth = useAuth();
 
@@ -20,11 +23,33 @@ const AuthFormUser = () => {
         return null;
     }
 
+    useEffect(() => {
+        if (errors === "") return;
+
+        document.getElementById("errorWin")?.scrollIntoView({ behavior: "smooth" });
+    }, [errors])
+
     const { setUser } = auth;
 
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.name == "name") {
+            setFormErrors({ ...formErrors, name: validateName(e.target.value) });
+        }
+
+        if (e.target.name == 'password') {
+            setFormErrors({ ...formErrors, password: validatePassword(e.target.value) });
+        }
+
+        if (e.target.name == 'confirmPassword') {
+            setFormErrors({ ...formErrors, confirmPassword: validatePassword(e.target.value) });
+        }
+
+        if (e.target.name == 'phone') {
+            setFormErrors({ ...formErrors, phone: validatePhone(e.target.value) });
+        }
+
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
@@ -33,13 +58,43 @@ const AuthFormUser = () => {
         e.preventDefault();
 
         if (!formData.phone && !formData.email) {
-            alert("Either Mobile number or Email is required");
+            setErrors("Either Mobile number or Email is required");
             setLoading(false);
             return;
         }
 
         if (isSignUp && formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match");
+            setErrors("Passwords do not match");
+            setLoading(false);
+            return;
+        }
+
+        if (validateName(formData.name) !== "") {
+            setErrors("Name should not contain special characters");
+            setLoading(false);
+            return;
+        }
+
+        if (validatePhone(formData.phone) !== "") {
+            setErrors("Phone number is not valid");
+            setLoading(false);
+            return;
+        }
+
+        if (validatePassword(formData.password) !== "") {
+            setErrors("Password should be at least 6 characters");
+            setLoading(false);
+            return;
+        }
+
+        if (validatePassword(formData.confirmPassword) !== "") {
+            setErrors("Password should be at least 6 characters");
+            setLoading(false);
+            return;
+        }
+
+        if (validatePhone(formData.phone) !== "") {
+            setErrors("Phone number is not valid");
             setLoading(false);
             return;
         }
@@ -47,6 +102,8 @@ const AuthFormUser = () => {
         try {
             const location = await getHighlyAccurateLocation();
             const updatedFormData = { ...formData, latitude: location.lat, longitude: location.lon };
+
+            setErrors("");
 
             let response = null;
             if (isSignUp) {
@@ -56,40 +113,40 @@ const AuthFormUser = () => {
             }
 
             if (!isSignUp && response.status !== 200) {
-                alert(response.data.error || "Login failed. Please try again.");
+                setErrors(response.data.error || "Login failed. Please try again.");
                 setLoading(false);
                 return;
             }
 
             if (isSignUp && response.status !== 201) {
-                alert(response.data.error || "Account creation failed. Please try again.");
+                setErrors(response.data.error || "Account creation failed. Please try again.");
                 setLoading(false);
                 return;
             }
 
-            alert(isSignUp ? "Account created successfully" : "Logged in successfully");
             setUser(response.data.user);
             localStorage.setItem("eWauthToken", response.data.token);
+
+            alert(isSignUp ? "Account Created, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
+
             navigate("/");
         } catch (error) {
             setLoading(false);
 
-            let errorMessage = "An unexpected error occurred. Please try again.";
-
             if (axios.isAxiosError(error)) {
-                errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-            } else if (error instanceof Error) {
-                errorMessage = error.message;
+                const message = error.response?.data?.error || "An unexpected error occurred.";
+                setErrors(message);
+            } else {
+                setErrors("An error occurred. Please try again.");
             }
 
             console.error("Error:", error);
-            alert(errorMessage);
         }
     };
 
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4 py-12">
             <div className="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-md border-t-4 border-[#00979D] animate-fadeIn">
 
                 <div className="text-center mb-6">
@@ -110,8 +167,24 @@ const AuthFormUser = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+
+                    {/* Name Input */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Full Name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
+                        />
+                        <FontAwesomeIcon icon={faPerson} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    </div>
+
                     {/* Mobile & Email Container */}
-                    <div className="border border-gray-300 p-4 rounded-md">
+                    <div className="border border-gray-300 p-4 rounded-md flex flex-col gap-1">
+
                         {/* Mobile Number Input */}
                         <div className="relative">
                             <input
@@ -144,6 +217,14 @@ const AuthFormUser = () => {
                             />
                             <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
+                        {isSignUp && <p className="text-sm text-center text-gray-500">Enter a valid email, an OTP verification is required.</p>}
+                        {
+                            formErrors.phone != "" && <small className="text-center text-red-500">{formErrors.phone}</small>
+                        }
+
+                        {
+                            formErrors.email != "" && <small className="text-center text-red-500">{formErrors.email}</small>
+                        }
                     </div>
 
                     {/* Password Input */}
@@ -184,6 +265,8 @@ const AuthFormUser = () => {
                             Forgot Password?
                         </span>
                     )}
+
+                    {errors && <div id="errorWin" className="text-red-500 text-center mt-5">{errors}</div>}
 
                     {/* Submit Button */}
                     <button

@@ -126,7 +126,6 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
         const user = await prisma.user.create({
             data: {
                 ...userData,
-                name: "User",
                 locationId: location.id,
             },
         });

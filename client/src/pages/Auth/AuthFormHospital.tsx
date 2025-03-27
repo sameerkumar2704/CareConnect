@@ -4,10 +4,11 @@ import { Hospital } from "../../model/user.model";
 import axios from "axios";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faEye, faEyeSlash, faHospital, faLock, faPhone, faUserDoctor } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faEye, faEyeSlash, faHospital, faIndianRupee, faLock, faPhone, faUserDoctor } from "@fortawesome/free-solid-svg-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
+import { validateName, validatePassword, validatePhone } from "../../utils/validations";
 
 const AuthFormHospital = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
@@ -15,9 +16,11 @@ const AuthFormHospital = () => {
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [errors, setErrors] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
-    const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
+    const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
+    const [formErrors, setFormErrors] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
 
     const navigate = useNavigate();
 
@@ -46,6 +49,12 @@ const AuthFormHospital = () => {
         }
     };
 
+    useEffect(() => {
+        if (errors === "") return;
+
+        document.getElementById("errorWin")?.scrollIntoView({ behavior: "smooth" });
+    }, [errors])
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
 
         if (e.target.name == "hospital") {
@@ -53,6 +62,22 @@ const AuthFormHospital = () => {
             if (disabled) return;
 
             setDisabled(true);
+        }
+
+        if (e.target.name == "name") {
+            setFormErrors({ ...formErrors, name: validateName(e.target.value) });
+        }
+
+        if (e.target.name == 'password') {
+            setFormErrors({ ...formErrors, password: validatePassword(e.target.value) });
+        }
+
+        if (e.target.name == 'confirmPassword') {
+            setFormErrors({ ...formErrors, confirmPassword: validatePassword(e.target.value) });
+        }
+
+        if (e.target.name == 'phone') {
+            setFormErrors({ ...formErrors, phone: validatePhone(e.target.value) });
         }
 
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,27 +88,57 @@ const AuthFormHospital = () => {
         setLoading(true);
 
         try {
-            // Validation checks before API call
-            if (!formData.phone && !formData.email) {
-                alert("Either Mobile number or Email is required");
+
+            if (!formData.phone || !formData.email) {
+                setErrors("Both Mobile number and  Email is required");
                 setLoading(false);
                 return;
             }
 
             if (isSignUp && (!formData.phone || formData.phone.trim() === "")) {
-                alert("Mobile number is required");
+                setErrors("Mobile number is required");
                 setLoading(false);
                 return;
             }
 
             if (isSignUp && formData.password !== formData.confirmPassword) {
-                alert("Passwords do not match");
+                setErrors("Passwords do not match");
                 setLoading(false);
                 return;
             }
 
             if (!isHospital && (!formData.hospital || formData.hospital.trim() === "")) {
-                alert("Please select a hospital");
+                setErrors("Please select a hospital");
+                setLoading(false);
+                return;
+            }
+
+            if (validateName(formData.name) !== "") {
+                setErrors("Name should not contain special characters");
+                setLoading(false);
+                return;
+            }
+
+            if (validatePhone(formData.phone) !== "") {
+                setErrors("Phone number is not valid");
+                setLoading(false);
+                return;
+            }
+
+            if (validatePassword(formData.password) !== "") {
+                setErrors("Password should be at least 6 characters");
+                setLoading(false);
+                return;
+            }
+
+            if (validatePassword(formData.confirmPassword) !== "") {
+                setErrors("Password should be at least 6 characters");
+                setLoading(false);
+                return;
+            }
+
+            if (validatePhone(formData.phone) !== "") {
+                setErrors("Phone number is not valid");
                 setLoading(false);
                 return;
             }
@@ -93,7 +148,7 @@ const AuthFormHospital = () => {
             try {
                 location = await getHighlyAccurateLocation();
             } catch (error) {
-                alert("Failed to retrieve location. Please enable GPS and try again.");
+                setErrors("Failed to retrieve location. Please enable GPS and Refresh the Tab.");
                 setLoading(false);
                 return;
             }
@@ -103,6 +158,8 @@ const AuthFormHospital = () => {
                 latitude: location.lat,
                 longitude: location.lon
             };
+
+            setErrors("");
 
             let response;
 
@@ -115,9 +172,9 @@ const AuthFormHospital = () => {
 
                 if (axios.isAxiosError(error)) {
                     const message = error.response?.data?.error || "An unexpected error occurred.";
-                    alert(message);
+                    setErrors(message);
                 } else {
-                    alert("An error occurred. Please try again.");
+                    setErrors("An error occurred. Please try again.");
                 }
 
                 setLoading(false);
@@ -126,22 +183,25 @@ const AuthFormHospital = () => {
 
             // Handle API response
             if ((isSignUp && response.status !== 201) || (!isSignUp && response.status !== 200)) {
-                alert(response.data?.error || "An unexpected error occurred.");
+                setErrors(response.data?.error || "An unexpected error occurred.");
                 setLoading(false);
                 return;
             }
 
-            alert(isSignUp ? "Account created successfully" : "Logged in successfully");
+            setErrors(isSignUp ? "Account created successfully" : "Logged in successfully");
             console.log("User Data:", response.data);
 
             // Reset form state
-            setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "" });
+            setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
+            setFormErrors({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
             setUser(response.data.token);
             localStorage.setItem("eWauthToken", response.data.token);
-            navigate("/");
 
+            alert(isSignUp ? "SignUp Success, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
+
+            navigate("/");
         } catch (error) {
-            alert("An unexpected error occurred. Please try again.");
+            setErrors("An unexpected error occurred. Please try again.");
             console.error(error);
         }
 
@@ -150,7 +210,7 @@ const AuthFormHospital = () => {
 
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4 py-8">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br to-[#A9E2E3] from-[#00979D] px-4 py-12">
             <div className="bg-white p-8 md:p-10 rounded-lg shadow-lg w-full max-w-md border-t-4 border-[#00979D] animate-fadeIn">
 
                 <div className="text-center mb-6">
@@ -177,7 +237,7 @@ const AuthFormHospital = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Name Section */}
-                    {isSignUp && <div className="relative">
+                    {isSignUp && <div className="relative text-center">
                         <input
                             type="text"
                             name="name"
@@ -188,11 +248,11 @@ const AuthFormHospital = () => {
                             className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                         />
                         <FontAwesomeIcon icon={isHospital ? faHospital : faUserDoctor} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-
+                        {formErrors.name && <small className="text-center text-red-500">{formErrors.name}</small>}
                     </div>}
 
                     {/* Mobile and Email Section */}
-                    <div className="border border-gray-300 p-4 rounded-md">
+                    <div className="border border-gray-300 p-4 rounded-md flex flex-col gap-4">
 
                         <div className="relative">
                             <input
@@ -206,11 +266,11 @@ const AuthFormHospital = () => {
                             <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
 
                         </div>
-                        <div className="flex items-center justify-center my-2">
+                        {/* <div className="flex items-center justify-center my-2">
                             <div className="w-full border-b border-gray-300"></div>
                             <span className="px-2 text-gray-500 font-semibold">OR</span>
                             <div className="w-full border-b border-gray-300"></div>
-                        </div>
+                        </div> */}
                         <div className="relative">
                             <input
                                 type="email"
@@ -222,6 +282,15 @@ const AuthFormHospital = () => {
                             />
                             <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
+                        {isSignUp && <p className="text-sm text-center text-gray-500">Enter a valid email, an OTP verification is required.</p>}
+                        {
+                            formErrors.phone != "" && <small className="text-center text-red-500">{formErrors.phone}</small>
+                        }
+
+                        {
+                            formErrors.email != "" && <small className="text-center text-red-500">{formErrors.email}</small>
+                        }
+
                     </div>
 
                     {/* Hospital Selection */}
@@ -293,6 +362,20 @@ const AuthFormHospital = () => {
 
                     )}
 
+                    {/* Fees */}
+                    {isHospital && isSignUp && <div className="relative">
+                        <input
+                            type="number"
+                            name="fees"
+                            placeholder="Consultation Fees"
+                            value={formData.fees}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
+                        />
+                        <FontAwesomeIcon icon={faIndianRupee} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    </div>}
+
                     {/* Submit Button */}
                     <button
                         type="submit"
@@ -313,6 +396,7 @@ const AuthFormHospital = () => {
                         {loading ? "Please Wait..." : (isSignUp ? "Login" : "Sign Up")}
                     </button>
                 </p>
+                {errors && <div id="errorWin" className="text-red-500 text-center mt-5">{errors}</div>}
             </div >
         </div >
     );
