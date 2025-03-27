@@ -153,15 +153,22 @@ router.post("/login", async (req, res) => {
         const { email, phone, password, longitude, latitude } = req.body;
 
         if (!phone && !email) {
-            res.status(400).json({ error: "At least one of Phone or Email is required" });
+            res.status(400).json({
+                error: "At least one of Phone or Email is required",
+            });
+            return;
         }
 
         if (!password) {
             res.status(400).json({ error: "Password is required" });
+            return;
         }
 
         if (longitude === undefined || latitude === undefined) {
-            res.status(400).json({ error: "Latitude and Longitude are required" });
+            res.status(400).json({
+                error: "Latitude and Longitude are required",
+            });
+            return;
         }
 
         const longDecimal = new Decimal(longitude);
@@ -195,6 +202,13 @@ router.post("/login", async (req, res) => {
             return;
         }
 
+        const isMatch = await comparePassword(password, user.password);
+
+        if (!isMatch) {
+            res.status(401).json({ error: "Invalid credentials" });
+            return;
+        }
+
         console.log("Existing Location:", location);
 
         if (!location) {
@@ -218,6 +232,11 @@ router.post("/login", async (req, res) => {
                         data: { locationId: location.id },
                     });
 
+                    await prisma.user.updateMany({
+                        where: { locationId: prevLocation.id },
+                        data: { locationId: location.id },
+                    });
+
                     await prisma.location.deleteMany({
                         where: { id: prevLocation.id },
                     });
@@ -225,12 +244,6 @@ router.post("/login", async (req, res) => {
                     console.log("Previous Location Deleted");
                 }
             }
-        }
-
-        const isMatch = await comparePassword(password, user.password);
-
-        if (!isMatch) {
-            res.status(401).json({ error: "Invalid credentials" });
         }
 
         const token = await generateToken({ id: user.id });
@@ -247,7 +260,6 @@ router.post("/login", async (req, res) => {
 
     reqE();
 });
-
 
 router.post("/verify", async (req, res) => {
     reqS("verify user");

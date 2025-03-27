@@ -81,13 +81,13 @@ const AuthFormUser = () => {
             return;
         }
 
-        if (validatePassword(formData.password) !== "") {
+        if (isSignUp && validatePassword(formData.password) !== "") {
             setErrors("Password should be at least 6 characters");
             setLoading(false);
             return;
         }
 
-        if (validatePassword(formData.confirmPassword) !== "") {
+        if (isSignUp && validatePassword(formData.confirmPassword) !== "") {
             setErrors("Password should be at least 6 characters");
             setLoading(false);
             return;

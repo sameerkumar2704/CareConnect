@@ -131,7 +131,7 @@ const AuthFormHospital = () => {
                 return;
             }
 
-            if (validatePassword(formData.confirmPassword) !== "") {
+            if (isSignUp && validatePassword(formData.confirmPassword) !== "") {
                 setErrors("Password should be at least 6 characters");
                 setLoading(false);
                 return;
@@ -171,7 +171,12 @@ const AuthFormHospital = () => {
                 console.error("API Error:", error);
 
                 if (axios.isAxiosError(error)) {
-                    const message = error.response?.data?.error || "An unexpected error occurred.";
+                    let message = error.response?.data?.error || "An unexpected error occurred.";
+
+                    if (message === "Unique constraint failed") {
+                        message += " on " + error.response?.data?.field;
+                    }
+
                     setErrors(message);
                 } else {
                     setErrors("An error occurred. Please try again.");
