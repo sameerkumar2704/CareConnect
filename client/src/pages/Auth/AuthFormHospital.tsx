@@ -89,7 +89,7 @@ const AuthFormHospital = () => {
 
         try {
 
-            if (isSignUp && !formData.phone || !formData.email) {
+            if (isSignUp && (!formData.phone || !formData.email)) {
                 setErrors("Both Mobile number and  Email is required");
                 setLoading(false);
                 return;
@@ -145,6 +145,18 @@ const AuthFormHospital = () => {
 
             if (validatePhone(formData.phone) !== "") {
                 setErrors("Phone number is not valid");
+                setLoading(false);
+                return;
+            }
+
+            if (isHospital && isSignUp && (formData.fees === "" || isNaN(Number(formData.fees)))) {
+                setErrors("Consultation fees is required and should be a number");
+                setLoading(false);
+                return;
+            }
+
+            if (isHospital && isSignUp && (Number(formData.fees) > 10000 || Number(formData.fees) < 0)) {
+                setErrors("Consultation fees should be between 0 and 10000");
                 setLoading(false);
                 return;
             }
