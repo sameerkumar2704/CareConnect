@@ -1,3 +1,5 @@
+import { faIndianRupeeSign } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // import { Specialty } from "../../model/user.model";
@@ -9,6 +11,7 @@ const HospitalCard = ({
     // specialities,
     email,
     image, // Added image prop
+    fees
 }: {
     id: string;
     parentName: string;
@@ -16,6 +19,7 @@ const HospitalCard = ({
     // specialities: Specialty[];
     email: string;
     image: string; // Image URL
+    fees: number
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const navigate = useNavigate();
@@ -33,7 +37,7 @@ const HospitalCard = ({
             style={{
                 boxShadow: "0 0 30px rgba(71, 205, 191, 0.25)",
             }}
-            className="w-full md:py-12 md:px-8 py-4 px-3 flex flex-col justify-between gap-2 md:gap-4 bg-white rounded-xl p-6 transition duration-200 cursor-pointer 
+            className="w-full py-4 px-3 flex flex-col justify-between gap-2 md:gap-4 bg-white rounded-xl p-6 transition duration-200 cursor-pointer 
                       hover:bg-[#20b2b7] hover:text-white hover:scale-105 relative overflow-hidden group"
         >
             {/* Image Section */}
@@ -97,6 +101,20 @@ const HospitalCard = ({
                 className="text-gray-600 text-[0.7rem] md:text-base duration-100 group-hover:text-white"
             >
                 {email}
+            </p>
+
+            <p
+                style={{
+                    fontFamily: "Raleway",
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: isExpanded ? "unset" : 3,
+                    overflow: isExpanded ? "visible" : "hidden",
+                    textOverflow: "ellipsis",
+                }}
+                className="text-gray-600 text-[0.7rem] md:text-base duration-100 group-hover:text-white"
+            >
+                <span className="font-semibold">Fees :- </span><FontAwesomeIcon icon={faIndianRupeeSign} className="mr-1"></FontAwesomeIcon>{fees}
             </p>
 
             {/* Read More Section */}

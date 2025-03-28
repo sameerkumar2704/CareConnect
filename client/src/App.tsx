@@ -58,7 +58,7 @@ const App: React.FC = () => {
           element: <Contact />
         },
         {
-          path: "/payment",
+          path: "/payment/:id",
           element: <PaymentPage />
         },
         {

@@ -8,7 +8,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 const Dashboard = () => {
   const [doctors, setDoctos] = useState<Hospital[]>([]);
   const [specialists, setSpecialists] = useState<Specialty[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -53,7 +53,7 @@ const Dashboard = () => {
             Easily book appointments with top-rated professionals in your area.
           </p>
         </div>
-        <div className="flex justify-center">
+        {/* <div className="flex justify-center">
           <input
             type="text"
             placeholder="Search doctors, specialists, or services..."
@@ -62,7 +62,7 @@ const Dashboard = () => {
           <button className="bg-white text-[#4fadb1] px-3 md:px-6 md:py-3 rounded-r-full text-sm md:text-lg hover:bg-gray-100 cursor-pointer transition">
             Search
           </button>
-        </div>
+        </div> */}
       </div>
 
       <div className="p-6 md:p-12">
@@ -105,6 +105,7 @@ const Dashboard = () => {
                 parentName={hospital.name}
                 description={hospital.phone}
                 email={hospital.email}
+                fees={hospital.fees}
                 image={"/Services/Hospital.jpg"}
               />
             ))}

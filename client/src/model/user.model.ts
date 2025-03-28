@@ -27,4 +27,5 @@ export interface Hospital {
     specialities: Specialty[];
     createdAt: Date;
     updatedAt: Date;
+    fees: number;
 }

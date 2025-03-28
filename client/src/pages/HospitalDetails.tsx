@@ -1,20 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { API_URL } from "../utils/contants";
 import hospitalImage from "../images/hospital.webp"; // Import the image
 import LoadingSpinner from "../components/LoadingSpinner";
 import NotFound from "./NotFound";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
-
-interface Hospital {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    locationId: string;
-    createdAt: string;
-}
+import { faEnvelope, faIndianRupee, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { Hospital } from "../model/user.model";
 
 const HospitalDetails = () => {
     const { id } = useParams<{ id: string }>();
@@ -48,16 +40,38 @@ const HospitalDetails = () => {
                 />
                 {/* Hospital Details */}
                 <h1 className="text-2xl md:text-4xl font-bold text-gray-800 text-center">{hospital.name}</h1>
-                <div className="text-sm md:text-lg text-gray-600 mt-4 space-y-2">
-                    <p><span className="font-semibold"><FontAwesomeIcon icon={faEnvelope} /> Email:</span> {hospital.email}</p>
-                    <p><span className="font-semibold"><FontAwesomeIcon icon={faPhone} />  Phone:</span> {hospital.phone}</p>
+                <div className="overflow-x-auto mt-4">
+                    <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                        <tbody>
+                            <tr className="border-b">
+                                <td className="px-6 py-4 font-semibold text-gray-700 flex items-center">
+                                    <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-gray-500" /> Email
+                                </td>
+                                <td className="px-6 py-4 text-gray-600">{hospital.email}</td>
+                            </tr>
+                            <tr className="border-b">
+                                <td className="px-6 py-4 font-semibold text-gray-700 flex items-center">
+                                    <FontAwesomeIcon icon={faPhone} className="mr-2 text-gray-500" /> Phone
+                                </td>
+                                <td className="px-6 py-4 text-gray-600">{hospital.phone}</td>
+                            </tr>
+                            <tr>
+                                <td className="px-6 py-4 font-semibold text-gray-700 flex items-center">
+                                    <FontAwesomeIcon icon={faIndianRupee} className="mr-2 text-gray-500" /> Fees
+                                </td>
+                                <td className="px-6 py-4 text-gray-600">{hospital.fees}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
                 {/* Book an Appointment Button */}
-                {/* <div className="mt-6 flex justify-center">
-                    <button className="cursor-pointer bg-[#00979D] text-white text-lg font-semibold px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:bg-[#007a7e]">
+
+                <div className="mt-6 flex justify-center">
+                    <Link to={"/payment/" + hospital.id} className="cursor-pointer bg-[#00979D] text-white text-lg font-semibold px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:bg-[#007a7e]">
                         Book an Appointment
-                    </button>
-                </div> */}
+                    </Link>
+                </div>
             </div>
         </div>
     );
