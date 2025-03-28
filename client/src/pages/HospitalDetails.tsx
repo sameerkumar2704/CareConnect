@@ -74,7 +74,7 @@ const HospitalDetails = () => {
                                 key={doctor.id}
                                 className="flex flex-col gap-2 bg-gray-200 p-4 rounded-lg shadow-md transition-all transform hover:scale-105 hover:bg-[#00979D] hover:text-white"
                             >
-                                <h3 className="text-xl font-semibold">{doctor.name}</h3>
+                                <h3 className="text-xl font-semibold">{"Dr. " + doctor.name}</h3>
                                 <p className="flex items-center"><FontAwesomeIcon icon={faPhone} className="mr-2" /> {doctor.phone}</p>
                                 <p className="flex items-center"><FontAwesomeIcon icon={faEnvelope} className="mr-2" /> {doctor.email}</p>
 

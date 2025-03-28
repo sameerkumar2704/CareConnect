@@ -68,7 +68,7 @@ const PaymentPage = () => {
                     alt="Doctor"
                     className="w-32 h-32 mb-4 rounded-full object-cover"
                 />
-                <h2 className="text-3xl font-bold">{hospital.name}</h2>
+                <h2 className="text-3xl font-bold">{"Dr. " + hospital.name}</h2>
                 {/* <p className="text-lg text-gray-600 mb-4">{hospital.}</p> */}
                 <div className="w-full flex flex-col gap-3 text-lg text-gray-700">
                     <div className="flex justify-between w-full">

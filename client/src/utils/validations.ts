@@ -6,9 +6,14 @@ export const validateName = (name: string) => {
     return "";
 };
 
-export const validateEmail = (email: string) => {
-    if (!/^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/.test(email)) {
-        return "Email is not valid";
+export const validateEmail = (value: string) => {
+    if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ||
+        value.includes("..") ||
+        value.includes("@.") ||
+        value.includes(".@")
+    ) {
+        return "Invalid email address.";
     }
 
     return "";
