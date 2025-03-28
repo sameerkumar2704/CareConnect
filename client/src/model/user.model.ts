@@ -28,4 +28,6 @@ export interface Hospital {
     createdAt: Date;
     updatedAt: Date;
     fees: number;
+    children: Hospital[];
+    parent: Hospital;
 }

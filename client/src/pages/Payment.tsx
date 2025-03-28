@@ -10,6 +10,7 @@ const PaymentPage = () => {
     const { id } = useParams<{ id: string }>();
 
     const [hospital, setHospital] = useState<Hospital | null>(null);
+    const [parentHospital, setParentHospital] = useState<Hospital | null>(null);
 
     const [loading, setLoading] = useState(false);
 
@@ -21,6 +22,7 @@ const PaymentPage = () => {
             .then((response) => response.json())
             .then((data) => {
                 setHospital(data);
+                setParentHospital(data.parent);
                 setLoading(false);
             })
             .catch((error) => {
@@ -51,7 +53,9 @@ const PaymentPage = () => {
 
     if (!hospital || hospital === undefined) return <NotFound />;
 
-    const originalPrice = hospital.fees;
+    if (!parentHospital || parentHospital === undefined) return <NotFound />;
+
+    const originalPrice = parentHospital.fees;
     const siteCompensation = originalPrice * 0.05;
     const totalAmount = originalPrice + siteCompensation;
 
@@ -74,6 +78,10 @@ const PaymentPage = () => {
                     <div className="flex justify-between w-full">
                         <span className="font-semibold">Email:</span>
                         <span>{hospital.email}</span>
+                    </div>
+                    <div className="flex justify-between w-full">
+                        <span className="font-semibold">Associated Hospital :</span>
+                        <Link className="text-[#4FADB1] underline" to={"/hospital/" + parentHospital.id} >{parentHospital.name}</Link>
                     </div>
                     <div className="flex justify-between w-full">
                         <span className="font-semibold">Today's Date:</span>
