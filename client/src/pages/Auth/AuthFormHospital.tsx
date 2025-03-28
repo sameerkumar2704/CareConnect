@@ -89,8 +89,14 @@ const AuthFormHospital = () => {
 
         try {
 
-            if (!formData.phone || !formData.email) {
+            if (isSignUp && !formData.phone || !formData.email) {
                 setErrors("Both Mobile number and  Email is required");
+                setLoading(false);
+                return;
+            }
+
+            if (!isSignUp && (!formData.phone && !formData.email)) {
+                setErrors("Mobile number or Email is required");
                 setLoading(false);
                 return;
             }
@@ -257,7 +263,7 @@ const AuthFormHospital = () => {
                     </div>}
 
                     {/* Mobile and Email Section */}
-                    <div className="border border-gray-300 p-4 rounded-md flex flex-col gap-4">
+                    <div className={`border border-gray-300 p-4 rounded-md flex flex-col gap-${isSignUp ? 4 : 0}`}>
 
                         <div className="relative">
                             <input
@@ -271,11 +277,11 @@ const AuthFormHospital = () => {
                             <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
 
                         </div>
-                        {/* <div className="flex items-center justify-center my-2">
+                        {!isSignUp && <div className="flex items-center justify-center my-2">
                             <div className="w-full border-b border-gray-300"></div>
                             <span className="px-2 text-gray-500 font-semibold">OR</span>
                             <div className="w-full border-b border-gray-300"></div>
-                        </div> */}
+                        </div>}
                         <div className="relative">
                             <input
                                 type="email"

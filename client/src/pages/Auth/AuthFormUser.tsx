@@ -27,7 +27,7 @@ const AuthFormUser = () => {
         if (errors === "") return;
 
         document.getElementById("errorWin")?.scrollIntoView({ behavior: "smooth" });
-    }, [errors])
+    }, [errors]);
 
     const { setUser } = auth;
 
@@ -57,8 +57,14 @@ const AuthFormUser = () => {
         setLoading(true);
         e.preventDefault();
 
-        if (!formData.phone && !formData.email) {
+        if (!isSignUp && (!formData.phone && !formData.email)) {
             setErrors("Either Mobile number or Email is required");
+            setLoading(false);
+            return;
+        }
+
+        if (isSignUp && (!formData.phone || !formData.email)) {
+            setErrors("Both Mobile number and Email are required");
             setLoading(false);
             return;
         }
@@ -124,17 +130,31 @@ const AuthFormUser = () => {
                 return;
             }
 
+            setLoading(false);
+
             setUser(response.data.user);
+
             localStorage.setItem("eWauthToken", response.data.token);
 
             alert(isSignUp ? "Account Created, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
 
-            navigate("/");
+            document.getElementById("sub")?.scrollIntoView({ behavior: "smooth" });
+
+
+            setTimeout(() => {
+                navigate("/");
+            }, 2000);
+
         } catch (error) {
             setLoading(false);
 
             if (axios.isAxiosError(error)) {
-                const message = error.response?.data?.error || "An unexpected error occurred.";
+                let message = error.response?.data?.error || "An unexpected error occurred.";
+
+                if (message === "Unique constraint failed") {
+                    message += " on " + error.response?.data?.field;
+                }
+
                 setErrors(message);
             } else {
                 setErrors("An error occurred. Please try again.");
@@ -166,10 +186,11 @@ const AuthFormUser = () => {
                     <div className="flex-grow border-t border-gray-300"></div>
                 </div>
 
+
                 <form onSubmit={handleSubmit} className="space-y-4">
 
                     {/* Name Input */}
-                    <div className="relative">
+                    {isSignUp && <div className="relative">
                         <input
                             type="text"
                             name="name"
@@ -180,10 +201,10 @@ const AuthFormUser = () => {
                             className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
                         />
                         <FontAwesomeIcon icon={faPerson} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    </div>
+                    </div>}
 
                     {/* Mobile & Email Container */}
-                    <div className="border border-gray-300 p-4 rounded-md flex flex-col gap-1">
+                    <div className={`border border-gray-300 p-4 rounded-md flex flex-col gap-${isSignUp ? 4 : 0}`}>
 
                         {/* Mobile Number Input */}
                         <div className="relative">
@@ -199,11 +220,11 @@ const AuthFormUser = () => {
                         </div>
 
                         {/* OR Divider */}
-                        <div className="flex items-center justify-center my-2">
+                        {!isSignUp && <div className="flex items-center justify-center my-2">
                             <div className="w-full border-b border-gray-300"></div>
                             <span className="px-2 text-gray-500 font-semibold">OR</span>
                             <div className="w-full border-b border-gray-300"></div>
-                        </div>
+                        </div>}
 
                         {/* Email Input (Optional but required if phone is empty) */}
                         <div className="relative">

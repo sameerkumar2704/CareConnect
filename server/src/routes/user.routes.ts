@@ -86,6 +86,22 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
             throw new Error("Longitude and Latitude are required.");
         }
 
+        if (!userData.password) {
+            throw new Error("Password is required.");
+        }
+
+        if (!userData.confirmPassword) {
+            throw new Error("Confirm Password is required.");
+        }
+
+        if (userData.password !== userData.confirmPassword) {
+            throw new Error("Passwords do not match.");
+        }
+
+        if (!userData.phone || !userData.email) {
+            throw new Error("Both Phone and Email are required.");
+        }
+
         const longitude = new Decimal(userData.longitude);
         const latitude = new Decimal(userData.latitude);
 
