@@ -36,5 +36,13 @@ export const validatePhone = (phone: string) => {
         return "Phone should only contain numbers";
     }
 
+    if (Number(phone) < 0) {
+        return "Phone should not be negative";
+    }
+
+    if (phone.length !== 10) {
+        return "Phone should contain 10 numbers";
+    }
+
     return "";
 };
