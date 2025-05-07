@@ -60,6 +60,15 @@ router.get("/:id", async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: id },
+            include: {
+                currLocation: true,
+                appointments: {
+                    include: {
+                        Hospital: true,
+                    },
+                },
+                ratings: true,
+            },
         });
 
         console.log("User := ", user);
@@ -289,17 +298,13 @@ router.post("/verify", async (req, res) => {
 
         console.log("ID := ", decodedAuthToken);
 
-        if (!decodedAuthToken) {
+        if (!decodedAuthToken || typeof decodedAuthToken !== "object") {
             throw new Error("Invalid Token");
         }
 
         const user = await prisma.user.findUnique({
             where: {
-                id:
-                    typeof decodedAuthToken === "object" &&
-                    "id" in decodedAuthToken
-                        ? decodedAuthToken.id
-                        : undefined,
+                id: (decodedAuthToken as jwt.JwtPayload).userId,
             },
         });
 
