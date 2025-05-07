@@ -91,6 +91,7 @@ router.post("/register", async (req, res) => {
             res.status(400).send({
                 error: "Longitude and Latitude are required.",
             });
+            return;
         }
 
         const longitude = new Decimal(hospitalData.longitude);
@@ -130,16 +131,6 @@ router.post("/register", async (req, res) => {
         });
 
         console.log("Created Hospital :=", hospital);
-
-        // Fetch parent hospital with updated children
-        if (hospitalData.hospital) {
-            const updatedParent = await prisma.hospital.findUnique({
-                where: { id: hospitalData.hospital },
-                include: { children: true },
-            });
-
-            res.status(201).send({ hospital, parent: updatedParent });
-        }
 
         const token = await generateToken({ userId: hospital.id });
 

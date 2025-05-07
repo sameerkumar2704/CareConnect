@@ -27,6 +27,7 @@ export interface Hospital {
     appointments: Appointment[];
     specialities: Specialty[];
     createdAt: Date;
+    emergencyAvailable: boolean;
     updatedAt: Date;
     fees: number;
     children: Hospital[];

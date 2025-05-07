@@ -4,8 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUser, faUpload, faDownload, faTrash,
     faEdit, faHospital, faPhone, faStar,
-    faCalendarAlt, faUserMd, faCheck, faTimes
+    faCalendarAlt, faUserMd, faCheck, faTimes,
+    faSpinner,
+    faCrosshairs,
+    faMapMarkerAlt
 } from '@fortawesome/free-solid-svg-icons';
+import { HospitalMap } from '../components/HospitalMap';
 
 // Types
 interface Doctor {
@@ -14,6 +18,7 @@ interface Doctor {
     hospital: string;
     contact: string;
     image: string;
+    location?: { lat: number; lng: number };
 }
 
 interface Appointment {
@@ -39,7 +44,38 @@ interface Rating {
 }
 
 // Left Panel Component
+// Left Panel Component
 const LeftPanel: React.FC<{ doctor: Doctor }> = ({ doctor }) => {
+    // State for storing location coordinates
+    const [location, setLocation] = React.useState(doctor.location || { lat: 40.7128, lng: -74.0060 }); // Default to NYC if no location
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    // Function to get current location
+    const getCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setIsLoading(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const newLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                setLocation(newLocation);
+                // Here you would typically update this to your backend
+                setIsLoading(false);
+            },
+            (error) => {
+                console.error("Error getting location:", error);
+                alert("Unable to retrieve your location");
+                setIsLoading(false);
+            }
+        );
+    };
+
     return (
         <div className="bg-gradient-to-b from-white to-gray-50 rounded-xl shadow-lg p-6 h-full border border-gray-100">
             {/* Top gradient header */}
@@ -121,11 +157,70 @@ const LeftPanel: React.FC<{ doctor: Doctor }> = ({ doctor }) => {
                         </button>
                     </div>
                 </div>
+
+                {/* New location section with map */}
+                <div className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-green-500">
+                    <div className="flex items-center mb-1">
+                        <div className="text-green-500 mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-gray-700 font-medium">Location</h3>
+                    </div>
+
+                    {/* Mini map display - Minimalist style */}
+                    <div className="mt-2 mb-3 h-40 bg-gray-100 rounded-lg overflow-hidden relative">
+                        {/* Light gray map background */}
+                        <div className="h-full w-full bg-gray-200">
+                            {/* Map placeholder */}
+                            <div className="absolute inset-0 bg-gray-200">
+                                <HospitalMap name='Name' position={location} />
+                            </div>
+
+                            {/* Centered red location marker */}
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                                </div>
+                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-red-500 rounded-full opacity-30"></div>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+
+                    {/* Update location button */}
+                    <div className="flex justify-end items-center mt-2">
+                        <button
+                            onClick={getCurrentLocation}
+                            disabled={isLoading}
+                            className={`flex items-center gap-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition shadow-sm hover:shadow-md ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Updating...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" className="text-white">
+                                        <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                        <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z" />
+                                    </svg>
+                                    <span>Use Current Location</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
 };
-
 // Appointments Component
 const AppointmentsComponent: React.FC<{ appointments: Appointment[] }> = ({ appointments }) => {
     return (
@@ -356,7 +451,7 @@ const DoctorDashboard: React.FC = () => {
     return (
         <div className="flex flex-col md:flex-row bg-gray-100 min-h-screen">
             {/* Left fixed panel */}
-            <div className="md:w-1/4 p-4 md:h-screen md:overflow-hidden">
+            <div className="md:w-1/4 p-4 md:overflow-hidden">
                 <LeftPanel doctor={doctor} />
             </div>
 

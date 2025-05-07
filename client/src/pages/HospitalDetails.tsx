@@ -14,12 +14,22 @@ import {
     faCalendarCheck
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital } from "../model/user.model";
+import { useAuth } from "../context/auth";
 
 const HospitalDetails = () => {
     const { id } = useParams<{ id: string }>();
     const [hospital, setHospital] = useState<Hospital | null>(null);
     const [doctors, setDoctors] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const auth = useAuth();
+
+    if (!auth) {
+        console.error("Auth context is not available.");
+        return null; // or handle the error as needed
+    }
+
+    const { user } = auth;
 
     useEffect(() => {
         fetch(`${API_URL}/hospitals/${id}`)
@@ -58,6 +68,15 @@ const HospitalDetails = () => {
                             Premier Healthcare Provider
                         </p>
                     </div>
+                    {/* Go to Profile Link */}
+                    {user && user.id === id && (
+                        <Link
+                            to={`/profile/hospital/${user.id}`}
+                            className="mt-4 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300"
+                        >
+                            Go to Profile
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -146,7 +165,7 @@ const HospitalDetails = () => {
                                     >
                                         <FontAwesomeIcon icon={faCalendarCheck} className="mr-2" />
                                         Book an Appointment
-                                    </Link> 
+                                    </Link>
                                 </div>
                             </div>
                         ))}

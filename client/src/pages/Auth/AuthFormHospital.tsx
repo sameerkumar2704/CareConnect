@@ -4,7 +4,7 @@ import { Hospital } from "../../model/user.model";
 import axios from "axios";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faEye, faEyeSlash, faHospital, faIndianRupee, faLock, faPhone, faUserDoctor } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faEye, faEyeSlash, faHospital, faIndianRupee, faLock, faPhone, faUserDoctor, faCalendarCheck, faAmbulance } from "@fortawesome/free-solid-svg-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
@@ -19,8 +19,27 @@ const AuthFormHospital = () => {
     const [errors, setErrors] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
-    const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
-    const [formErrors, setFormErrors] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        hospital: "",
+        fees: "",
+        emergency: false,
+        maxAppointments: ""
+    });
+    const [formErrors, setFormErrors] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        hospital: "",
+        fees: "",
+        maxAppointments: ""
+    });
 
     const navigate = useNavigate();
 
@@ -56,11 +75,8 @@ const AuthFormHospital = () => {
     }, [errors])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-
         if (e.target.name == "hospital") {
-
             if (disabled) return;
-
             setDisabled(true);
         }
 
@@ -80,7 +96,19 @@ const AuthFormHospital = () => {
             setFormErrors({ ...formErrors, phone: validatePhone(e.target.value) });
         }
 
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (e.target.name == 'maxAppointments') {
+            const value = e.target.value;
+            if (value === "" || parseInt(value) < 1) {
+                setFormErrors({ ...formErrors, maxAppointments: "Maximum appointments must be at least 1" });
+            } else if (parseInt(value) > 100) {
+                setFormErrors({ ...formErrors, maxAppointments: "Maximum appointments cannot exceed 100" });
+            } else {
+                setFormErrors({ ...formErrors, maxAppointments: "" });
+            }
+        }
+
+        const value = e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
+        setFormData({ ...formData, [e.target.name]: value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -88,9 +116,8 @@ const AuthFormHospital = () => {
         setLoading(true);
 
         try {
-
             if (isSignUp && (!formData.phone || !formData.email)) {
-                setErrors("Both Mobile number and  Email is required");
+                setErrors("Both Mobile number and Email is required");
                 setLoading(false);
                 return;
             }
@@ -149,7 +176,7 @@ const AuthFormHospital = () => {
                 return;
             }
 
-            if (isHospital && isSignUp && (formData.fees === "" || isNaN(Number(formData.fees)))) {
+            if (isSignUp && (formData.fees === "" || isNaN(Number(formData.fees)))) {
                 setErrors("Consultation fees is required and should be a number");
                 setLoading(false);
                 return;
@@ -157,6 +184,18 @@ const AuthFormHospital = () => {
 
             if (isHospital && isSignUp && (Number(formData.fees) > 10000 || Number(formData.fees) < 0)) {
                 setErrors("Consultation fees should be between 0 and 10000");
+                setLoading(false);
+                return;
+            }
+
+            if (!isHospital && isSignUp && (formData.maxAppointments === "" || isNaN(Number(formData.maxAppointments)))) {
+                setErrors("Maximum appointments is required and should be a number");
+                setLoading(false);
+                return;
+            }
+
+            if (!isHospital && isSignUp && (Number(formData.maxAppointments) < 1 || Number(formData.maxAppointments) > 100)) {
+                setErrors("Maximum appointments should be between 1 and 100");
                 setLoading(false);
                 return;
             }
@@ -215,8 +254,27 @@ const AuthFormHospital = () => {
             console.log("User Data:", response.data);
 
             // Reset form state
-            setFormData({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
-            setFormErrors({ name: "", email: "", phone: "", password: "", confirmPassword: "", hospital: "", fees: "" });
+            setFormData({
+                name: "",
+                email: "",
+                phone: "",
+                password: "",
+                confirmPassword: "",
+                hospital: "",
+                fees: "",
+                emergency: false,
+                maxAppointments: ""
+            });
+            setFormErrors({
+                name: "",
+                email: "",
+                phone: "",
+                password: "",
+                confirmPassword: "",
+                hospital: "",
+                fees: "",
+                maxAppointments: ""
+            });
             setUser(response.data.token);
             localStorage.setItem("eWauthToken", response.data.token);
 
@@ -382,11 +440,10 @@ const AuthFormHospital = () => {
                             <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" />
                         </div>
-
                     )}
 
-                    {/* Fees */}
-                    {isHospital && isSignUp && <div className="relative">
+                    {/* Fees for Hospital */}
+                    {isSignUp && <div className="relative">
                         <input
                             type="number"
                             name="fees"
@@ -398,6 +455,49 @@ const AuthFormHospital = () => {
                         />
                         <FontAwesomeIcon icon={faIndianRupee} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     </div>}
+
+                    {/* 24/7 Emergency Services for Hospital */}
+                    {isHospital && isSignUp && (
+                        <div className="flex items-center border border-gray-300 rounded-md p-4">
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="emergency"
+                                    name="emergency"
+                                    checked={formData.emergency}
+                                    onChange={handleChange}
+                                    className="w-5 h-5 mr-3"
+                                />
+                                <div className="flex items-center">
+                                    <FontAwesomeIcon icon={faAmbulance} className="text-gray-400 mr-2" />
+                                    <label htmlFor="emergency" className="text-gray-700 font-medium">
+                                        24/7 Emergency Services Available
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Max Appointments for Doctor */}
+                    {!isHospital && isSignUp && (
+                        <div className="relative">
+                            <input
+                                type="number"
+                                name="maxAppointments"
+                                placeholder="Maximum Appointments Per Day"
+                                value={formData.maxAppointments}
+                                onChange={handleChange}
+                                required
+                                min="1"
+                                max="100"
+                                className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00979D]"
+                            />
+                            <FontAwesomeIcon icon={faCalendarCheck} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            {formErrors.maxAppointments && (
+                                <small className="text-center text-red-500 block mt-1">{formErrors.maxAppointments}</small>
+                            )}
+                        </div>
+                    )}
 
                     {/* Submit Button */}
                     <button

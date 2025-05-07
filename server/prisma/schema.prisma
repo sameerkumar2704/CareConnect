@@ -31,26 +31,28 @@ model User {
 }
 
 model Hospital {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  name          String
-  password      String
-  parentId      String?
-  parent        Hospital?      @relation("HospitalSelfRelation", fields: [parentId], references: [id])
-  children      Hospital[]     @relation("HospitalSelfRelation")
-  specialities  Speciality[]   @relation("HospitalSpecialities")
-  phone         String         @unique
-  documents     String[]
-  currLocation  Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  timings       Timing[]       @relation("Timings")
-  appointments  Appointment[]
-  prescriptions Prescription[]
-  reports       Report[]
-  ratings       Ratings[]
-  locationId    String
-  fees          Int
+  id              String         @id @default(cuid())
+  email           String         @unique
+  name            String
+  password        String
+  parentId        String?
+  parent          Hospital?      @relation("HospitalSelfRelation", fields: [parentId], references: [id])
+  children        Hospital[]     @relation("HospitalSelfRelation")
+  specialities    Speciality[]   @relation("HospitalSpecialities")
+  phone           String         @unique
+  documents       String[]
+  currLocation    Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  timings         Timing[]       @relation("Timings")
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+  maxAppointments Int?           @default(10)
+  emergency       Boolean        @default(false)
+  reports         Report[]
+  ratings         Ratings[]
+  locationId      String
+  fees            Int
 }
 
 model Speciality {
@@ -81,8 +83,6 @@ model Timing {
   day        String
   startTime  String
   endTime    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
   Hospital   Hospital @relation("Timings", fields: [hospitalId], references: [id])
 }
 
