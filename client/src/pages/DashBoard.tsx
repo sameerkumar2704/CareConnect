@@ -8,7 +8,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 const Dashboard = () => {
   const [doctors, setDoctos] = useState<Hospital[]>([]);
   const [specialists, setSpecialists] = useState<Specialty[]>([]);
-  const [loading, setLoading] = useState(false);  
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchDoctors = async () => {

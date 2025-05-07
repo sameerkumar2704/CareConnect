@@ -64,8 +64,13 @@ router.get("/:id", async (req, res) => {
         const hospital = await prisma.hospital.findUnique({
             where: { id: id },
             include: {
-                children: true,
+                children: {
+                    include: {
+                        appointments: true,
+                    },
+                },
                 parent: true,
+                appointments: true,
             },
         });
         res.status(200).send(hospital);

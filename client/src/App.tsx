@@ -9,13 +9,16 @@ import Services from "./pages/Services";
 import Layout from "./Layout";
 import Auth from "./pages/Auth";
 import UnProtectedRoute from "./utils/routeProtection/unprotectedRoute";
-import PaymentPage from "./pages/Payment";
 import SuccessPage from "./pages/Payment/Success";
 import CancelPage from "./pages/Payment/Cancel";
 import Hospitals from "./pages/Hospitals";
 import SpecializationsPage from "./pages/Specializations";
 import HospitalDetails from "./pages/HospitalDetails";
 import NotFound from "./pages/NotFound";
+import CheckoutPage from "./pages/Checkout";
+import AppointmentDetailsPage from "./pages/Appointment";
+import ProtectedRoute from "./utils/routeProtection/protectedRoute";
+import User from "./pages/Profile/Main";
 
 const App: React.FC = () => {
 
@@ -58,8 +61,16 @@ const App: React.FC = () => {
           element: <Contact />
         },
         {
-          path: "/payment/:id",
-          element: <PaymentPage />
+          path: "/checkout/:id",
+          element: <ProtectedRoute><CheckoutPage /></ProtectedRoute>
+        },
+        {
+          path: "/appointments/:id",
+          element: <ProtectedRoute><AppointmentDetailsPage /></ProtectedRoute>
+        },
+        {
+          path: "/dashboard",
+          element: <ProtectedRoute><User /></ProtectedRoute>
         },
         {
           path: "/success",

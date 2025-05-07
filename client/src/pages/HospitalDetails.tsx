@@ -5,7 +5,14 @@ import hospitalImage from "../images/hospital.webp";
 import LoadingSpinner from "../components/LoadingSpinner";
 import NotFound from "./NotFound";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faIndianRupee, faPhone } from "@fortawesome/free-solid-svg-icons";
+import {
+    faEnvelope,
+    faIndianRupee,
+    faPhone,
+    faUserMd,
+    faMapMarkerAlt,
+    faCalendarCheck
+} from "@fortawesome/free-solid-svg-icons";
 import { Hospital } from "../model/user.model";
 
 const HospitalDetails = () => {
@@ -33,64 +40,120 @@ const HospitalDetails = () => {
     if (!hospital) return <NotFound />;
 
     return (
-        <div className="bg-gradient-to-br to-[#A9E2E3] from-[#00979D] flex justify-center items-center p-5 md:p-8">
-            <div className="w-full max-w-5xl h-max bg-white rounded-xl shadow-xl overflow-hidden">
-                {/* Hospital Image */}
-                <img src={hospitalImage} alt="Hospital" className="w-full h-96 object-cover" />
+        <div className="min-h-screen bg-gradient-to-r from-cyan-700 via-teal-500 to-blue-400">
+            {/* Hero section */}
+            <div className="relative">
+                <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
+                <img
+                    src={hospitalImage}
+                    alt="Hospital"
+                    className="w-full h-96 object-cover"
+                />
+                <div className="absolute inset-0 flex flex-col justify-center items-center text-white z-20 p-6">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center drop-shadow-lg">
+                        {hospital.name}
+                    </h1>
+                    <div className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full">
+                        <p className="text-xl text-white">
+                            Premier Healthcare Provider
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-                {/* Hospital Details */}
-                <div className="p-6">
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-6">{hospital.name}</h1>
-                    <table className="w-full bg-white shadow-md rounded-lg overflow-hidden">
-                        <tbody>
-                            <tr className="border-b">
-                                <td className="px-6 py-4 font-semibold text-gray-700 flex items-center">
-                                    <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-gray-500" /> Email
-                                </td>
-                                <td className="px-6 py-4 text-gray-600">{hospital.email}</td>
-                            </tr>
-                            <tr className="border-b">
-                                <td className="px-6 py-4 font-semibold text-gray-700 flex items-center">
-                                    <FontAwesomeIcon icon={faPhone} className="mr-2 text-gray-500" /> Phone
-                                </td>
-                                <td className="px-6 py-4 text-gray-600">{hospital.phone}</td>
-                            </tr>
-                            <tr>
-                                <td className="px-6 py-4 font-semibold text-gray-700 flex items-center">
-                                    <FontAwesomeIcon icon={faIndianRupee} className="mr-2 text-gray-500" /> Fees
-                                </td>
-                                <td className="px-6 py-4 text-gray-600">{hospital.fees}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            {/* Main content */}
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* Hospital info card */}
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-12 transform hover:shadow-2xl transition-all duration-300">
+                    <div className="p-8">
+                        <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-4 text-teal-500" />
+                            Hospital Information
+                        </h2>
+
+                        <div className="grid md:grid-cols-3 gap-6">
+                            <div className="flex items-start p-4 bg-gray-50 rounded-xl">
+                                <div className="bg-teal-100 p-3 rounded-full mr-4">
+                                    <FontAwesomeIcon icon={faEnvelope} className="text-teal-600 text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 font-medium">Email</p>
+                                    <p className="text-gray-800 font-semibold">{hospital.email}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start p-4 bg-gray-50 rounded-xl">
+                                <div className="bg-teal-100 p-3 rounded-full mr-4">
+                                    <FontAwesomeIcon icon={faPhone} className="text-teal-600 text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 font-medium">Phone</p>
+                                    <p className="text-gray-800 font-semibold">{hospital.phone}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start p-4 bg-gray-50 rounded-xl">
+                                <div className="bg-teal-100 p-3 rounded-full mr-4">
+                                    <FontAwesomeIcon icon={faIndianRupee} className="text-teal-600 text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 font-medium">Consultation Fees</p>
+                                    <p className="text-gray-800 font-semibold">{hospital.fees}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Doctors Section */}
-                <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Doctors in this Hospital</h2>
+                <div className="mb-12">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-3xl font-bold text-white flex items-center">
+                            <FontAwesomeIcon icon={faUserMd} className="mr-4 text-white" />
+                            Our Specialists
+                        </h2>
+                        <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full">
+                            <p className="text-lg text-white">
+                                {doctors.length} Doctors Available
+                            </p>
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {doctors.map((doctor) => (
                             <div
                                 key={doctor.id}
-                                className="flex flex-col gap-2 bg-gray-200 p-4 rounded-lg shadow-md transition-all transform hover:scale-105 hover:bg-[#00979D] hover:text-white"
+                                className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all transform hover:shadow-2xl hover:-translate-y-1"
                             >
-                                <h3 className="text-xl font-semibold">{"Dr. " + doctor.name}</h3>
-                                <p className="flex items-center"><FontAwesomeIcon icon={faPhone} className="mr-2" /> {doctor.phone}</p>
-                                <p className="flex items-center"><FontAwesomeIcon icon={faEnvelope} className="mr-2" /> {doctor.email}</p>
+                                <div className="bg-gradient-to-r from-teal-500 to-cyan-500 p-4">
+                                    <h3 className="text-2xl font-bold text-white">{"Dr. " + doctor.name}</h3>
+                                    <p className="text-teal-100">Specialist</p>
+                                </div>
 
-                                {/* Book Button (Ensuring it remains visible even on hover) */}
-                                <Link
-                                    to={`/payment/${doctor.id}`}
-                                    className="cursor-pointer bg-white text-[#00979D] text-md text-center font-semibold px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105"
-                                >
-                                    Book an Appointment
-                                </Link>
+                                <div className="p-6 flex flex-col gap-4">
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faPhone} className="mr-3 text-teal-500" />
+                                        <span>{doctor.phone}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faEnvelope} className="mr-3 text-teal-500" />
+                                        <span>{doctor.email}</span>
+                                    </div>
+
+                                    <Link
+                                        to={`/checkout/${doctor.id}`}
+                                        className="mt-4 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transform transition-all hover:-translate-y-1"
+                                    >
+                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-2" />
+                                        Book an Appointment
+                                    </Link> 
+                                </div>
                             </div>
-
-
                         ))}
                     </div>
                 </div>
+
+
             </div>
         </div>
     );

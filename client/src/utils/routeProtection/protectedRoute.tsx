@@ -3,7 +3,7 @@ import { useAuth } from "../../context/auth";
 import { ReactNode, useEffect } from "react";
 import Loading from "../../components/LoadingSpinner";
 
-const ProtectedRoute = ({ children }: {children: ReactNode}) => {
+const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     const auth = useAuth();
     const user = auth?.user;
     const loading = auth?.loading;
@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children }: {children: ReactNode}) => {
     useEffect(() => {
         if (!loading) {
             if (!user) {
-                navigate("/");
+                navigate("/auth");
             }
         }
     }, [user, loading, navigate]);

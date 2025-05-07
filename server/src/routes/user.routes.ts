@@ -60,6 +60,15 @@ router.get("/:id", async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: id },
+            include: {
+                currLocation: true,
+                appointments: {
+                    include: {
+                        Hospital: true,
+                    },
+                },
+                ratings: true,
+            },
         });
 
         console.log("User := ", user);
@@ -295,11 +304,7 @@ router.post("/verify", async (req, res) => {
 
         const user = await prisma.user.findUnique({
             where: {
-                id:
-                    typeof decodedAuthToken === "object" &&
-                    "id" in decodedAuthToken
-                        ? decodedAuthToken.id
-                        : undefined,
+                id: (decodedAuthToken as jwt.JwtPayload).id,
             },
         });
 
