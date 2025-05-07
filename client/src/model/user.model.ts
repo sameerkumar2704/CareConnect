@@ -4,8 +4,8 @@ export interface User {
     email: string;
     password: string;
     role: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Specialty {
@@ -24,10 +24,22 @@ export interface Hospital {
     phone: string;
     address: string;
     locationId: string;
+    appointments: Appointment[];
     specialities: Specialty[];
     createdAt: Date;
     updatedAt: Date;
     fees: number;
     children: Hospital[];
-    parent: Hospital;
+    parentId: Hospital;
+}
+
+export interface Appointment {
+    id: string;
+    userId: string;
+    hospitalId: string;
+    date: Date;
+    time: string;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
 }

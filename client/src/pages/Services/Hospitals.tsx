@@ -1,0 +1,95 @@
+import { useEffect, useState } from "react";
+import { Hospital } from "../../model/user.model";
+import { API_URL } from "../../utils/contants";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
+import HospitalCard from "../../components/Cards/Hospital";
+
+const Hospitals = () => {
+    const [hospitals, setHospitals] = useState<Hospital[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchHospitals();
+    }, []);
+
+    const fetchHospitals = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/hospitals`);
+            const data = await response.json();
+            setHospitals(data);
+        } catch (error) {
+            console.log("Error fetching hospitals:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const filteredHospitals = hospitals.filter(hospital =>
+        hospital.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-cyan-600 to-blue-500 py-16 px-6">
+                <div className="max-w-6xl mx-auto text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                        Find Top Hospitals Near You
+                    </h1>
+                    <p className="text-xl text-white text-opacity-90 max-w-3xl mx-auto mb-8">
+                        Discover premier healthcare facilities offering comprehensive medical services
+                    </p>
+
+                    <div className="flex max-w-2xl mx-auto ">
+                        <input
+                            type="text"
+                            placeholder="Search hospitals by name..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="flex-grow px-6 py-3 bg-white rounded-l-full text-gray-800 focus:outline-none"
+                        />
+                        <button className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-r-full transition-colors duration-300">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Hospitals Section */}
+            <div className="p-6 md:p-12 bg-gray-100">
+                {/* Browse by Hospital */}
+                <div className="flex flex-col py-12 gap-2">
+                    <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
+                    <h2 className="text-2xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
+                    <h6 className="text-center text-sm md:text-lg text-gray-600">
+                        Find the right medical assurance by browsing through our hospitals.
+                    </h6>
+                </div>
+                {loading && <LoadingSpinner />}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 md:px-12 md:py-8">
+                    {!loading && filteredHospitals &&
+                        filteredHospitals.map((hospital) => (
+                            <HospitalCard
+                                key={hospital.id}
+                                id={hospital.id} // Pass hospital ID for navigation
+                                // specialities={hospital.specialities}
+                                parentName={hospital.name}
+                                description={hospital.phone}
+                                email={hospital.email}
+                                fees={hospital.fees}
+                                image={"/Services/Hospital.jpg"}
+                            />
+                        ))}
+
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Hospitals;

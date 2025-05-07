@@ -7,7 +7,7 @@ const SpecialtyCard = ({ name, description, id }: { name: string; description: s
     return (
         <div
             style={{ boxShadow: "0 0 30px rgba(71, 205, 191, 0.25)" }}
-            className="md:py-12 md:px-8 py-4 px-3 flex flex-col justify-between gap-2 md:gap-4 bg-white rounded-xl p-6 transition duration-200 cursor-pointer 
+            className="shadow-2xl shadow-teal-400 md:py-12 md:px-8 py-4 px-3 flex flex-col justify-between gap-2 md:gap-4 bg-white rounded-xl p-6 transition duration-200 cursor-pointer 
                       hover:bg-[#20b2b7] hover:text-white hover:scale-105 relative overflow-hidden group">
             {/* Content Wrapper */}
             <p className="text-[0.9rem] md:text-xl font-semibold duration-100 group-hover:text-white">
