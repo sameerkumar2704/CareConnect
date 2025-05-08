@@ -15,15 +15,21 @@ const prisma = new PrismaClient();
 router.get("/", async (req, res) => {
     console.log("Fetching hospitals...");
     try {
-        const searchQuery = req.query.search as string;
+        const { emergency } = req.query;
+
+        console.log("Emergency:", emergency);
 
         const hospitals = await prisma.hospital.findMany({
-            where: searchQuery
-                ? { name: { contains: searchQuery, mode: "insensitive" } }
-                : {},
             include: { specialities: true },
-            take: 10,
+            where: emergency === "true" ? { emergency: true } : undefined,
         });
+
+        if (!hospitals) {
+            res.status(404).send({ message: "No hospitals found" });
+            return;
+        }
+
+        console.log("Hospitals fetched:", hospitals.length);
 
         res.status(200).send(hospitals);
     } catch (error) {
@@ -64,16 +70,25 @@ router.get("/:id", async (req, res) => {
         const hospital = await prisma.hospital.findUnique({
             where: { id: id },
             include: {
-                children: {
+                children: true,
+                parent: true,
+                appointments: {
                     include: {
-                        appointments: true,
+                        User: true,
+                        Hospital: true,
                     },
                 },
-                parent: true,
-                appointments: true,
+                ratings: true,
+                currLocation: true,
             },
         });
-        res.status(200).send(hospital);
+
+        console.log("Hospital fetched:", hospital);
+
+        res.status(200).send({
+            ...hospital,
+            role: hospital?.parentId ? "DOCTOR" : "HOSPITAL",
+        });
     } catch (error) {
         res.status(500).send({ error: "Something went wrong" });
     }
@@ -126,6 +141,7 @@ router.post("/register", async (req, res) => {
                 locationId: location.id,
                 parentId: hospitalID || null,
                 fees: Number(hospitalData.fees),
+                maxAppointments: Number(hospitalData.maxAppointments),
             },
             include: { parent: true },
         });
@@ -194,12 +210,70 @@ router.put("/:id", async (req, res) => {
     try {
         const hospital = await prisma.hospital.update({
             where: { id: id },
-            data: currData,
+            data: {
+                ...currData,
+                timings: currData.timings ?? undefined,
+            },
         });
 
         res.status(200).send(hospital);
     } catch (error) {
         sendError(res, error as Error);
+    }
+});
+
+router.post("/location", async (req, res) => {
+    try {
+        const { id, longitude, latitude } = req.body;
+
+        if (!longitude || !latitude) {
+            res.status(400).send({
+                error: "Longitude and Latitude are required.",
+            });
+            return;
+        }
+
+        const loc = await prisma.location.findFirst({
+            where: { longitude, latitude },
+        });
+
+        if (!loc) {
+            const location = await prisma.location.create({
+                data: { longitude, latitude },
+            });
+
+            await prisma.hospital.update({
+                where: { id },
+                data: { locationId: location.id },
+            });
+        } else {
+            await prisma.hospital.update({
+                where: { id },
+                data: { locationId: loc.id },
+            });
+        }
+
+        res.status(200).send({ message: "Location updated" });
+    } catch (error) {}
+});
+
+router.put("/date", async (req, res) => {
+    try {
+        const { id, date } = req.body;
+
+        if (!date) {
+            res.status(400).send({ error: "Date is required" });
+            return;
+        }
+
+        const hospital = await prisma.hospital.update({
+            where: { id },
+            data: { freeSlotDate: new Date(date) },
+        });
+
+        res.status(200).send(hospital); 
+    } catch (error) {
+        res.status(500).send({ error: "Something went wrong" });
     }
 });
 

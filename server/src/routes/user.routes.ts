@@ -57,12 +57,23 @@ router.get("/:id", async (req, res) => {
 
     console.log("ID := ", id);
 
+    // Get today's date at start of the day
+    const today = new Date();
+    let tommorow = new Date(today);
+    tommorow.setDate(today.getDate() + 1);
+
     try {
         const user = await prisma.user.findUnique({
             where: { id: id },
             include: {
                 currLocation: true,
                 appointments: {
+                    where: {
+                        date: {
+                            gte: today,
+                            lte: tommorow,
+                        },
+                    },
                     include: {
                         Hospital: true,
                     },
@@ -73,7 +84,7 @@ router.get("/:id", async (req, res) => {
 
         console.log("User := ", user);
 
-        res.status(200).send(user);
+        res.status(200).send({ ...user, role: "PATIENT" });
     } catch (error) {
         reqER(error as Error);
 
@@ -304,8 +315,63 @@ router.post("/verify", async (req, res) => {
 
         const user = await prisma.user.findUnique({
             where: {
-                id: (decodedAuthToken as jwt.JwtPayload).userId,
+                id:
+                    (decodedAuthToken as jwt.JwtPayload).userId ||
+                    (decodedAuthToken as jwt.JwtPayload).id,
             },
+        });
+
+        const hopital = await prisma.hospital.findUnique({
+            where: {
+                id:
+                    (decodedAuthToken as jwt.JwtPayload).userId ||
+                    (decodedAuthToken as jwt.JwtPayload).id,
+            },
+        });
+
+        console.log("User := ", user);
+        console.log("Hospital := ", hopital);
+
+        if (!user && !hopital) {
+            throw new Error("User not found");
+        }
+
+        if (user)
+            res.status(200).send({
+                ok: "Valid Token",
+                role: "PATIENT",
+                user,
+            });
+        else if (hopital)
+            res.status(200).send({
+                ok: "Valid Token",
+                role: hopital.parentId ? "DOCTOR" : "HOSPITAL",
+                hospital: hopital,
+            });
+        else {
+            res.status(401).send({ error: "Invalid Token" });
+        }
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/location", async (req, res) => {
+    try {
+        const { id, longitude, latitude } = req.body;
+
+        console.log("ID := ", id);
+
+        console.log("Longitude := ", longitude);
+
+        console.log("Latitude := ", latitude);
+
+        const user = await prisma.user.findUnique({
+            where: { id: id },
         });
 
         console.log("User := ", user);
@@ -314,17 +380,41 @@ router.post("/verify", async (req, res) => {
             throw new Error("User not found");
         }
 
-        res.status(200).send({
-            ok: "Valid Token",
-            user,
+        const longDecimal = new Decimal(longitude);
+        const latDecimal = new Decimal(latitude);
+
+        let location = await prisma.location.findFirst({
+            where: {
+                longitude: longDecimal,
+                latitude: latDecimal,
+            },
         });
+
+        console.log("Location := ", location);
+
+        if (!location) {
+            location = await prisma.location.create({
+                data: {
+                    longitude: longDecimal,
+                    latitude: latDecimal,
+                },
+            });
+            console.log("Location Created :=", location);
+        }
+
+        await prisma.user.update({
+            where: { id: id },
+            data: { locationId: location.id },
+        });
+
+        console.log("User Location Updated :=", user.id);
+
+        res.status(200).send({ message: "Location Updated" });
     } catch (error) {
         reqER(error as Error);
 
         sendError(res, error as Error);
     }
-
-    reqE();
 });
 
 router.put("/:id", async (req, res) => {
@@ -416,8 +506,6 @@ router.delete("/:id", async (req, res) => {
         console.log("ID := ", id);
 
         await prisma.appointment.deleteMany({ where: { userId: id } });
-        await prisma.prescription.deleteMany({ where: { userId: id } });
-        await prisma.report.deleteMany({ where: { userId: id } });
         await prisma.ratings.deleteMany({ where: { userId: id } });
 
         console.log("All Related Data Deleted");

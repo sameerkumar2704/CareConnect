@@ -30,12 +30,17 @@ export const createAppointment = async (
     try {
         reqS("CREATE APPOINTMENT");
 
+        const doctor = await prisma.hospital.findUnique({
+            where: { id: hospitalId },
+        });
+
+        const lastDate = doctor?.freeSlotDate || new Date();
+
         const appointment = await prisma.appointment.create({
             data: {
                 userId,
                 hospitalId,
-                date: new Date(date),
-                expiration: new Date(expiration),
+                date: lastDate,
                 paidPrice,
             },
         });
@@ -43,6 +48,21 @@ export const createAppointment = async (
         if (!appointment) {
             res.status(500).send({ message: "Failed to create appointment" });
             return;
+        }
+
+        const totalAppointments = await prisma.appointment.count({
+            where: { hospitalId },
+        });
+
+        if (totalAppointments >= (doctor?.maxAppointments || 20)) {
+            await prisma.hospital.update({
+                where: { id: hospitalId },
+                data: {
+                    freeSlotDate: new Date(
+                        lastDate.setDate(lastDate.getDate() + 1)
+                    ),
+                },
+            });
         }
 
         console.log(appointment);

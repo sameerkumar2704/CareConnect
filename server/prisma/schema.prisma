@@ -14,42 +14,39 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String?        @unique
-  name          String
-  password      String
-  phone         String         @unique
-  role          UserRole       @default(PATIENT)
-  currLocation  Location       @relation(fields: [locationId], references: [id])
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  appointments  Appointment[]
-  prescriptions Prescription[]
-  reports       Report[]
-  ratings       Ratings[]
-  locationId    String
+  id           String        @id @default(cuid())
+  email        String?       @unique
+  name         String
+  password     String
+  phone        String        @unique
+  role         UserRole      @default(PATIENT)
+  currLocation Location      @relation(fields: [locationId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+  ratings      Ratings[]
+  locationId   String
 }
 
 model Hospital {
-  id              String         @id @default(cuid())
-  email           String         @unique
+  id              String        @id @default(cuid())
+  email           String        @unique
   name            String
   password        String
   parentId        String?
-  parent          Hospital?      @relation("HospitalSelfRelation", fields: [parentId], references: [id])
-  children        Hospital[]     @relation("HospitalSelfRelation")
-  specialities    Speciality[]   @relation("HospitalSpecialities")
-  phone           String         @unique
+  parent          Hospital?     @relation("HospitalSelfRelation", fields: [parentId], references: [id])
+  children        Hospital[]    @relation("HospitalSelfRelation")
+  specialities    Speciality[]  @relation("HospitalSpecialities")
+  phone           String        @unique
   documents       String[]
-  currLocation    Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  timings         Timing[]       @relation("Timings")
+  currLocation    Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  timings         Json?
   appointments    Appointment[]
-  prescriptions   Prescription[]
-  maxAppointments Int?           @default(10)
-  emergency       Boolean        @default(false)
-  reports         Report[]
+  freeSlotDate    DateTime?
+  maxAppointments Int?          @default(10)
+  emergency       Boolean       @default(false)
   ratings         Ratings[]
   locationId      String
   fees            Int
@@ -77,50 +74,17 @@ model Location {
   User      User[]
 }
 
-model Timing {
-  id         String   @id @default(cuid())
-  hospitalId String
-  day        String
-  startTime  String
-  endTime    String
-  Hospital   Hospital @relation("Timings", fields: [hospitalId], references: [id])
-}
-
 model Appointment {
   id         String   @id @default(cuid())
   hospitalId String
   userId     String
   date       DateTime
-  expiration DateTime
+  status     String   @default("PENDING")
   paidPrice  Int
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   Hospital   Hospital @relation(fields: [hospitalId], references: [id])
   User       User     @relation(fields: [userId], references: [id])
-}
-
-model Prescription {
-  id            String   @id @default(cuid())
-  appointmentId String
-  userId        String
-  hospitalId    String
-  prescription  String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  Hospital      Hospital @relation(fields: [hospitalId], references: [id])
-  User          User     @relation(fields: [userId], references: [id])
-}
-
-model Report {
-  id            String   @id @default(cuid())
-  appointmentId String
-  userId        String
-  hospitalId    String
-  report        String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  Hospital      Hospital @relation(fields: [hospitalId], references: [id])
-  User          User     @relation(fields: [userId], references: [id])
 }
 
 model Ratings {
