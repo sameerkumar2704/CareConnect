@@ -4,7 +4,7 @@ import { API_URL } from "../../utils/contants";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import HospitalCard from "../../components/Cards/Hospital";
 
-const Hospitals = () => {
+const Emergency = () => {
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -16,7 +16,7 @@ const Hospitals = () => {
     const fetchHospitals = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals`);
+            const response = await fetch(`${API_URL}/hospitals?emergency=true`);
             const data = await response.json();
             setHospitals(data);
         } catch (error) {
@@ -106,4 +106,4 @@ const Hospitals = () => {
     );
 };
 
-export default Hospitals;
+export default Emergency;

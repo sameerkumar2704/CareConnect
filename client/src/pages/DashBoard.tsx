@@ -4,6 +4,9 @@ import { API_URL } from "../utils/contants";
 import SpecialtyCard from "../components/Cards/Speciality";
 import HospitalCard from "../components/Cards/Hospital";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 const Dashboard = () => {
   const [doctors, setDoctos] = useState<Hospital[]>([]);
@@ -68,8 +71,8 @@ const Dashboard = () => {
       <div className="p-6 md:p-12">
         {/* Browse by Specialty */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Services</h1>
-          <h2 className="text-2xl md:text-5xl font-bold text-center">Browse by Specialty</h2>
+          <h1 className="text-2xl md:text-5xl font-bold text-center">Browse by Specialty</h1>
+          <Link to={"/services/specialties"} className="text-2xl text-[#4fadb1] font-semibold text-center">View All <FontAwesomeIcon icon={faArrowRight} /></Link>
           <h6 className="text-center text-sm md:text-lg text-gray-600">
             Find the right professional for your needs by browsing through our
             specialties.
@@ -79,7 +82,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12">
           {!loading && specialists !== null && specialists !== undefined &&
             specialists.map((specialty) => (
-              <SpecialtyCard key={specialty.id} id={specialty.id} name={specialty.name} description={specialty.description} />
+              <SpecialtyCard key={specialty.id} count={specialty.hospitalCount} id={specialty.id} name={specialty.name} description={specialty.description} />
             ))}
 
         </div>
@@ -88,8 +91,8 @@ const Dashboard = () => {
       <div className="p-6 md:p-12 bg-gray-100">
         {/* Browse by Hospital */}
         <div className="flex flex-col py-12 gap-2">
-          <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
-          <h2 className="text-2xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
+          <h1 className="text-2xl md:text-5xl font-bold text-center">Browse by Hospital</h1>
+          <Link to={"/services/hospitals"} className="text-2xl text-[#4fadb1] font-semibold text-center">View All <FontAwesomeIcon icon={faArrowRight} /></Link>
           <h6 className="text-center text-sm md:text-lg text-gray-600">
             Find the right medical assurance by browsing through our hospitals.
           </h6>

@@ -3,14 +3,31 @@ import { Specialty } from "../../model/user.model";
 import { API_URL } from "../../utils/contants";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import SpecialtyCard from "../../components/Cards/Speciality";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+
 
 const Specialties = () => {
     const [specialties, setSpecialties] = useState<Specialty[]>([]);
+    const [filteredSpecialties, setFilteredSpecialties] = useState<Specialty[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchSpecialties();
     }, []);
+
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredSpecialties(specialties);
+        } else {
+            const filtered = specialties.filter(specialty =>
+                specialty.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                specialty.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredSpecialties(filtered);
+        }
+    }, [searchTerm, specialties]);
 
     const fetchSpecialties = async () => {
         setLoading(true);
@@ -18,6 +35,7 @@ const Specialties = () => {
             const response = await fetch(`${API_URL}/speciality`);
             const data = await response.json();
             setSpecialties(data);
+            setFilteredSpecialties(data);
         } catch (error) {
             console.log("Error fetching specialties:", error);
         } finally {
@@ -33,9 +51,31 @@ const Specialties = () => {
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
                         Find the Right Professional for Your Needs
                     </h1>
-                    <p className="text-xl text-white text-opacity-90 max-w-3xl mx-auto">
+                    <p className="text-xl text-white text-opacity-90 max-w-3xl mx-auto mb-8">
                         Easily book appointments with top-rated professionals in your area.
                     </p>
+
+                    {/* Search Bar */}
+                    <div className="relative max-w-2xl mx-auto">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            className="w-full pl-12 pr-4 py-4 bg-white text-gray-800 placeholder-gray-500 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                            placeholder="Search for a specialty..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <button
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-700"
+                                onClick={() => setSearchTerm("")}
+                            >
+                                <span className="text-sm font-medium">Clear</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -54,11 +94,27 @@ const Specialties = () => {
                         <div className="flex justify-center py-12">
                             <LoadingSpinner />
                         </div>
-                    ) : (
+                    ) : filteredSpecialties.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {specialties.map((specialty) => (
-                                <SpecialtyCard key={specialty.id} id={specialty.id} name={specialty.name} description={specialty.description} />
+                            {filteredSpecialties.map((specialty) => (
+                                <SpecialtyCard
+                                    count={specialty.hospitalCount}
+                                    key={specialty.id}
+                                    id={specialty.id}
+                                    name={specialty.name}
+                                    description={specialty.description}
+                                />
                             ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12">
+                            <p className="text-gray-600 text-lg">No specialties found matching "{searchTerm}"</p>
+                            <button
+                                className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                                onClick={() => setSearchTerm("")}
+                            >
+                                Clear Search
+                            </button>
                         </div>
                     )}
                 </div>

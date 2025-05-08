@@ -119,6 +119,8 @@ const PaymentProcessing: React.FC<PaymentProcessingProps> = ({
                         paidPrice: amount
                     };
 
+                    console.log('Appointment Data:', appointmentData);
+
                     // Replace this URL with your actual API endpoint
                     const response = await fetch(`${API_URL}/appointments`, {
                         method: 'POST',

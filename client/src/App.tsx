@@ -22,6 +22,7 @@ import ProtectedRoute from "./utils/routeProtection/protectedRoute";
 import User from "./pages/Profile/Main";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Specialties from "./pages/Services/Specialities";
+import Emergency from "./pages/Services/Emergency";
 
 const App: React.FC = () => {
 
@@ -66,6 +67,10 @@ const App: React.FC = () => {
         {
           path: "/services/hospitals",
           element: <Hospitals />
+        },
+        {
+          path: "/services/emergency",
+          element: <Emergency />
         },
         {
           path: "/contact",

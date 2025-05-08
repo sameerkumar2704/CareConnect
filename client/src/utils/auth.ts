@@ -85,5 +85,25 @@ export const verifyToken = async (token: string) => {
         throw Error(data.error);
     }
 
-    return { ok: "Valid Token", role: data.user.role, _id: data.user.id };
+    console.log("Date at Verify", data);
+
+    if (data.user)
+        return {
+            ok: "Valid Token",
+            role: data.role,
+            _id: data.user.id,
+        };
+    else if (data.hospital) {
+        return {
+            ok: "Valid Token",
+            role: data.role,
+            _id: data.hospital.id,
+        };
+    } else {
+        return {
+            ok: "Invalid Token",
+            role: null,
+            _id: null,
+        };
+    }
 };

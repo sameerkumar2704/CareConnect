@@ -10,13 +10,9 @@ const User = () => {
 
     const { user } = auth;
 
-    if (user.role === "PATIENT") {
-        return <UserProfile userId={user._id} />
-    }
+    console.log("User At Main", user)
 
-    return (
-        <div>{JSON.stringify(user)}</div>
-    )
+    return <UserProfile userId={user._id} role={user.role} />
 }
 
 export default User;

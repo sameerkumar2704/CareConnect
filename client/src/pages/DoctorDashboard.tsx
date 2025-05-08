@@ -5,9 +5,6 @@ import {
     faUser, faUpload, faDownload, faTrash,
     faEdit, faHospital, faPhone, faStar,
     faCalendarAlt, faUserMd, faCheck, faTimes,
-    faSpinner,
-    faCrosshairs,
-    faMapMarkerAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { HospitalMap } from '../components/HospitalMap';
 

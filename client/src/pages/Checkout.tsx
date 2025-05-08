@@ -40,6 +40,7 @@ const CheckoutPage: React.FC = () => {
     if (!auth) {
         return <LoadingSpinner />;
     }
+    
 
     // Calculate dates for appointment
     const today = new Date();
@@ -274,7 +275,7 @@ const CheckoutPage: React.FC = () => {
                     hospitalName={parentHospital.name}
                     appointmentDate={formattedToday}
                     hospitalId={hospital.id}
-                    userId={auth.user.id} // Pass userId to PaymentProcessing component
+                    userId={auth.user._id} // Pass userId to PaymentProcessing component
                 />
             )}
         </div>

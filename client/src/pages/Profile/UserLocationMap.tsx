@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
 
 interface Props {
     latitude: string;
@@ -8,28 +8,44 @@ interface Props {
     name: string;
 }
 
-const UserLocationMap: React.FC<Props> = ({ latitude, longitude, name }) => {
+const UserLocationMap: React.FC<Props> = ({ latitude, longitude }) => {
     const position: [number, number] = [parseFloat(latitude), parseFloat(longitude)];
+    const [locationName, setLocationName] = useState<string>('Loading location...');
 
-    // Fix default marker icon issue in Leaflet
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
-    });
+    useEffect(() => {
+        const fetchLocationName = async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                const data = await res.json();
+                if (data?.display_name) {
+                    setLocationName(data.display_name);
+                } else {
+                    setLocationName("Location not found");
+                }
+            } catch (error) {
+                setLocationName("Error fetching location");
+                console.error(error);
+            }
+        };
+
+        fetchLocationName();
+    }, [latitude, longitude]);
 
     return (
-        <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: "400px", width: "100%" }}>
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={position}>
-                <Popup>{name}</Popup>
-            </Marker>
-        </MapContainer>
+        <>
+            <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>{locationName}</h3>
+            <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: "400px", width: "100%" }}>
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={position}>
+                    <Popup>{locationName}</Popup>
+                </Marker>
+            </MapContainer>
+        </>
     );
 };
+
 
 export default UserLocationMap;

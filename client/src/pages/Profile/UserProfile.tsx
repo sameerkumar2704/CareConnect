@@ -13,18 +13,22 @@ import {
     faClock,
     faHospital,
     faStar,
-    faEdit
+    faEdit,
+    faArrowCircleUp,
+    faLocationArrow,
+    faSearch
 } from "@fortawesome/free-solid-svg-icons";
 import UserLocationMap from "./UserLocationMap";
 import { Link } from "react-router-dom";
+import { getHighlyAccurateLocation } from "../../utils/location/Location";
 
 interface Appointment {
     id: string;
     hospitalId: string;
     userId: string;
     date: string;
-    expiration: string;
     Hospital: Hospital;
+    User: User
     paidPrice: number;
     createdAt: string;
     updatedAt: string;
@@ -50,35 +54,65 @@ interface ExtendedUser extends User {
     ratings: any[];
 }
 
-const UserProfile = ({ userId }: { userId: string }) => {
+const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
     const [user, setUser] = useState<ExtendedUser | null>(null);
     const [activeTab, setActiveTab] = useState<string>("profile");
     const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         phone: ""
     });
+    const [selectedDate, setSelectedDate] = useState<string>(
+        new Date().toISOString().split('T')[0]
+    );
+    const [isLoadingAppointments, setIsLoadingAppointments] = useState<boolean>(false);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await axios.get(`${API_URL}/users/${userId}`);
-                setUser(res.data);
-                console.log(res.data);
-                setFormData({
-                    name: res.data.name,
-                    email: res.data.email,
-                    phone: res.data.phone
-                });
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-                setUser(null);
-            }
-        };
-
         fetchUser();
     }, [userId]);
+
+    const fetchUser = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/${role === "PATIENT" ? "users" : "hospitals"}/${userId}`);
+            setUser(res.data);
+            console.log("User at User Profile", res.data);
+            setFormData({
+                name: res.data.name,
+                email: res.data.email,
+                phone: res.data.phone
+            });
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            setUser(null);
+        }
+    };
+
+    const fetchAppointmentsByDate = async (date: string) => {
+        setIsLoadingAppointments(true);
+        try {
+            // Replace this URL with your actual API endpoint for fetching appointments by date
+            const response = await axios.get(`${API_URL}/appointments/byDate`, {
+                params: {
+                    userId,
+                    role,
+                    date
+                }
+            });
+
+            // Update only the appointments part of the user data
+            setUser(prevUser => prevUser ? {
+                ...prevUser,
+                appointments: response.data
+            } : null);
+
+        } catch (error) {
+            console.error("Error fetching appointments by date:", error);
+        } finally {
+            setIsLoadingAppointments(false);
+        }
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -100,6 +134,51 @@ const UserProfile = ({ userId }: { userId: string }) => {
         const date = new Date(dateString);
         return date.toLocaleDateString() + " " + date.toLocaleTimeString();
     };
+
+    // Function to update user location
+    const handleUpdateLocation = async () => {
+        try {
+            setIsUpdatingLocation(true);
+
+            // Get current position
+            const position = await getHighlyAccurateLocation();
+            const { lat: latitude, lon: longitude } = position;
+
+            console.log("Current position:", { latitude, longitude });
+
+            // Call API to update location in database
+            const response = await axios.post(`${API_URL}/${role !== "PATIENT" ? "hospitals" : "users"}/location`, {
+                id: userId,
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+            });
+
+            console.log("Location updated:", response.data);
+
+            // Refresh user data to show updated location
+            await fetchUser();
+
+            setIsUpdatingLocation(false);
+        } catch (error) {
+            console.error("Error updating location:", error);
+            setIsUpdatingLocation(false);
+            alert("Failed to update location. Please check your browser permissions and try again.");
+        }
+    };
+
+    // Handle date change and fetch appointments for the selected date
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newDate = e.target.value;
+        setSelectedDate(newDate);
+        fetchAppointmentsByDate(newDate);
+    };
+
+    // Initial loading of appointments for current date when tab changes to appointments
+    useEffect(() => {
+        if (activeTab === "appointments") {
+            fetchAppointmentsByDate(selectedDate);
+        }
+    }, [activeTab]);
 
     if (!user) return <LoadingSpinner />;
 
@@ -241,15 +320,15 @@ const UserProfile = ({ userId }: { userId: string }) => {
                                                 <p className="text-gray-700 font-medium">{formatDate(user.updatedAt)}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start">
+                                        {role !== "PATIENT" && <div className="flex items-start">
                                             <FontAwesomeIcon icon={faStar} className="mt-1 text-teal-500 w-5" />
                                             <div className="ml-4">
                                                 <h3 className="text-gray-500 text-sm">Ratings</h3>
                                                 <p className="text-gray-700 font-medium">
-                                                    {user.ratings.length > 0 ? `${user.ratings.length} ratings` : "No ratings yet"}
+                                                    {user.ratings && user.ratings.length > 0 ? `${user.ratings.length} ratings` : "No ratings yet"}
                                                 </p>
                                             </div>
-                                        </div>
+                                        </div>}
                                     </div>
                                 </div>
                             )}
@@ -259,43 +338,83 @@ const UserProfile = ({ userId }: { userId: string }) => {
                     {activeTab === "appointments" && (
                         <div>
                             <h2 className="text-xl font-semibold mb-4">Your Appointments</h2>
-                            {user.appointments.length > 0 ? (
+
+                            {/* Date selector */}
+                            <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faCalendarAlt} className="text-teal-500 mr-2" />
+                                        <span className="text-gray-700">Select Date:</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <input
+                                            type="date"
+                                            value={selectedDate}
+                                            onChange={handleDateChange}
+                                            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-auto"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => fetchAppointmentsByDate(selectedDate)}
+                                        className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition flex items-center justify-center"
+                                    >
+                                        <FontAwesomeIcon icon={faSearch} className="mr-2" />
+                                        Find Appointments
+                                    </button>
+                                </div>
+                            </div>
+
+                            {isLoadingAppointments ? (
+                                <div className="flex justify-center py-8">
+                                    <LoadingSpinner />
+                                </div>
+                            ) : user.appointments && user.appointments.length > 0 ? (
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full bg-white">
                                         <thead>
                                             <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                                                 <th className="py-3 px-6 text-left">ID</th>
-                                                <th className="py-3 px-6 text-left">Doctor</th>
+                                                {role === "PATIENT" && <th className="py-3 px-6 text-left">Doctor</th>}
+                                                {role === "DOCTOR" && <th className="py-3 px-6 text-left">Patient</th>}
                                                 <th className="py-3 px-6 text-left">Date</th>
-                                                <th className="py-3 px-6 text-left">Expiration</th>
                                                 <th className="py-3 px-6 text-right">Price</th>
+                                                <th className="py-3 px-6 text-right">View Details</th>
                                             </tr>
                                         </thead>
                                         <tbody className="text-gray-600 text-sm">
-                                            {user.appointments.map((appointment) => (
+                                            {user.appointments && user.appointments.map((appointment) => (
                                                 <tr key={appointment.id} className="border-b border-gray-200 hover:bg-gray-50">
                                                     <td className="py-3 px-6 text-left">
                                                         <span className="font-medium">{appointment.id.substring(0, 8)}...</span>
                                                     </td>
-                                                    <td className="py-3 px-6 text-left">
+                                                    {role === "PATIENT" && <td className="py-3 px-6 text-left">
                                                         <Link to={"/hospital/" + appointment.Hospital.parentId} className="flex items-center">
                                                             <FontAwesomeIcon icon={faHospital} className="mr-2 text-teal-500" />
-                                                            {appointment.Hospital.name}...
+                                                            {appointment.Hospital.name}
                                                         </Link>
-                                                    </td>
+                                                    </td>}
+                                                    {role === "DOCTOR" && <td className="py-3 px-6 text-left">
+                                                        <div className="flex items-center">
+                                                            <FontAwesomeIcon icon={faUser} className="mr-2 text-teal-500" />
+                                                            {appointment.User.name}
+                                                        </div>
+                                                    </td>}
                                                     <td className="py-3 px-6 text-left">
                                                         <div className="flex items-center">
                                                             <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-teal-500" />
-                                                            {new Date(appointment.date).toLocaleDateString()}
+                                                            {new Date(appointment.date).toLocaleDateString()} 
                                                         </div>
-                                                    </td>
-                                                    <td className="py-3 px-6 text-left">
-                                                        {new Date(appointment.expiration).toLocaleDateString()}
                                                     </td>
                                                     <td className="py-3 px-6 text-right">
                                                         <span className="bg-teal-100 text-teal-600 py-1 px-3 rounded-full text-xs">
                                                             ${appointment.paidPrice}
                                                         </span>
+                                                    </td>
+                                                    <td className="py-3 px-6 text-right">
+                                                        <Link to={"/appointments/" + appointment.id} className="flex items-center justify-end">
+                                                            <FontAwesomeIcon icon={faArrowCircleUp} className="mr-2 text-teal-500" />
+                                                            Go to Appointment
+                                                        </Link>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -305,10 +424,8 @@ const UserProfile = ({ userId }: { userId: string }) => {
                             ) : (
                                 <div className="text-center py-8">
                                     <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-300 text-5xl mb-3" />
-                                    <p className="text-gray-500">You don't have any appointments yet.</p>
-                                    <button className="mt-4 bg-teal-500 text-white px-6 py-2 rounded-md hover:bg-teal-600 transition">
-                                        Book an Appointment
-                                    </button>
+                                    <p className="text-gray-500">No appointments found for {new Date(selectedDate).toLocaleDateString()}.</p>
+                                    
                                 </div>
                             )}
                         </div>
@@ -318,15 +435,24 @@ const UserProfile = ({ userId }: { userId: string }) => {
                         <div>
                             <h2 className="text-xl font-semibold mb-4">Your Location</h2>
                             <div className="bg-gray-100 p-6 rounded-lg">
-                                <div className="flex items-start mb-4">
-                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1 text-teal-500 w-5" />
-                                    <div className="ml-4">
-                                        <h3 className="text-gray-700 font-medium">Current Location</h3>
-                                        <p className="text-gray-600">ID: {user.currLocation.id}</p>
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex items-start">
+                                        <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1 text-teal-500 w-5" />
+                                        <div className="ml-4">
+                                            <h3 className="text-gray-700 font-medium">Your Saved Location</h3>
+                                            <p className="text-gray-600">ID: {user.currLocation ? user.currLocation.id : "Not set"}</p>
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={handleUpdateLocation}
+                                        disabled={isUpdatingLocation}
+                                        className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition duration-300 flex items-center"
+                                    >
+                                        <FontAwesomeIcon icon={faLocationArrow} className="mr-2" />
+                                        {isUpdatingLocation ? "Updating..." : "Update with Current Location"}
+                                    </button>
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-semibold mb-4">Current Location</h2>
                                     {user.currLocation ? (
                                         <UserLocationMap
                                             latitude={user.currLocation.latitude}
@@ -334,7 +460,10 @@ const UserProfile = ({ userId }: { userId: string }) => {
                                             name={user.name}
                                         />
                                     ) : (
-                                        <p className="text-gray-500">Location not available.</p>
+                                        <div className="text-center py-8">
+                                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-300 text-5xl mb-3" />
+                                            <p className="text-gray-500">Location not available. Click "Update Location" to set your current location.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>

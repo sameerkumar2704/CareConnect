@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const SpecialtyCard = ({ name, description, id }: { name: string; description: string; id: string }) => {
+const SpecialtyCard = ({ name, description, id, count }: { name: string; description: string; id: string; count: number; }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
@@ -13,6 +13,11 @@ const SpecialtyCard = ({ name, description, id }: { name: string; description: s
             <p className="text-[0.9rem] md:text-xl font-semibold duration-100 group-hover:text-white">
                 {name.charAt(0).toUpperCase() + name.slice(1)}
             </p>
+            <div className="flex items-center gap-2">
+                <p className="text-gray-600 text-[0.7rem] md:text-base duration-100 group-hover:text-white">
+                    {count} Doctors Available
+                </p>
+            </div>
             <p
                 style={{
                     fontFamily: "Raleway",

@@ -19,7 +19,17 @@ const AuthFormHospital = () => {
     const [errors, setErrors] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        name: string;
+        email: string;
+        phone: string;
+        password: string;
+        confirmPassword: string;
+        hospital: string;
+        fees: string;
+        emergency: boolean;
+        maxAppointments?: string;
+    }>({
         name: "",
         email: "",
         phone: "",
@@ -218,6 +228,12 @@ const AuthFormHospital = () => {
 
             setErrors("");
 
+            if (isSignUp) {
+                if (isHospital) {
+                    delete formData.maxAppointments;
+                }
+            }
+
             let response;
 
             try {
@@ -242,6 +258,8 @@ const AuthFormHospital = () => {
                 setLoading(false);
                 return;
             }
+
+
 
             // Handle API response
             if ((isSignUp && response.status !== 201) || (!isSignUp && response.status !== 200)) {
@@ -277,6 +295,8 @@ const AuthFormHospital = () => {
             });
             setUser(response.data.token);
             localStorage.setItem("eWauthToken", response.data.token);
+
+
 
             alert(isSignUp ? "SignUp Success, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
 
