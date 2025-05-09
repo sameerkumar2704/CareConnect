@@ -14,19 +14,17 @@ import {
     faHospital,
     faStar,
     faArrowCircleUp,
-    faLocationArrow,
     faSearch,
-    faWarning,
+    faCheck,
+    faXmark,
     faCheckCircle,
-    faExclamationTriangle,
     faClipboardList,
+    faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 import UserLocationMap from "./UserLocationMap";
-import { Link } from "react-router-dom";
-import { getHighlyAccurateLocation } from "../../utils/location/Location";
-import DoctorSpecialtiesTab from "./DoctorSpecialities";
-import ProviderTimingsTab from "./HospitalTimings";
-import DocumentVerificationTab from "./DocumentVerificationTab";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import AdminDocumentVerificationTab from "./AdminDocumentVerification";
 
 interface Appointment {
     id: string;
@@ -34,7 +32,7 @@ interface Appointment {
     userId: string;
     date: string;
     Hospital: Hospital;
-    User: User
+    User: User;
     paidPrice: number;
     createdAt: string;
     status: string;
@@ -68,7 +66,7 @@ interface ExtendedUser extends User {
     currLocation: Location;
     appointments: Appointment[];
     ratings: any[];
-    isApproved: boolean;
+    approved: boolean;
     specialities: Speciality[];
 }
 
@@ -81,25 +79,25 @@ interface ProfileCompletionStep {
     tabId: string;
 }
 
-const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
+const AdminProfileView = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [user, setUser] = useState<ExtendedUser | null>(null);
     const [activeTab, setActiveTab] = useState<string>("profile");
-    const [isEditing, setIsEditing] = useState<boolean>(false);
-    const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        phone: ""
-    });
+    const [role, setRole] = useState<string>("");
     const [selectedDate, setSelectedDate] = useState<string>(
         new Date().toISOString().split('T')[0]
     );
     const [isLoadingAppointments, setIsLoadingAppointments] = useState<boolean>(false);
     const [profileCompletionSteps, setProfileCompletionSteps] = useState<ProfileCompletionStep[]>([]);
+    const [isUpdatingApproval, setIsUpdatingApproval] = useState<boolean>(false);
+
+    const [searchParams] = useSearchParams();
+    const userRole = searchParams.get("role"); // "admin" if URL = /profile/123?role=admin
 
     useEffect(() => {
         fetchUser();
-    }, [userId]);
+    }, [id]);
 
     useEffect(() => {
         if (user && role !== "PATIENT") {
@@ -107,23 +105,23 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
             const steps: ProfileCompletionStep[] = [
                 {
                     id: "timings",
-                    title: "Set your availability",
-                    description: "Define your working hours to receive appointments",
+                    title: "Set availability",
+                    description: "Define working hours to receive appointments",
                     isCompleted: user.timings && JSON.stringify(user.timings) !== "{}",
                     tabId: "timings"
                 },
                 {
                     id: "location",
-                    title: "Update your location",
-                    description: "Set your location to help patients find you",
+                    title: "Update location",
+                    description: "Set location to help patients find",
                     isCompleted: !!user.currLocation,
                     tabId: "location"
                 },
                 {
                     id: "documents",
                     title: "Upload verification documents",
-                    description: "Upload your credentials to get verified",
-                    isCompleted: user.isApproved,
+                    description: "Upload credentials to get verified",
+                    isCompleted: user.approved,
                     tabId: "documents"
                 }
             ];
@@ -132,8 +130,8 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
             if (role === "DOCTOR") {
                 steps.push({
                     id: "specialties",
-                    title: "Add your specialties",
-                    description: "Let patients know your areas of expertise",
+                    title: "Add specialties",
+                    description: "List areas of expertise",
                     isCompleted: user.specialities && user.specialities.length > 0,
                     tabId: "specialties"
                 });
@@ -149,16 +147,19 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
 
     const fetchUser = async () => {
         try {
-            const res = await axios.get(`${API_URL}/${role === "PATIENT" ? "users" : "hospitals"}/${userId}`);
+            // First, determine the role of the user
+
+            setRole(userRole ? userRole : "PATIENT");
+
+            // Then fetch the full user data with the correct endpoint
+            const endpoint = userRole === "PATIENT" ? "users" : "hospitals";
+            const res = await axios.get(`${API_URL}/${endpoint}/${id}`);
             setUser(res.data);
-            console.log("User at User Profile", res.data);
-            setFormData({
-                name: res.data.name,
-                email: res.data.email,
-                phone: res.data.phone
-            });
+            setRole(res.data.role);
+            console.log("User data:", res.data);
         } catch (error) {
             console.error("Error fetching user data:", error);
+            toast.error("Failed to load user data");
             setUser(null);
         }
     };
@@ -166,16 +167,14 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
     const fetchAppointmentsByDate = async (date: string) => {
         setIsLoadingAppointments(true);
         try {
-            // Replace this URL with your actual API endpoint for fetching appointments by date
             const response = await axios.get(`${API_URL}/appointments/byDate`, {
                 params: {
-                    userId,
+                    userId: id,
                     role,
                     date
                 }
             });
 
-            // Update only the appointments part of the user data
             setUser(prevUser => prevUser ? {
                 ...prevUser,
                 appointments: response.data
@@ -183,61 +182,15 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
 
         } catch (error) {
             console.error("Error fetching appointments by date:", error);
+            toast.error("Failed to load appointments");
         } finally {
             setIsLoadingAppointments(false);
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // In a real app, you would update the user data via API here
-        // For now, we'll just simulate it
-        setUser(prev => prev ? { ...prev, ...formData } : null);
-        setIsEditing(false);
-    };
-
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-    };
-
-    // Function to update user location
-    const handleUpdateLocation = async () => {
-        try {
-            setIsUpdatingLocation(true);
-
-            // Get current position
-            const position = await getHighlyAccurateLocation();
-            const { lat: latitude, lon: longitude } = position;
-
-            console.log("Current position:", { latitude, longitude });
-
-            // Call API to update location in database
-            const response = await axios.post(`${API_URL}/${role !== "PATIENT" ? "hospitals" : "users"}/location`, {
-                id: userId,
-                latitude: latitude.toString(),
-                longitude: longitude.toString(),
-            });
-
-            console.log("Location updated:", response.data);
-
-            // Refresh user data to show updated location
-            await fetchUser();
-
-            setIsUpdatingLocation(false);
-        } catch (error) {
-            console.error("Error updating location:", error);
-            setIsUpdatingLocation(false);
-            alert("Failed to update location. Please check your browser permissions and try again.");
-        }
     };
 
     // Handle date change and fetch appointments for the selected date
@@ -254,40 +207,65 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
         }
     }, [activeTab]);
 
-    // Handle tab change with special logic for incomplete steps
-    const handleTabChange = (tabId: string) => {
-        setActiveTab(tabId);
+    // Handle approval status update
+    const handleUpdateApproval = async (approve: boolean) => {
+        setIsUpdatingApproval(true);
+        try {
+            const endpoint = role === "PATIENT" ? "users" : "hospitals";
+            const status = approve ? "approve" : "reject";
+            const response = await axios.put(`${API_URL}/${endpoint}/${status}/${id}`);
+
+            console.log("Approval status updated:", response.data);
+
+            // Refresh user data to show updated approval status
+            await fetchUser();
+            toast.success(`User ${approve ? 'approved' : 'unapproved'} successfully`);
+        } catch (error) {
+            console.error("Error updating approval status:", error);
+            toast.error("Failed to update approval status");
+        } finally {
+            setIsUpdatingApproval(false);
+        }
     };
 
     if (!user) return <LoadingSpinner />;
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="mb-4">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition"
+                >
+                    ← Back
+                </button>
+            </div>
+
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-teal-500 to-blue-500 p-6">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <div className="bg-white p-4 rounded-full shadow-md">
-                                <FontAwesomeIcon icon={faUser} className="text-teal-500 text-3xl" />
+                                <FontAwesomeIcon icon={faUser} className="text-blue-600 text-3xl" />
                             </div>
                             <div className="ml-6">
                                 <h1 className="text-2xl font-bold text-white">{user.name}</h1>
-                                <p className="text-teal-100">
-                                    <span className="bg-teal-700 rounded-full px-3 py-1 text-sm font-semibold">
+                                <p className="text-blue-100">
+                                    <span className="bg-blue-800 rounded-full px-3 py-1 text-sm font-semibold">
                                         {user.role}
                                     </span>
                                 </p>
                             </div>
                         </div>
-                        {role !== "PATIENT" && (
+                        <div className="flex items-center gap-3">
                             <div
-                                className={`px-4 py-2 rounded-md transition duration-300 flex items-center gap-2 ${user.isApproved
+                                className={`px-4 py-2 rounded-md transition duration-300 flex items-center gap-2 ${user.approved
                                     ? "bg-green-50 text-green-600"
                                     : "bg-amber-50 text-amber-600"
                                     }`}
                             >
-                                {user.isApproved ? (
+                                {user.approved ? (
                                     <>
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -324,7 +302,35 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                     </>
                                 )}
                             </div>
-                        )}
+
+                            {/* Admin Approval Buttons */}
+                            {role !== "PATIENT" && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleUpdateApproval(true)}
+                                        disabled={isUpdatingApproval || user.approved}
+                                        className={`px-4 py-2 rounded-md transition duration-300 flex items-center gap-2 ${user.approved
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            : "bg-green-500 text-white hover:bg-green-600"
+                                            }`}
+                                    >
+                                        <FontAwesomeIcon icon={faCheck} />
+                                        Approve
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdateApproval(false)}
+                                        disabled={isUpdatingApproval || !user.approved}
+                                        className={`px-4 py-2 rounded-md transition duration-300 flex items-center gap-2 ${!user.approved
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            : "bg-red-500 text-white hover:bg-red-600"
+                                            }`}
+                                    >
+                                        <FontAwesomeIcon icon={faXmark} />
+                                        Unapprove
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -341,7 +347,7 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                     <h3 className={`font-semibold ${getCompletedStepsCount() === profileCompletionSteps.length ? "text-green-700" : "text-amber-700"}`}>
                                         {getCompletedStepsCount() === profileCompletionSteps.length ?
                                             "Profile complete!" :
-                                            "Complete your profile"}
+                                            "Profile completion status"}
                                     </h3>
                                     <p className={`${getCompletedStepsCount() === profileCompletionSteps.length ? "text-green-600" : "text-amber-600"} text-sm`}>
                                         {getCompletedStepsCount()} of {profileCompletionSteps.length} tasks completed
@@ -367,12 +373,6 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                         <div>
                                             <p className="text-amber-700 font-medium">{step.title}</p>
                                             <p className="text-amber-600 text-sm">{step.description}</p>
-                                            <button
-                                                className="text-amber-700 font-medium text-sm mt-1 underline hover:text-amber-800"
-                                                onClick={() => handleTabChange(step.tabId)}
-                                            >
-                                                Complete now
-                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -386,48 +386,36 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                     <div className="flex space-x-4 border-b border-gray-200 overflow-x-auto">
                         <button
                             onClick={() => setActiveTab("profile")}
-                            className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "profile" ? "text-teal-500 border-b-2 border-teal-500" : "text-gray-500 hover:text-teal-500"}`}
+                            className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "profile" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-blue-600"}`}
                         >
                             Profile
                         </button>
                         <button
                             onClick={() => setActiveTab("appointments")}
-                            className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "appointments" ? "text-teal-500 border-b-2 border-teal-500" : "text-gray-500 hover:text-teal-500"}`}
+                            className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "appointments" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-blue-600"}`}
                         >
                             Appointments
                         </button>
                         <button
                             onClick={() => setActiveTab("location")}
-                            className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "location" ? "text-teal-500 border-b-2 border-teal-500" : "text-gray-500 hover:text-teal-500"}`}
+                            className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "location" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-blue-600"}`}
                         >
-                            {!user.currLocation && role !== "PATIENT" && <FontAwesomeIcon icon={faWarning} className="text-amber-500 mr-2" />}
                             Location
                         </button>
-                        {role === "DOCTOR" && (
+                        {role !== "PATIENT" && (
                             <button
                                 onClick={() => setActiveTab("specialties")}
-                                className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "specialties" ? "text-teal-500 border-b-2 border-teal-500" : "text-gray-500 hover:text-teal-500"}`}
+                                className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "specialties" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-blue-600"}`}
                             >
-                                {(!user.specialities || user.specialities.length === 0) && <FontAwesomeIcon icon={faWarning} className="text-amber-500 mr-2" />}
                                 Specialties
                             </button>
                         )}
                         {role !== "PATIENT" && (
                             <button
-                                onClick={() => setActiveTab("timings")}
-                                className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "timings" ? "text-teal-500 border-b-2 border-teal-500" : "text-gray-500 hover:text-teal-500"}`}
-                            >
-                                {(!user.timings || JSON.stringify(user.timings) === "{}") && <FontAwesomeIcon icon={faWarning} className="text-amber-500 mr-2" />}
-                                Availability
-                            </button>
-                        )}
-                        {role !== "PATIENT" && (
-                            <button
                                 onClick={() => setActiveTab("documents")}
-                                className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "documents" ? "text-teal-500 border-b-2 border-teal-500" : "text-gray-500 hover:text-teal-500"}`}
+                                className={`py-3 px-4 font-medium whitespace-nowrap ${activeTab === "documents" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-blue-600"}`}
                             >
-                                {!user.isApproved && <FontAwesomeIcon icon={faWarning} className="text-amber-500 mr-2" />}
-                                Verification
+                                Documents
                             </button>
                         )}
                     </div>
@@ -436,102 +424,69 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                 {/* Content Area */}
                 <div className="p-6">
                     {activeTab === "profile" && (
-                        <>
-                            {isEditing ? (
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <div>
-                                        <label className="block text-gray-700 mb-2">Email</label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-gray-700 mb-2">Phone</label>
-                                        <input
-                                            type="text"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                        />
-                                    </div>
-                                    <div className="flex justify-end">
-                                        <button
-                                            type="submit"
-                                            className="bg-teal-500 text-white px-6 py-2 rounded-md hover:bg-teal-600 transition"
-                                        >
-                                            Save Changes
-                                        </button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    <div className="space-y-6">
-                                        <div className="flex items-start">
-                                            <FontAwesomeIcon icon={faUser} className="mt-1 text-teal-500 w-5" />
-                                            <div className="ml-4">
-                                                <h3 className="text-gray-500 text-sm">Full Name</h3>
-                                                <p className="text-gray-700 font-medium">{user.name}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start">
-                                            <FontAwesomeIcon icon={faEnvelope} className="mt-1 text-teal-500 w-5" />
-                                            <div className="ml-4">
-                                                <h3 className="text-gray-500 text-sm">Email Address</h3>
-                                                <p className="text-gray-700 font-medium">{user.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start">
-                                            <FontAwesomeIcon icon={faPhone} className="mt-1 text-teal-500 w-5" />
-                                            <div className="ml-4">
-                                                <h3 className="text-gray-500 text-sm">Phone Number</h3>
-                                                <p className="text-gray-700 font-medium">{user.phone}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-6">
-                                        <div className="flex items-start">
-                                            <FontAwesomeIcon icon={faClock} className="mt-1 text-teal-500 w-5" />
-                                            <div className="ml-4">
-                                                <h3 className="text-gray-500 text-sm">Account Created</h3>
-                                                <p className="text-gray-700 font-medium">{formatDate(user.createdAt)}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start">
-                                            <FontAwesomeIcon icon={faClock} className="mt-1 text-teal-500 w-5" />
-                                            <div className="ml-4">
-                                                <h3 className="text-gray-500 text-sm">Last Updated</h3>
-                                                <p className="text-gray-700 font-medium">{formatDate(user.updatedAt)}</p>
-                                            </div>
-                                        </div>
-                                        {role !== "PATIENT" && <div className="flex items-start">
-                                            <FontAwesomeIcon icon={faStar} className="mt-1 text-teal-500 w-5" />
-                                            <div className="ml-4">
-                                                <h3 className="text-gray-500 text-sm">Ratings</h3>
-                                                <p className="text-gray-700 font-medium">
-                                                    {user.ratings && user.ratings.length > 0 ? `${user.ratings.length} ratings` : "No ratings yet"}
-                                                </p>
-                                            </div>
-                                        </div>}
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div className="space-y-6">
+                                <div className="flex items-start">
+                                    <FontAwesomeIcon icon={faUser} className="mt-1 text-blue-600 w-5" />
+                                    <div className="ml-4">
+                                        <h3 className="text-gray-500 text-sm">Full Name</h3>
+                                        <p className="text-gray-700 font-medium">{user.name}</p>
                                     </div>
                                 </div>
-                            )}
-                        </>
+                                <div className="flex items-start">
+                                    <FontAwesomeIcon icon={faEnvelope} className="mt-1 text-blue-600 w-5" />
+                                    <div className="ml-4">
+                                        <h3 className="text-gray-500 text-sm">Email Address</h3>
+                                        <p className="text-gray-700 font-medium">{user.email}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <FontAwesomeIcon icon={faPhone} className="mt-1 text-blue-600 w-5" />
+                                    <div className="ml-4">
+                                        <h3 className="text-gray-500 text-sm">Phone Number</h3>
+                                        <p className="text-gray-700 font-medium">{user.phone}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="flex items-start">
+                                    <FontAwesomeIcon icon={faClock} className="mt-1 text-blue-600 w-5" />
+                                    <div className="ml-4">
+                                        <h3 className="text-gray-500 text-sm">Account Created</h3>
+                                        <p className="text-gray-700 font-medium">{formatDate(user.createdAt)}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <FontAwesomeIcon icon={faClock} className="mt-1 text-blue-600 w-5" />
+                                    <div className="ml-4">
+                                        <h3 className="text-gray-500 text-sm">Last Updated</h3>
+                                        <p className="text-gray-700 font-medium">{formatDate(user.updatedAt)}</p>
+                                    </div>
+                                </div>
+                                {role !== "PATIENT" && (
+                                    <div className="flex items-start">
+                                        <FontAwesomeIcon icon={faStar} className="mt-1 text-blue-600 w-5" />
+                                        <div className="ml-4">
+                                            <h3 className="text-gray-500 text-sm">Ratings</h3>
+                                            <p className="text-gray-700 font-medium">
+                                                {user.ratings && user.ratings.length > 0 ? `${user.ratings.length} ratings` : "No ratings yet"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
 
                     {activeTab === "appointments" && (
                         <div>
-                            <h2 className="text-xl font-semibold mb-4">Your Appointments</h2>
+                            <h2 className="text-xl font-semibold mb-4">User Appointments</h2>
 
                             {/* Date selector */}
-                            {role !== "PATIENT" && <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                            <div className="mb-6 bg-gray-50 p-4 rounded-lg">
                                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                                     <div className="flex items-center">
-                                        <FontAwesomeIcon icon={faCalendarAlt} className="text-teal-500 mr-2" />
+                                        <FontAwesomeIcon icon={faCalendarAlt} className="text-blue-600 mr-2" />
                                         <span className="text-gray-700">Select Date:</span>
                                     </div>
                                     <div className="flex-1">
@@ -539,18 +494,18 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                             type="date"
                                             value={selectedDate}
                                             onChange={handleDateChange}
-                                            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-auto"
+                                            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 w-full md:w-auto"
                                         />
                                     </div>
                                     <button
                                         onClick={() => fetchAppointmentsByDate(selectedDate)}
-                                        className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition flex items-center justify-center"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center"
                                     >
                                         <FontAwesomeIcon icon={faSearch} className="mr-2" />
                                         Find Appointments
                                     </button>
                                 </div>
-                            </div>}
+                            </div>
 
                             {isLoadingAppointments ? (
                                 <div className="flex justify-center py-8">
@@ -562,8 +517,8 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                         <thead>
                                             <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                                                 <th className="py-3 px-6 text-left">ID</th>
-                                                {role === "PATIENT" && <th className="py-3 px-6 text-left">Doctor</th>}
-                                                {role === "DOCTOR" && <th className="py-3 px-6 text-left">Patient</th>}
+                                                {role === "PATIENT" && <th className="py-3 px-6 text-left">Provider</th>}
+                                                {role !== "PATIENT" && <th className="py-3 px-6 text-left">Patient</th>}
                                                 <th className="py-3 px-6 text-left">Date</th>
                                                 <th className="py-3 px-6 text-right">Price</th>
                                                 <th className="py-3 px-6 text-left">Status</th>
@@ -571,31 +526,35 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                             </tr>
                                         </thead>
                                         <tbody className="text-gray-600 text-sm">
-                                            {user.appointments && user.appointments.map((appointment) => (
+                                            {user.appointments.map((appointment) => (
                                                 <tr key={appointment.id} className="border-b border-gray-200 hover:bg-gray-50">
                                                     <td className="py-3 px-6 text-left">
                                                         <span className="font-medium">{appointment.id.substring(0, 8)}...</span>
                                                     </td>
-                                                    {role === "PATIENT" && <td className="py-3 px-6 text-left">
-                                                        <Link to={"/hospital/" + appointment.Hospital.parentId} className="flex items-center">
-                                                            <FontAwesomeIcon icon={faHospital} className="mr-2 text-teal-500" />
-                                                            {appointment.Hospital.name}
-                                                        </Link>
-                                                    </td>}
-                                                    {role === "DOCTOR" && <td className="py-3 px-6 text-left">
-                                                        <div className="flex items-center">
-                                                            <FontAwesomeIcon icon={faUser} className="mr-2 text-teal-500" />
-                                                            {appointment.User.name}
-                                                        </div>
-                                                    </td>}
+                                                    {role === "PATIENT" && (
+                                                        <td className="py-3 px-6 text-left">
+                                                            <Link to={`/hospital/${appointment.Hospital.parentId}`} className="flex items-center">
+                                                                <FontAwesomeIcon icon={faHospital} className="mr-2 text-blue-600" />
+                                                                {appointment.Hospital.name}
+                                                            </Link>
+                                                        </td>
+                                                    )}
+                                                    {role !== "PATIENT" && (
+                                                        <td className="py-3 px-6 text-left">
+                                                            <Link to={`/profile/${appointment.User.id}`} className="flex items-center">
+                                                                <FontAwesomeIcon icon={faUser} className="mr-2 text-blue-600" />
+                                                                {appointment.User.name}
+                                                            </Link>
+                                                        </td>
+                                                    )}
                                                     <td className="py-3 px-6 text-left">
                                                         <div className="flex items-center">
-                                                            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-teal-500" />
+                                                            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-blue-600" />
                                                             {new Date(appointment.date).toLocaleDateString()}
                                                         </div>
                                                     </td>
                                                     <td className="py-3 px-6 text-right">
-                                                        <span className="bg-teal-100 text-teal-600 py-1 px-3 rounded-full text-xs">
+                                                        <span className="bg-blue-100 text-blue-600 py-1 px-3 rounded-full text-xs">
                                                             ${appointment.paidPrice}
                                                         </span>
                                                     </td>
@@ -607,11 +566,10 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                                             {appointment.status}
                                                         </span>
                                                     </td>
-
                                                     <td className="py-3 px-6 text-right">
-                                                        <Link to={"/appointments/" + appointment.id} className="flex items-center justify-end">
-                                                            <FontAwesomeIcon icon={faArrowCircleUp} className="mr-2 text-teal-500" />
-                                                            Go to Appointment
+                                                        <Link to={`/appointments/${appointment.id}`} className="flex items-center justify-end">
+                                                            <FontAwesomeIcon icon={faArrowCircleUp} className="mr-2 text-blue-600" />
+                                                            View Details
                                                         </Link>
                                                     </td>
                                                 </tr>
@@ -630,24 +588,16 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
 
                     {activeTab === "location" && (
                         <div>
-                            <h2 className="text-xl font-semibold mb-4">Your Location</h2>
+                            <h2 className="text-xl font-semibold mb-4">User Location</h2>
                             <div className="bg-gray-100 p-6 rounded-lg">
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="flex items-start">
-                                        <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1 text-teal-500 w-5" />
+                                        <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1 text-blue-600 w-5" />
                                         <div className="ml-4">
-                                            <h3 className="text-gray-700 font-medium">Your Saved Location</h3>
+                                            <h3 className="text-gray-700 font-medium">Saved Location</h3>
                                             <p className="text-gray-600">ID: {user.currLocation ? user.currLocation.id : "Not set"}</p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={handleUpdateLocation}
-                                        disabled={isUpdatingLocation}
-                                        className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition duration-300 flex items-center"
-                                    >
-                                        <FontAwesomeIcon icon={faLocationArrow} className="mr-2" />
-                                        {isUpdatingLocation ? "Updating..." : "Update with Current Location"}
-                                    </button>
                                 </div>
                                 <div>
                                     {user.currLocation ? (
@@ -659,7 +609,7 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                     ) : (
                                         <div className="text-center py-8">
                                             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-300 text-5xl mb-3" />
-                                            <p className="text-gray-500">Location not available. Click "Update Location" to set your current location.</p>
+                                            <p className="text-gray-500">Location not available. User has not set their location yet.</p>
                                         </div>
                                     )}
                                 </div>
@@ -667,24 +617,36 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                         </div>
                     )}
 
-                    {/* Doctor Specialties Tab */}
+                    {/* Specialties Tab - Read Only */}
                     {activeTab === "specialties" && role === "DOCTOR" && (
-                        <DoctorSpecialtiesTab userId={userId} />
+                        <div>
+                            <h2 className="text-xl font-semibold mb-4">Doctor Specialties</h2>
+
+                            {user.specialities && user.specialities.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {user.specialities.map(specialty => (
+                                        <div key={specialty.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <h3 className="font-medium text-lg text-gray-800">{specialty.name}</h3>
+                                            <p className="text-gray-600 mt-2">{specialty.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-500">No specialties have been added yet.</p>
+                                </div>
+                            )}
+                        </div>
                     )}
 
-                    {/* Provider Timings Tab */}
-                    {activeTab === "timings" && role !== "PATIENT" && (
-                        <ProviderTimingsTab userId={userId} />
+                    {activeTab === "documents" && role !== "PATIENT" && id !== undefined && (
+                        <AdminDocumentVerificationTab userId={id} role={role} />
                     )}
 
-                    {/* Documents Tab */}
-                    {activeTab === "documents" && role !== "PATIENT" && (
-                        <DocumentVerificationTab userId={userId} role={role} />
-                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-export default UserProfile;
+export default AdminProfileView;

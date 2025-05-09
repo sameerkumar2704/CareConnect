@@ -6,7 +6,7 @@ const ServiceCard = ({ title, description, image, link }: { title: string, descr
       fontFamily: "RaleWay, sans-serif",
       boxShadow: "0 0 30px rgba(71, 205, 191, 0.25)"
     }} className="cursor-pointer rounded-lg max-w-sm">
-      <div className="overflow-hidden rounded-xl shadow-lg bg-white">
+      <div className="overflow-hidden rounded-xl flex flex-col justify-around h-full shadow-lg bg-white">
         <div className="md:py-6 py-3 px-2 md:px-4">
           <h2 className="text-sm md:text-2xl text-center font-semibold text-gray-900">
             {title}

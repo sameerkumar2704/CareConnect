@@ -189,6 +189,7 @@ const DoctorAppointmentView: React.FC = () => {
                 return response.json();
             })
             .then(data => {
+                console.log('Updated appointment status:', data);
                 setAppointment(prev => prev ? { ...prev, status: newStatus } : null);
                 setStatusUpdateSuccess(true);
                 setTimeout(() => setStatusUpdateSuccess(false), 3000);

@@ -44,6 +44,7 @@ model Hospital {
   updatedAt       DateTime      @updatedAt
   timings         Json?
   appointments    Appointment[]
+  approved        Boolean       @default(false)
   freeSlotDate    DateTime?
   maxAppointments Int?          @default(10)
   emergency       Boolean       @default(false)
@@ -59,6 +60,7 @@ model Speciality {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   hospitals   Hospital[] @relation("HospitalSpecialities")
+  Ratings     Ratings[]
 }
 
 enum UserRole {
@@ -85,17 +87,25 @@ model Appointment {
   updatedAt  DateTime @updatedAt
   Hospital   Hospital @relation(fields: [hospitalId], references: [id])
   User       User     @relation(fields: [userId], references: [id])
+  ratingsId  String?
 }
 
 model Ratings {
-  id         String   @id @default(cuid())
-  hospitalId String
-  userId     String
-  rating     Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  Hospital   Hospital @relation(fields: [hospitalId], references: [id])
-  User       User     @relation(fields: [userId], references: [id])
+  id           String  @id @default(cuid())
+  hospitalId   String
+  userId       String
+  rating       Int
+  feedback     String?
+  specialityId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Hospital   Hospital   @relation(fields: [hospitalId], references: [id])
+  User       User       @relation(fields: [userId], references: [id])
+  Speciality Speciality @relation(fields: [specialityId], references: [id])
+
+  @@unique([hospitalId, userId, specialityId], name: "unique_hospital_user_speciality_rating")
 }
 
 model Feedback {

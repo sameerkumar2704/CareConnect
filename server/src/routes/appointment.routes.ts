@@ -83,6 +83,7 @@ router.get("/byDate", async (req, res) => {
         res.status(500).send({ error: "Something went wrong" });
     }
 });
+
 router.get("/:id", getAppointmentById);
 
 router.put("/:id/status", async (req, res) => {
@@ -98,9 +99,16 @@ router.put("/:id/status", async (req, res) => {
             return;
         }
 
+        if (!status) {
+            res.status(400).send({ error: "Status is required" });
+            return;
+        }
+
+        const statusUpperCase = status.toUpperCase();
+
         const appointment = await prisma.appointment.update({
             where: { id },
-            data: { status },
+            data: { status: statusUpperCase },
         });
 
         res.status(200).send(appointment);

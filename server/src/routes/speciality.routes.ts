@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
         });
 
         // Optionally format the response if needed
-        const formatted = specialities.map(s => ({
+        const formatted = specialities.map((s) => ({
             id: s.id,
             name: s.name,
             description: s.description,
@@ -37,6 +37,11 @@ router.get("/", async (req, res) => {
 router.get("/top", async (req, res) => {
     try {
         const specialities = await prisma.speciality.findMany({
+            orderBy: {
+                hospitals: {
+                    _count: "desc", // Sort by the number of hospitals (doctors)
+                },
+            },
             take: 8,
             select: {
                 id: true,
@@ -48,8 +53,7 @@ router.get("/top", async (req, res) => {
             },
         });
 
-        // Optionally format the response if needed
-        const formatted = specialities.map(s => ({
+        const formatted = specialities.map((s) => ({
             id: s.id,
             name: s.name,
             description: s.description,
@@ -59,12 +63,93 @@ router.get("/top", async (req, res) => {
         res.status(200).send(formatted);
     } catch (error) {
         res.status(500).send({
-            message: "An error occurred while fetching specialities",
+            message: "An error occurred while fetching top specialities",
             error,
         });
     }
 });
 
+router.get("/doctor/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const doctor = await prisma.hospital.findUnique({
+            where: { id: id },
+            include: {
+                specialities: true,
+            },
+        });
+
+        if (!doctor) {
+            res.status(404).send({ message: "Doctor not found" });
+            return;
+        }
+
+        res.status(200).send(doctor.specialities);
+    } catch (error) {
+        res.status(500).send({
+            message: "An error occurred while fetching speciality",
+            error,
+        });
+    }
+});
+
+router.put("/doctor/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const { specialtyId } = req.body;
+
+    console.log("Received data:", specialtyId);
+
+    try {
+        const doctor = await prisma.hospital.findUnique({
+            where: { id: id },
+            include: {
+                specialities: true,
+            },
+        });
+
+        console.log("Doctor found:", doctor);
+
+        if (!doctor) {
+            res.status(404).send({ message: "Doctor not found" });
+            return;
+        }
+
+        const speciality = await prisma.speciality.findUnique({
+            where: { id: specialtyId },
+        });
+
+        if (!speciality) {
+            res.status(404).send({ message: "Speciality not found" });
+            return;
+        }
+
+        console.log("Speciality found:", speciality);
+
+        const updatedDoctor = await prisma.hospital.update({
+            where: { id: id },
+            data: {
+                specialities: {
+                    connect: { id: specialtyId },
+                },
+            },
+            include: {
+                specialities: true,
+            },
+        });
+
+        console.log("Updated doctor:", updatedDoctor);
+
+        res.status(200).send(updatedDoctor.specialities);
+    } catch (error) {
+        console.error("Error updating doctor:", error);
+
+        res.status(500).send({
+            message: "An error occurred while fetching speciality",
+            error,
+        });
+    }
+});
 
 router.get("/reset", async (req, res) => {
     try {

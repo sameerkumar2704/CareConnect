@@ -23,6 +23,8 @@ import User from "./pages/Profile/Main";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Specialties from "./pages/Services/Specialities";
 import Emergency from "./pages/Services/Emergency";
+import AdminApprovalPanel from "./pages/Admin";
+import AdminProfileView from "./pages/Profile/AdminProfileView";
 
 const App: React.FC = () => {
 
@@ -109,8 +111,12 @@ const App: React.FC = () => {
           element: <HospitalDetails />
         },
         {
-          path: "/profile",
-          element: <DoctorDashboard />
+          path: "/admin",
+          element: <AdminApprovalPanel />
+        },
+        {
+          path: "/profile/:id",
+          element: <AdminProfileView />
         },
         {
           path: "*",

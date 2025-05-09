@@ -37,11 +37,12 @@ const Emergency = () => {
             <div className="bg-gradient-to-r from-cyan-600 to-blue-500 py-16 px-6">
                 <div className="max-w-6xl mx-auto text-center">
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                        Find Top Hospitals Near You
+                        Find Emergency Hospitals Near You
                     </h1>
                     <p className="text-xl text-white text-opacity-90 max-w-3xl mx-auto mb-8">
-                        Discover premier healthcare facilities offering comprehensive medical services
+                        Locate top-rated hospitals equipped to handle urgent and critical medical conditions.
                     </p>
+
 
                     <div className="flex max-w-2xl mx-auto ">
                         <input
@@ -62,11 +63,16 @@ const Emergency = () => {
             <div className="p-6 md:p-12 bg-gray-100">
                 {/* Browse by Hospital */}
                 <div className="flex flex-col py-12 gap-2">
-                    <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">Hospitals</h1>
-                    <h2 className="text-2xl md:text-5xl font-bold text-center">Browse by Hospital</h2>
+                    <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">
+                        Emergency Hospitals
+                    </h1>
+                    <h2 className="text-2xl md:text-5xl font-bold text-center">
+                        Browse Critical Care Facilities
+                    </h2>
                     <h6 className="text-center text-sm md:text-lg text-gray-600">
-                        Find the right medical assurance by browsing through our hospitals.
+                        Explore hospitals equipped for emergency and life-saving medical services.
                     </h6>
+
                 </div>
                 {loading && <LoadingSpinner />}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -19,6 +19,8 @@ import {
     faExclamationCircle,
     faStar as fasStar,
     faClock as fasClock,
+    faTimes,
+    faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -61,11 +63,16 @@ interface Appointment {
     userId: string;
     date: string;
     paidPrice: number;
-    status: string; // Added status field
+    status: string;
     createdAt: string;
     updatedAt: string;
     Hospital: Hospital;
     User: User;
+}
+
+interface Speciality {
+    id: string;
+    name: string;
 }
 
 interface Hospital {
@@ -75,6 +82,7 @@ interface Hospital {
     phone: string;
     address: string;
     parent?: Hospital;
+    specialities?: Speciality[];
     currLocation?: {
         latitude: number;
         longitude: number;
@@ -122,6 +130,7 @@ const RatingStars: React.FC<{
 
 const AppointmentDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [appointment, setAppointment] = useState<Appointment | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -129,12 +138,18 @@ const AppointmentDetailsPage: React.FC = () => {
     const contentRef = useRef<HTMLDivElement>(null);
     const pdfTemplateRef = useRef<HTMLDivElement>(null);
 
+    // New state for cancellation
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+    const [cancellationSuccess, setCancellationSuccess] = useState(false);
+
     // Rating state
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [feedback, setFeedback] = useState("");
     const [isSubmittingRating, setIsSubmittingRating] = useState(false);
     const [ratingSubmitted, setRatingSubmitted] = useState(false);
+    const [selectedSpecialities, setSelectedSpecialities] = useState<string[]>([]);
 
     useEffect(() => {
         if (!id) return;
@@ -160,39 +175,100 @@ const AppointmentDetailsPage: React.FC = () => {
             });
     }, [id]);
 
+    const handleSpecialityToggle = (specialityId: string) => {
+        setSelectedSpecialities(prevSelected => {
+            if (prevSelected.includes(specialityId)) {
+                return prevSelected.filter(id => id !== specialityId);
+            } else {
+                return [...prevSelected, specialityId];
+            }
+        });
+    };
+
     const submitRating = () => {
         if (rating === 0) {
             alert("Please select a rating before submitting");
             return;
         }
 
+        if (selectedSpecialities.length === 0) {
+            alert("Please select at least one speciality");
+            return;
+        }
+
         setIsSubmittingRating(true);
 
-        // Example API call to submit rating
-        fetch(`${API_URL}/appointments/${id}/rating`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                rating,
-                feedback,
-            }),
-        })
-            .then(response => {
+        // Prepare rating data for each selected speciality
+        const ratingPromises = selectedSpecialities.map(specialityId => {
+            return fetch(`${API_URL}/ratings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: appointment?.userId,
+                    hospitalId: appointment?.hospitalId,
+                    specialityId,
+                    rating,
+                    feedback,
+                }),
+            }).then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to submit rating');
                 }
                 return response.json();
-            })
+            });
+        });
+
+        // Submit all ratings
+        Promise.all(ratingPromises)
             .then(() => {
                 setRatingSubmitted(true);
                 setIsSubmittingRating(false);
             })
             .catch(err => {
-                console.error('Error submitting rating:', err);
+                console.error('Error submitting ratings:', err);
                 setIsSubmittingRating(false);
-                alert("Error submitting rating. Please try again.");
+                alert("Error submitting ratings. Please try again.");
+            });
+    };
+
+    const cancelAppointment = () => {
+        if (!appointment || !id) return;
+
+        setCancelling(true);
+
+        fetch(`${API_URL}/appointments/${id}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to cancel appointment');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update the appointment with new status
+                setAppointment({
+                    ...appointment,
+                    status: 'cancelled'
+                });
+                setCancellationSuccess(true);
+                setCancelling(false);
+                console.log('Appointment cancelled successfully:', data);
+
+                // Close modal after showing success for 2 seconds
+                setTimeout(() => {
+                    setShowCancelModal(false);
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Error cancelling appointment:', err);
+                setCancelling(false);
+                alert("Error cancelling appointment. Please try again.");
             });
     };
 
@@ -285,7 +361,7 @@ const AppointmentDetailsPage: React.FC = () => {
             case 'cancelled':
                 return (
                     <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium flex items-center">
-                        <FontAwesomeIcon icon={faExclamationCircle} className="mr-1" />
+                        <FontAwesomeIcon icon={faTimesCircle} className="mr-1" />
                         Cancelled
                     </span>
                 );
@@ -308,18 +384,37 @@ const AppointmentDetailsPage: React.FC = () => {
         return null;
     }
 
+    // Check if appointment can be cancelled (only pending appointments and not too close to appointment time)
+    const canBeCancelled = appointment.status.toLowerCase() === 'pending';
+    const appointmentDate = new Date(appointment.date);
+    const now = new Date();
+
+    // Calculate the refund amount (90% of paid price)
+    const refundAmount = (appointment.paidPrice * 0.9).toFixed(2);
+
     return (
         <div className="bg-gradient-to-r from-teal-500 to-blue-400 min-h-screen py-10 px-4">
             <div className="container mx-auto max-w-3xl">
                 {/* Confirmation Header */}
                 <div className="bg-white rounded-t-lg shadow-lg p-6 flex items-center justify-between">
                     <div className="flex items-center">
-                        <div className="bg-green-100 rounded-full p-3 mr-4">
-                            <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-2xl" />
+                        <div className={`${appointment.status.toLowerCase() === 'cancelled' ? 'bg-red-100' : 'bg-green-100'} rounded-full p-3 mr-4`}>
+                            <FontAwesomeIcon
+                                icon={appointment.status.toLowerCase() === 'cancelled' ? faTimesCircle : faCheckCircle}
+                                className={`${appointment.status.toLowerCase() === 'cancelled' ? 'text-red-500' : 'text-green-500'} text-2xl`}
+                            />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800">Appointment Confirmed</h1>
-                            <p className="text-gray-600">Your appointment has been successfully booked and confirmed.</p>
+                            <h1 className="text-2xl font-bold text-gray-800">
+                                {appointment.status.toLowerCase() === 'cancelled'
+                                    ? 'Appointment Cancelled'
+                                    : 'Appointment Confirmed'}
+                            </h1>
+                            <p className="text-gray-600">
+                                {appointment.status.toLowerCase() === 'cancelled'
+                                    ? 'Your appointment has been cancelled.'
+                                    : 'Your appointment has been successfully booked and confirmed.'}
+                            </p>
                         </div>
                     </div>
                     {/* Status badge */}
@@ -328,6 +423,116 @@ const AppointmentDetailsPage: React.FC = () => {
 
                 {/* Appointment Details Card */}
                 <div ref={contentRef} className="bg-white shadow-lg rounded-b-lg overflow-hidden">
+                    {/* Cancel button for pending appointments */}
+                    {canBeCancelled && (
+                        <div className="bg-orange-50 p-4 border-b border-orange-100 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-semibold text-gray-800">Need to reschedule?</h3>
+                                <p className="text-sm text-gray-600">You can cancel this appointment and receive a 90% refund.</p>
+                            </div>
+                            <button
+                                onClick={() => setShowCancelModal(true)}
+                                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition flex items-center"
+                            >
+                                <FontAwesomeIcon icon={faTimes} className="mr-2" />
+                                Cancel Appointment
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Rating component - moved up and shown for completed appointments */}
+                    {appointment.status && appointment.status.toLowerCase() === 'completed' && !ratingSubmitted && (
+                        <div className="p-6 border-b border-gray-200 bg-blue-50">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                <FontAwesomeIcon icon={fasStar} className="text-yellow-500 mr-2" />
+                                Please Rate Your Experience
+                            </h2>
+
+                            <div className="bg-white p-6 rounded-lg shadow-sm">
+                                <p className="text-gray-700 mb-3">How was your experience with Dr. {appointment.Hospital.name}?</p>
+
+                                <div className="mb-4">
+                                    <RatingStars
+                                        rating={rating}
+                                        setRating={setRating}
+                                        hoverRating={hoverRating}
+                                        setHoverRating={setHoverRating}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {rating === 1 && "Poor"}
+                                        {rating === 2 && "Fair"}
+                                        {rating === 3 && "Good"}
+                                        {rating === 4 && "Very Good"}
+                                        {rating === 5 && "Excellent"}
+                                    </p>
+                                </div>
+
+                                {/* Speciality selection */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Select Specialities You're Rating (Select all that apply)
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {appointment.Hospital.specialities ? (
+                                            appointment.Hospital.specialities.map(spec => (
+                                                <div
+                                                    key={spec.id}
+                                                    onClick={() => handleSpecialityToggle(spec.id)}
+                                                    className={`cursor-pointer px-3 py-2 rounded-full text-sm ${selectedSpecialities.includes(spec.id)
+                                                            ? 'bg-teal-500 text-white'
+                                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        }`}
+                                                >
+                                                    {spec.name}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-yellow-600">Loading specialities...</p>
+                                        )}
+                                    </div>
+                                    {selectedSpecialities.length === 0 && (
+                                        <p className="text-xs text-red-500 mt-1">Please select at least one speciality</p>
+                                    )}
+                                </div>
+
+                                <div className="mb-4">
+                                    <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Additional Feedback (Optional)
+                                    </label>
+                                    <textarea
+                                        id="feedback"
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                        placeholder="Share your thoughts about your appointment..."
+                                        value={feedback}
+                                        onChange={(e) => setFeedback(e.target.value)}
+                                    ></textarea>
+                                </div>
+
+                                <button
+                                    className="bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition flex items-center justify-center disabled:bg-gray-400"
+                                    onClick={submitRating}
+                                    disabled={isSubmittingRating || rating === 0 || selectedSpecialities.length === 0}
+                                >
+                                    {isSubmittingRating ? 'Submitting...' : 'Submit Rating'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Rating submitted thank you message */}
+                    {ratingSubmitted && (
+                        <div className="p-6 border-b border-gray-200 bg-green-50">
+                            <div className="flex items-center justify-center mb-3">
+                                <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-3xl" />
+                            </div>
+                            <h3 className="text-center text-xl font-medium text-green-800">Thank You for Your Feedback!</h3>
+                            <p className="text-center text-green-700 mt-2">
+                                Your rating helps us improve our services and assist other patients.
+                            </p>
+                        </div>
+                    )}
+
                     {/* Appointment Info Section */}
                     <div className="p-6 border-b border-gray-200">
                         <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
@@ -374,7 +579,11 @@ const AppointmentDetailsPage: React.FC = () => {
                                 <div>
                                     <p className="text-sm text-gray-500">Payment Amount</p>
                                     <p className="font-medium text-gray-800">₹{appointment.paidPrice.toFixed(2)}</p>
-                                    <p className="text-xs text-green-600">Paid Successfully</p>
+                                    <p className={`text-xs ${appointment.status.toLowerCase() === 'cancelled' ? 'text-red-600' : 'text-green-600'}`}>
+                                        {appointment.status.toLowerCase() === 'cancelled'
+                                            ? `Refunded: ₹${refundAmount}`
+                                            : 'Paid Successfully'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -454,71 +663,6 @@ const AppointmentDetailsPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Rating component - only show for completed appointments */}
-                    {appointment.status && appointment.status.toLowerCase() === 'completed' && !ratingSubmitted && (
-                        <div className="p-6 border-b border-gray-200 bg-blue-50">
-                            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                                <FontAwesomeIcon icon={fasStar} className="text-yellow-500 mr-2" />
-                                Rate Your Experience
-                            </h2>
-
-                            <div className="bg-white p-6 rounded-lg shadow-sm">
-                                <p className="text-gray-700 mb-3">How was your experience with Dr. {appointment.Hospital.name}?</p>
-
-                                <div className="mb-4">
-                                    <RatingStars
-                                        rating={rating}
-                                        setRating={setRating}
-                                        hoverRating={hoverRating}
-                                        setHoverRating={setHoverRating}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {rating === 1 && "Poor"}
-                                        {rating === 2 && "Fair"}
-                                        {rating === 3 && "Good"}
-                                        {rating === 4 && "Very Good"}
-                                        {rating === 5 && "Excellent"}
-                                    </p>
-                                </div>
-
-                                <div className="mb-4">
-                                    <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Additional Feedback (Optional)
-                                    </label>
-                                    <textarea
-                                        id="feedback"
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                        placeholder="Share your thoughts about your appointment..."
-                                        value={feedback}
-                                        onChange={(e) => setFeedback(e.target.value)}
-                                    ></textarea>
-                                </div>
-
-                                <button
-                                    className="bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition flex items-center justify-center disabled:bg-gray-400"
-                                    onClick={submitRating}
-                                    disabled={isSubmittingRating || rating === 0}
-                                >
-                                    {isSubmittingRating ? 'Submitting...' : 'Submit Rating'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Rating submitted thank you message */}
-                    {ratingSubmitted && (
-                        <div className="p-6 border-b border-gray-200 bg-green-50">
-                            <div className="flex items-center justify-center mb-3">
-                                <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-3xl" />
-                            </div>
-                            <h3 className="text-center text-xl font-medium text-green-800">Thank You for Your Feedback!</h3>
-                            <p className="text-center text-green-700 mt-2">
-                                Your rating helps us improve our services and assist other patients.
-                            </p>
-                        </div>
-                    )}
 
                     {/* Notes & Instructions */}
                     <div className="p-6 border-b border-gray-200">

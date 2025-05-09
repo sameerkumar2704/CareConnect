@@ -14,15 +14,29 @@ const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
     console.log("Fetching hospitals...");
+
     try {
-        const { emergency } = req.query;
+        const { emergency, role, approved } = req.query;
 
         console.log("Emergency:", emergency);
 
-        const hospitals = await prisma.hospital.findMany({
-            include: { specialities: true },
-            where: emergency === "true" ? { emergency: true } : undefined,
-        });
+        let hospitals = null;
+
+        if (emergency)
+            hospitals = await prisma.hospital.findMany({
+                include: { specialities: true },
+                where: emergency === "true" ? { emergency: true } : undefined,
+            });
+
+        if (role && approved) {
+            hospitals = await prisma.hospital.findMany({
+                include: { specialities: true },
+                where: {
+                    parentId: role === "DOCTOR" ? null : { not: null },
+                    approved: approved === "true" ? true : false,
+                },
+            });
+        }
 
         if (!hospitals) {
             res.status(404).send({ message: "No hospitals found" });
@@ -64,6 +78,25 @@ router.get("/top", async (req, res) => {
     }
 });
 
+router.get("/:id/timings", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const hospital = await prisma.hospital.findUnique({
+            where: { id: id },
+            select: { timings: true },
+        });
+
+        if (!hospital) {
+            res.status(404).send({ message: "Hospital not found" });
+            return;
+        }
+
+        res.status(200).send(hospital.timings);
+    } catch (error) {
+        res.status(500).send({ error: "Something went wrong" });
+    }
+});
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -80,6 +113,7 @@ router.get("/:id", async (req, res) => {
                 },
                 ratings: true,
                 currLocation: true,
+                specialities: true,
             },
         });
 
@@ -203,6 +237,58 @@ router.post("/login", async (req, res) => {
     }
 });
 
+router.put("/approve/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const hospital = await prisma.hospital.update({
+            where: { id: id },
+            data: {
+                approved: true,
+            },
+        });
+
+        res.status(200).send(hospital);
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+});
+
+router.put("/reject/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const hospital = await prisma.hospital.update({
+            where: { id: id },
+            data: {
+                approved: false,
+            },
+        });
+
+        res.status(200).send(hospital);
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+});
+
+router.put("/:id/timings", async (req, res) => {
+    const { id } = req.params;
+    const { timings } = req.body;
+
+    try {
+        const hospital = await prisma.hospital.update({
+            where: { id: id },
+            data: {
+                timings,
+            },
+        });
+
+        res.status(200).send(hospital);
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+});
+
 router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const currData: Hospital = { ...req.body };
@@ -271,7 +357,7 @@ router.put("/date", async (req, res) => {
             data: { freeSlotDate: new Date(date) },
         });
 
-        res.status(200).send(hospital); 
+        res.status(200).send(hospital);
     } catch (error) {
         res.status(500).send({ error: "Something went wrong" });
     }

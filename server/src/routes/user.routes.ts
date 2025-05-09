@@ -56,24 +56,13 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     console.log("ID := ", id);
-
-    // Get today's date at start of the day
-    const today = new Date();
-    let tommorow = new Date(today);
-    tommorow.setDate(today.getDate() + 1);
-
+    
     try {
         const user = await prisma.user.findUnique({
             where: { id: id },
             include: {
                 currLocation: true,
                 appointments: {
-                    where: {
-                        date: {
-                            gte: today,
-                            lte: tommorow,
-                        },
-                    },
                     include: {
                         Hospital: true,
                     },
