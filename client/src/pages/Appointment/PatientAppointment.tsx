@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -21,7 +21,11 @@ import {
     faClock as fasClock,
     faTimes,
     faTimesCircle,
+    faCreditCard, // Add this import for the bank details icon
+    faExclamationTriangle,
+    faInfoCircle, // Add this for expired status
 } from '@fortawesome/free-solid-svg-icons';
+
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import NotFound from '../NotFound';
@@ -96,6 +100,12 @@ interface User {
     phone: string;
 }
 
+interface BankDetails {
+    accountNumber: string;
+    ifscCode: string;
+    accountHolderName: string;
+}
+
 // Rating component
 const RatingStars: React.FC<{
     rating: number;
@@ -130,7 +140,6 @@ const RatingStars: React.FC<{
 
 const AppointmentDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const [appointment, setAppointment] = useState<Appointment | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -151,6 +160,68 @@ const AppointmentDetailsPage: React.FC = () => {
     const [ratingSubmitted, setRatingSubmitted] = useState(false);
     const [selectedSpecialities, setSelectedSpecialities] = useState<string[]>([]);
 
+    const [bankDetails, setBankDetails] = useState<BankDetails>({
+        accountNumber: '',
+        ifscCode: '',
+        accountHolderName: '',
+    });
+    const [showBankDetailsForm, setShowBankDetailsForm] = useState(false);
+    const [submittingBankDetails, setSubmittingBankDetails] = useState(false);
+    const [bankDetailsSubmitted, setBankDetailsSubmitted] = useState(false);
+
+    // Add this function to handle bank details input changes
+    const handleBankDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setBankDetails(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const submitBankDetailsForRefund = () => {
+        if (!bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.accountHolderName) {
+            alert("Please fill in all bank details fields");
+            return;
+        }
+
+        setSubmittingBankDetails(true);
+
+        fetch(`${API_URL}/appointments/${id}/refund`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                bankDetails
+            }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to submit bank details');
+                }
+                return response.json();
+            })
+            .then(data => {
+                setBankDetailsSubmitted(true);
+                setSubmittingBankDetails(false);
+                console.log('Bank details submitted successfully:', data);
+            })
+            .catch(err => {
+                console.error('Error submitting bank details:', err);
+                setSubmittingBankDetails(false);
+                alert("Error submitting bank details. Please try again.");
+            });
+    };
+
+
+    // Add function to check if appointment is expired (to be used in the component)
+    const isAppointmentExpired = () => {
+        if (!appointment) return false;
+        const appointmentDate = new Date(appointment.date);
+        const now = new Date();
+        return appointmentDate < now && appointment.status.toLowerCase() === 'pending';
+    };
+
     useEffect(() => {
         if (!id) return;
 
@@ -165,6 +236,28 @@ const AppointmentDetailsPage: React.FC = () => {
             })
             .then(data => {
                 console.log('Fetched appointment data:', data);
+
+                // Check if appointment is expired but not marked as such
+                const appointmentDate = new Date(data.date);
+                const now = new Date();
+                if (appointmentDate < now && data.status.toLowerCase() === 'pending') {
+                    // Mark the appointment as expired in the backend
+                    return fetch(`${API_URL}/appointments/${id}/mark-expired`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }).then(response => {
+                        if (!response.ok) {
+                            console.warn('Could not mark appointment as expired');
+                            return data;
+                        }
+                        return response.json();
+                    });
+                }
+                return data;
+            })
+            .then(data => {
                 setAppointment(data);
                 setLoading(false);
             })
@@ -342,6 +435,7 @@ const AppointmentDetailsPage: React.FC = () => {
         }
     };
 
+    // Update the getStatusBadge function to include the "expired" status
     const getStatusBadge = (status: string) => {
         switch (status.toLowerCase()) {
             case 'completed':
@@ -365,6 +459,13 @@ const AppointmentDetailsPage: React.FC = () => {
                         Cancelled
                     </span>
                 );
+            case 'expired':
+                return (
+                    <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium flex items-center">
+                        <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1" />
+                        Expired
+                    </span>
+                );
             default:
                 return (
                     <span className="bg-gray-100 text-gray-800 py-1 px-3 rounded-full text-sm font-medium">
@@ -386,8 +487,6 @@ const AppointmentDetailsPage: React.FC = () => {
 
     // Check if appointment can be cancelled (only pending appointments and not too close to appointment time)
     const canBeCancelled = appointment.status.toLowerCase() === 'pending';
-    const appointmentDate = new Date(appointment.date);
-    const now = new Date();
 
     // Calculate the refund amount (90% of paid price)
     const refundAmount = (appointment.paidPrice * 0.9).toFixed(2);
@@ -398,22 +497,28 @@ const AppointmentDetailsPage: React.FC = () => {
                 {/* Confirmation Header */}
                 <div className="bg-white rounded-t-lg shadow-lg p-6 flex items-center justify-between">
                     <div className="flex items-center">
-                        <div className={`${appointment.status.toLowerCase() === 'cancelled' ? 'bg-red-100' : 'bg-green-100'} rounded-full p-3 mr-4`}>
+                        <div className={`${appointment.status.toLowerCase() === 'cancelled' || appointment.status.toLowerCase() === 'expired' ? 'bg-red-100' : 'bg-green-100'} rounded-full p-3 mr-4`}>
                             <FontAwesomeIcon
-                                icon={appointment.status.toLowerCase() === 'cancelled' ? faTimesCircle : faCheckCircle}
-                                className={`${appointment.status.toLowerCase() === 'cancelled' ? 'text-red-500' : 'text-green-500'} text-2xl`}
+                                icon={appointment.status.toLowerCase() === 'cancelled' ? faTimesCircle :
+                                    appointment.status.toLowerCase() === 'expired' ? faExclamationTriangle :
+                                        faCheckCircle}
+                                className={`${appointment.status.toLowerCase() === 'cancelled' || appointment.status.toLowerCase() === 'expired' ? 'text-red-500' : 'text-green-500'} text-2xl`}
                             />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800">
                                 {appointment.status.toLowerCase() === 'cancelled'
                                     ? 'Appointment Cancelled'
-                                    : 'Appointment Confirmed'}
+                                    : appointment.status.toLowerCase() === 'expired'
+                                        ? 'Appointment Expired'
+                                        : 'Appointment Confirmed'}
                             </h1>
                             <p className="text-gray-600">
                                 {appointment.status.toLowerCase() === 'cancelled'
                                     ? 'Your appointment has been cancelled.'
-                                    : 'Your appointment has been successfully booked and confirmed.'}
+                                    : appointment.status.toLowerCase() === 'expired'
+                                        ? 'Your appointment time has passed.'
+                                        : 'Your appointment has been successfully booked and confirmed.'}
                             </p>
                         </div>
                     </div>
@@ -424,7 +529,7 @@ const AppointmentDetailsPage: React.FC = () => {
                 {/* Appointment Details Card */}
                 <div ref={contentRef} className="bg-white shadow-lg rounded-b-lg overflow-hidden">
                     {/* Cancel button for pending appointments */}
-                    {canBeCancelled && (
+                    {canBeCancelled && !isAppointmentExpired() && (
                         <div className="bg-orange-50 p-4 border-b border-orange-100 flex justify-between items-center">
                             <div>
                                 <h3 className="font-semibold text-gray-800">Need to reschedule?</h3>
@@ -437,6 +542,200 @@ const AppointmentDetailsPage: React.FC = () => {
                                 <FontAwesomeIcon icon={faTimes} className="mr-2" />
                                 Cancel Appointment
                             </button>
+                        </div>
+                    )}
+
+                    {isAppointmentExpired() && !bankDetailsSubmitted && !showBankDetailsForm && (
+                        <div className="bg-red-50 p-4 border-b border-red-100 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-semibold text-gray-800">Your appointment has expired</h3>
+                                <p className="text-sm text-gray-600">You missed your appointment but can still claim a 90% refund.</p>
+                            </div>
+                            <button
+                                onClick={() => setShowBankDetailsForm(true)}
+                                className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition flex items-center"
+                            >
+                                <FontAwesomeIcon icon={faCreditCard} className="mr-2" />
+                                Claim Refund
+                            </button>
+                        </div>
+                    )}
+
+                    {(appointment.status.toLowerCase() === 'cancelled' || appointment.status.toLowerCase() === 'expired') && !bankDetailsSubmitted && (
+                        <div className="p-6 border-b border-gray-200 bg-orange-50">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                <FontAwesomeIcon icon={faCreditCard} className="text-orange-500 mr-2" />
+                                {showBankDetailsForm ? 'Enter Your Bank Details for Refund' : 'Get Your Refund'}
+                            </h2>
+
+                            {!showBankDetailsForm ? (
+                                <div className="bg-white p-4 rounded-lg shadow-sm">
+                                    <p className="text-gray-700 mb-4">
+                                        You are eligible for a refund of ₹{refundAmount} (90% of the paid amount).
+                                        Please provide your bank details to receive the refund.
+                                    </p>
+                                    <button
+                                        onClick={() => setShowBankDetailsForm(true)}
+                                        className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition"
+                                    >
+                                        Provide Bank Details
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="bg-white p-6 rounded-lg shadow-sm">
+                                    <div className="mb-4">
+                                        <label htmlFor="accountHolderName" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Account Holder Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="accountHolderName"
+                                            name="accountHolderName"
+                                            value={bankDetails.accountHolderName}
+                                            onChange={handleBankDetailsChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Enter account holder's name"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Account Number
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="accountNumber"
+                                            name="accountNumber"
+                                            value={bankDetails.accountNumber}
+                                            onChange={handleBankDetailsChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Enter your account number"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-700 mb-1">
+                                            IFSC Code
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="ifscCode"
+                                            name="ifscCode"
+                                            value={bankDetails.ifscCode}
+                                            onChange={handleBankDetailsChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Enter bank IFSC code"
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-between">
+                                        <button
+                                            onClick={() => setShowBankDetailsForm(false)}
+                                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg transition"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={submitBankDetailsForRefund}
+                                            className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition flex items-center justify-center disabled:bg-gray-400"
+                                            disabled={submittingBankDetails || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.accountHolderName}
+                                        >
+                                            {submittingBankDetails ? 'Processing...' : 'Submit Bank Details'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {showCancelModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                                {!cancellationSuccess ? (
+                                    <>
+                                        <div className="mb-4 text-center">
+                                            <div className="bg-red-100 rounded-full p-3 mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                                                <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-500 text-2xl" />
+                                            </div>
+                                            <h3 className="text-xl font-semibold text-gray-800 mb-2">Cancel Appointment?</h3>
+                                            <p className="text-gray-600">
+                                                Are you sure you want to cancel your appointment with Dr. {appointment.Hospital.name} on {formatDate(appointment.date)} at {formatTime(appointment.date)}?
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                                            <div className="flex">
+                                                <div className="flex-shrink-0">
+                                                    <FontAwesomeIcon icon={faInfoCircle} className="text-yellow-400" />
+                                                </div>
+                                                <div className="ml-3">
+                                                    <p className="text-sm text-yellow-700">
+                                                        You will receive a refund of <span className="font-semibold">₹{refundAmount}</span> (90% of your payment).
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end space-x-3">
+                                            <button
+                                                onClick={() => setShowCancelModal(false)}
+                                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition"
+                                            >
+                                                Keep Appointment
+                                            </button>
+                                            <button
+                                                onClick={cancelAppointment}
+                                                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition flex items-center"
+                                                disabled={cancelling}
+                                            >
+                                                {cancelling ? (
+                                                    <>
+                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Cancelling...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FontAwesomeIcon icon={faTimes} className="mr-2" />
+                                                        Yes, Cancel
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <div className="bg-green-100 rounded-full p-3 mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                                            <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-2xl" />
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-gray-800 mb-2">Appointment Cancelled</h3>
+                                        <p className="text-gray-600 mb-4">
+                                            Your appointment has been successfully cancelled. You will receive a refund of ₹{refundAmount} soon.
+                                        </p>
+                                        <button
+                                            onClick={() => setShowBankDetailsForm(true)}
+                                            className="bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg transition"
+                                        >
+                                            Provide Bank Details for Refund
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bank Details Submitted Success Message */}
+                    {bankDetailsSubmitted && (
+                        <div className="p-6 border-b border-gray-200 bg-green-50">
+                            <div className="flex items-center justify-center mb-3">
+                                <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-3xl" />
+                            </div>
+                            <h3 className="text-center text-xl font-medium text-green-800">Refund Request Submitted!</h3>
+                            <p className="text-center text-green-700 mt-2">
+                                Your refund of ₹{refundAmount} will be processed to your account within 5-7 business days.
+                            </p>
                         </div>
                     )}
 
@@ -479,8 +778,8 @@ const AppointmentDetailsPage: React.FC = () => {
                                                     key={spec.id}
                                                     onClick={() => handleSpecialityToggle(spec.id)}
                                                     className={`cursor-pointer px-3 py-2 rounded-full text-sm ${selectedSpecialities.includes(spec.id)
-                                                            ? 'bg-teal-500 text-white'
-                                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        ? 'bg-teal-500 text-white'
+                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     {spec.name}
@@ -783,6 +1082,21 @@ const AppointmentDetailsPage: React.FC = () => {
                                 marginTop: '10px'
                             }}>
                                 ✓ Completed
+                            </div>
+                        )}
+
+                        {appointment.status && appointment.status.toLowerCase() === 'expired' && (
+                            <div style={{
+                                display: 'inline-block',
+                                backgroundColor: '#fee2e2',
+                                color: '#991b1b',
+                                padding: '5px 15px',
+                                borderRadius: '15px',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                marginTop: '10px'
+                            }}>
+                                ⚠ Expired
                             </div>
                         )}
                     </div>

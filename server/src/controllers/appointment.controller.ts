@@ -101,6 +101,15 @@ export const getAppointmentById = async (
             return;
         }
 
+        if (appointment.date < new Date()) {
+            await prisma.appointment.update({
+                where: { id },
+                data: {
+                    status: "EXPIRED",
+                },
+            });
+        }
+
         res.status(200).json(appointment);
     } catch (error) {
         console.error(error);

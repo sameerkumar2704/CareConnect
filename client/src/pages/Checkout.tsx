@@ -40,20 +40,12 @@ const CheckoutPage: React.FC = () => {
     if (!auth) {
         return <LoadingSpinner />;
     }
-    
+
 
     // Calculate dates for appointment
-    const today = new Date();
-    const expirationDate = new Date();
-    expirationDate.setDate(today.getDate() + 7);
+    const [today, setToday] = useState(new Date());
 
-    const formattedToday = today.toLocaleDateString("en-US", {
-        month: "long",
-        day: "2-digit",
-        year: "numeric",
-    });
-
-    const formattedExpiration = expirationDate.toLocaleDateString("en-US", {
+    let formattedToday = today.toLocaleDateString("en-US", {
         month: "long",
         day: "2-digit",
         year: "numeric",
@@ -93,10 +85,15 @@ const CheckoutPage: React.FC = () => {
         fetch(`${API_URL}/hospitals/${id}`)
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
+                console.log("Checkout", data);
                 setHospital(data);
                 setParentHospital(data.parent);
                 setLoading(false);
+
+                // If null then set today to next day   
+                setToday(new Date(data.freeSlotDate ||
+                    new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
+                ));
                 // Update order details after fetching data
                 setOrderDetails(calculateOrderDetails());
 
@@ -111,6 +108,14 @@ const CheckoutPage: React.FC = () => {
                 setLoading(false);
             });
     }, [id]);
+
+    useEffect(() => {
+        formattedToday = today.toLocaleDateString("en-US", {
+            month: "long",
+            day: "2-digit",
+            year: "numeric",
+        });
+    }, [today])
 
     // Update order details when hospital data changes
     useEffect(() => {
@@ -163,7 +168,6 @@ const CheckoutPage: React.FC = () => {
                                                 </div>
                                             )}
                                             <div className="text-sm"><span className="font-semibold">Appointment Date:</span> {formattedToday}</div>
-                                            <div className="text-sm"><span className="font-semibold">Expires:</span> {formattedExpiration}</div>
                                         </div>
                                     </div>
                                 </div>

@@ -262,10 +262,6 @@ router.post("/login", async (req, res) => {
                         data: { locationId: location.id },
                     });
 
-                    await prisma.location.deleteMany({
-                        where: { id: prevLocation.id },
-                    });
-
                     console.log("Previous Location Deleted");
                 }
             }

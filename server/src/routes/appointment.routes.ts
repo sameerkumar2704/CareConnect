@@ -42,10 +42,6 @@ router.get("/byDate", async (req, res) => {
             role === "PATIENT"
                 ? await prisma.appointment.findMany({
                       where: {
-                          date: {
-                              gte: dayStart,
-                              lte: dayEnd,
-                          },
                           userId: userId as string,
                       },
                       include: {
