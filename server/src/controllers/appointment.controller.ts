@@ -34,7 +34,11 @@ export const createAppointment = async (
             where: { id: hospitalId },
         });
 
-        const lastDate = doctor?.freeSlotDate || new Date();
+        let lastDate = doctor?.freeSlotDate || new Date();
+
+        if (lastDate < new Date()) {
+            lastDate = new Date();
+        }
 
         const appointment = await prisma.appointment.create({
             data: {
@@ -101,7 +105,12 @@ export const getAppointmentById = async (
             return;
         }
 
-        if (appointment.date < new Date()) {
+        const now = new Date();
+
+        if (
+            appointment.date < new Date(now.getDate() + 1) &&
+            appointment.status === "PENDING"
+        ) {
             await prisma.appointment.update({
                 where: { id },
                 data: {

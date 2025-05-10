@@ -32,7 +32,7 @@ router.get("/", async (req, res) => {
             hospitals = await prisma.hospital.findMany({
                 include: { specialities: true },
                 where: {
-                    parentId: role === "DOCTOR" ? null : { not: null },
+                    parentId: role === "HOSPITAL" ? null : { not: null },
                     approved: approved === "true" ? true : false,
                 },
             });
@@ -67,9 +67,26 @@ router.get("/top", async (req, res) => {
     try {
         const hospitals = await prisma.hospital.findMany({
             take: 8,
-            include: { specialities: true },
+            include: {
+                specialities: true,
+
+                _count: {
+                    select: {
+                        children: true,
+                    },
+                },
+            },
+            where: {
+                parent: null,
+            },
         });
-        res.status(200).send(hospitals);
+
+        const hospitalsWithDoctorCount = hospitals.map((hospital) => ({
+            ...hospital,
+            doctorCount: hospital._count.children,
+        }));
+
+        res.status(200).send(hospitalsWithDoctorCount);
     } catch (error) {
         res.status(500).send({
             message: "An error occurred while fetching hospitals",

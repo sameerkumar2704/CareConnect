@@ -77,17 +77,20 @@ model Location {
 }
 
 model Appointment {
-  id         String   @id @default(cuid())
-  hospitalId String
-  userId     String
-  date       DateTime
-  status     String   @default("PENDING")
-  paidPrice  Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  Hospital   Hospital @relation(fields: [hospitalId], references: [id])
-  User       User     @relation(fields: [userId], references: [id])
-  ratingsId  String?
+  id            String   @id @default(cuid())
+  hospitalId    String
+  userId        String
+  date          DateTime
+  status        String   @default("PENDING")
+  paidPrice     Int
+  doctorCharges Int      @default(0)
+  paidCharges   Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  Hospital      Hospital @relation(fields: [hospitalId], references: [id])
+  User          User     @relation(fields: [userId], references: [id])
+  ratingsId     String?
+  bankDetails   Json?
 }
 
 model Ratings {

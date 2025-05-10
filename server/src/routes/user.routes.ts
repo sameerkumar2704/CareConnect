@@ -324,7 +324,7 @@ router.post("/verify", async (req, res) => {
         if (user)
             res.status(200).send({
                 ok: "Valid Token",
-                role: "PATIENT",
+                role: user.role,
                 user,
             });
         else if (hopital)

@@ -138,6 +138,102 @@ router.put("/doctor/:id", async (req, res) => {
             },
         });
 
+        if (!updatedDoctor) {
+            res.status(404).send({ message: "Doctor not found" });
+            return;
+        }
+
+        if (doctor.parentId) {
+            await prisma.hospital.update({
+                where: { id: doctor.parentId },
+                data: {
+                    specialities: {
+                        connect: { id: specialtyId },
+                    },
+                },
+            });
+        } else {
+            res.status(404).send({ message: "Parent not found" });
+            return;
+        }
+
+        console.log("Updated doctor:", updatedDoctor);
+
+        res.status(200).send(updatedDoctor.specialities);
+    } catch (error) {
+        console.error("Error updating doctor:", error);
+
+        res.status(500).send({
+            message: "An error occurred while fetching speciality",
+            error,
+        });
+    }
+});
+
+router.delete("/doctor/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const { specialtyId } = req.body;
+
+    console.log("Received data:", specialtyId);
+
+    try {
+        const doctor = await prisma.hospital.findUnique({
+            where: { id: id },
+            include: {
+                specialities: true,
+            },
+        });
+
+        console.log("Doctor found:", doctor);
+
+        if (!doctor) {
+            res.status(404).send({ message: "Doctor not found" });
+            return;
+        }
+
+        const speciality = await prisma.speciality.findUnique({
+            where: { id: specialtyId },
+        });
+
+        if (!speciality) {
+            res.status(404).send({ message: "Speciality not found" });
+            return;
+        }
+
+        console.log("Speciality found:", speciality);
+
+        const updatedDoctor = await prisma.hospital.update({
+            where: { id: id },
+            data: {
+                specialities: {
+                    disconnect: { id: specialtyId },
+                },
+            },
+            include: {
+                specialities: true,
+            },
+        });
+
+        if (!updatedDoctor) {
+            res.status(404).send({ message: "Doctor not found" });
+            return;
+        }
+
+        if (doctor.parentId) {
+            await prisma.hospital.update({
+                where: { id: doctor.parentId },
+                data: {
+                    specialities: {
+                        disconnect: { id: specialtyId },
+                    },
+                },
+            });
+        } else {
+            res.status(404).send({ message: "Parent not found" });
+            return;
+        }
+
         console.log("Updated doctor:", updatedDoctor);
 
         res.status(200).send(updatedDoctor.specialities);
