@@ -23,6 +23,8 @@ import Emergency from "./pages/Services/Emergency";
 import AdminApprovalPanel from "./pages/Admin";
 import AdminProfileView from "./pages/Profile/AdminProfileView";
 import HighlyProtectedRoute from "./utils/routeProtection/highlyProtectedRoute";
+import SpecialtyPage from "./pages/SpecialiityPage";
+import DoctorDetails from "./pages/DoctorDetails";
 
 const App: React.FC = () => {
 
@@ -51,6 +53,10 @@ const App: React.FC = () => {
               element: <UnProtectedRoute><AuthFormHospital /></UnProtectedRoute>
             }
           ]
+        },
+        {
+          path: "/specializations/:id",
+          element: <SpecialtyPage />
         },
         {
           path: "/about",
@@ -99,6 +105,10 @@ const App: React.FC = () => {
         {
           path: "/hospital/:id",
           element: <HospitalDetails />
+        },
+        {
+          path: "/doctors/:id",
+          element: <DoctorDetails />
         },
         {
           path: "/admin",

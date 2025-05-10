@@ -98,11 +98,11 @@ const DoctorSpecialtiesTab = ({ userId }: DoctorSpecialtiesTabProps) => {
         setIsSaving(true);
         try {
             await axios.delete(`${API_URL}/speciality/doctor/${userId}`, {
-                data: { specialtyId }
+                data: { specialtyId: specialtyId }
             });
 
             // Remove the specialty from the list
-            setDoctorSpecialties(doctorSpecialties.filter(ds => ds.specialtyId !== specialtyId));
+            setDoctorSpecialties(doctorSpecialties.filter(ds => ds.id !== specialtyId));
             setSuccessMessage("Specialty removed successfully!");
             setTimeout(() => setSuccessMessage(""), 3000);
         } catch (error) {
@@ -267,7 +267,7 @@ const DoctorSpecialtiesTab = ({ userId }: DoctorSpecialtiesTabProps) => {
                                             <span className="font-medium">{doctorSpecialty.name || "Unknown Specialty"}</span>
                                         </div>
                                         <button
-                                            onClick={() => handleRemoveSpecialty(doctorSpecialty.specialtyId)}
+                                            onClick={() => handleRemoveSpecialty(doctorSpecialty.id)}
                                             disabled={isSaving}
                                             className="text-gray-400 hover:text-red-500 transition duration-300 p-1 hover:bg-white rounded-full"
                                             title="Remove specialty"

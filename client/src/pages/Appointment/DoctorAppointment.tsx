@@ -26,7 +26,7 @@ import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import NotFound from '../NotFound';
 import { API_URL } from '../../utils/contants';
-import { HospitalMap } from '../../components/HospitalMap';
+// import { HospitalMap } from '../../components/HospitalMap';
 import { useAuth } from '../../context/auth';
 
 // Define interfaces based on your model
@@ -57,7 +57,7 @@ interface Hospital {
     address: string;
     paidPrice: number;
     parent?: Hospital;
-    currLocation?: {
+    currLocation: {
         latitude: number;
         longitude: number;
     };
@@ -329,7 +329,7 @@ const DoctorAppointmentView: React.FC = () => {
             .then(data => {
                 console.log('Fetched appointment data:', data);
                 if (data.status.toLowerCase() === 'refunded' || data.status.toLowerCase() === 'refund_in_progress') {
-                    data.status = 'expired';
+                    data.status = (data.doctorCharges > 0 || data.paidCharges > 0) ? "cancelled" : 'expired';
                 }
 
                 // Calculate fine amount if cancelled (10% of paid price)
@@ -382,7 +382,7 @@ const DoctorAppointmentView: React.FC = () => {
         // Calculate doctor charges/fine
         let doctorCharges = 0;
         if (newStatus.toLowerCase() === 'cancelled') {
-            doctorCharges = appointment.Hospital.paidPrice * 0.1; // 10% cancellation fee
+            doctorCharges = appointment.paidPrice * 0.1; // 10% cancellation fee
         }
 
         // Call API to update appointment status
@@ -437,7 +437,7 @@ const DoctorAppointmentView: React.FC = () => {
 
         // Call API to record payment
         fetch(`${API_URL}/appointments/${id}/pay-fine`, {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -806,12 +806,12 @@ const DoctorAppointmentView: React.FC = () => {
                             Location
                         </h2>
 
-                        <div className="h-64 bg-gray-200 rounded-lg overflow-hidden">
+                        {/* <div className="h-64 bg-gray-200 rounded-lg overflow-hidden">
                             <HospitalMap
                                 position={appointment.Hospital.currLocation ? [appointment.Hospital.currLocation.latitude, appointment.Hospital.currLocation.longitude] : [0, 0]}
                                 name={appointment.Hospital.name}
                             />
-                        </div>
+                        </div> */}
 
                         <div className="mt-3 text-gray-600">
                             <p>{appointment.Hospital.address || "123 Healthcare Ave, Medical District"}</p>
@@ -939,7 +939,7 @@ const DoctorAppointmentView: React.FC = () => {
                                 <div>
                                     <p className="text-sm font-medium text-yellow-700">Cancellation Fee Warning</p>
                                     <p className="text-sm text-yellow-600">
-                                        A 10% cancellation fee of <strong>₹{appointment.Hospital.paidPrice * 0.1}</strong> will be applied.
+                                        A 10% cancellation fee of <strong>₹{appointment.paidPrice * 0.1}</strong> will be applied.
                                         You will need to pay this fee after cancellation.
                                     </p>
                                 </div>

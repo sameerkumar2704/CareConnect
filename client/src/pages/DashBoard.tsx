@@ -81,11 +81,10 @@ const Dashboard = () => {
         </div>
         {loading && <LoadingSpinner />}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12">
-          {!loading && specialists !== null && specialists !== undefined &&
+          {!loading && specialists !== null && specialists !== undefined && specialists.length != 0 &&
             specialists.map((specialty) => (
               <SpecialtyCard key={specialty.id} count={specialty.hospitalCount} id={specialty.id} name={specialty.name} description={specialty.description} />
             ))}
-
         </div>
       </div>
 

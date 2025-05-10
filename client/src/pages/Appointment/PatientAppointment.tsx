@@ -58,7 +58,7 @@ import {
     FaRegClock,
     FaRegCalendar,
 } from 'react-icons/fa';
-import { HospitalMap } from '../../components/HospitalMap';
+// import { HospitalMap } from '../../components/HospitalMap';
 import { useAuth } from '../../context/auth';
 
 // Define interfaces based on your model
@@ -159,6 +159,7 @@ const AppointmentDetailsPage: React.FC = () => {
     const [feedback, setFeedback] = useState("");
     const [isSubmittingRating, setIsSubmittingRating] = useState(false);
     const [ratingSubmitted, setRatingSubmitted] = useState(false);
+    const [cancelledByDoctor, setCancelledByDoctor] = useState(false);
     const [selectedSpecialities, setSelectedSpecialities] = useState<string[]>([]);
 
     const [bankDetails, setBankDetails] = useState<BankDetails>({
@@ -237,6 +238,7 @@ const AppointmentDetailsPage: React.FC = () => {
                 return response.json();
             })
             .then(data => {
+                console.log('Fetched appointment data:', data);
                 setAppointment(data);
                 if (data.bankDetails) {
                     setBankDetails({
@@ -246,6 +248,9 @@ const AppointmentDetailsPage: React.FC = () => {
                     });
                     setBankDetailsSubmitted(true);
                     console.log('Bank details fetched:', data.bankDetails);
+                }
+                if (data.doctorCharges > 0 && (!data.paidCharges || data.paidCharges > 0)) {
+                    setCancelledByDoctor(true);
                 }
                 setLoading(false);
             })
@@ -484,7 +489,7 @@ const AppointmentDetailsPage: React.FC = () => {
     const canBeCancelled = appointment.status.toLowerCase() === 'pending';
 
     // Calculate the refund amount (90% of paid price)
-    const refundAmount = (appointment.paidPrice * 0.9).toFixed(2);
+    const refundAmount = !cancelledByDoctor ? (appointment.paidPrice * 0.9).toFixed(2) : (appointment.paidPrice).toFixed(2);
 
     return (
         <div className="bg-gradient-to-r from-teal-500 to-blue-400 min-h-screen py-10 px-4">
@@ -585,10 +590,14 @@ const AppointmentDetailsPage: React.FC = () => {
 
                             {!showBankDetailsForm ? (
                                 <div className="bg-white p-4 rounded-lg shadow-sm">
-                                    <p className="text-gray-700 mb-4">
+                                    {!cancelledByDoctor ? <p className="text-gray-700 mb-4">
                                         You are eligible for a refund of ₹{refundAmount} (90% of the paid amount).
                                         Please provide your bank details to receive the refund.
-                                    </p>
+                                    </p> :
+                                        <p className="text-gray-700 mb-4">
+                                            You are eligible for a refund of ₹{refundAmount} (100% of the paid amount) because its cancelled by doctor.
+                                            Please provide your bank details to receive the refund.
+                                        </p>}
                                     <button
                                         onClick={() => setShowBankDetailsForm(true)}
                                         className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition"
@@ -960,12 +969,12 @@ const AppointmentDetailsPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-gray-200 h-40 rounded-lg flex items-center justify-center">
+                            {/* <div className="bg-gray-200 h-40 rounded-lg flex items-center justify-center">
                                 <HospitalMap
                                     position={appointment.Hospital.currLocation ? [appointment.Hospital.currLocation.latitude, appointment.Hospital.currLocation.longitude] : [0, 0]}
                                     name={appointment.Hospital.name}
                                 />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 

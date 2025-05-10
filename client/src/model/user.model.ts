@@ -12,6 +12,7 @@ export interface Specialty {
     id: string;
     name: string;
     description: string;
+    tags: [{ name: string; severity: string }];
     hospitalCount: number;
     createdAt: Date;
     updatedAt: Date;
@@ -21,6 +22,7 @@ export interface Hospital {
     id: string;
     name: string;
     email: string;
+    freeSlotDate: string;
     doctorCount: number;
     password: string;
     phone: string;
