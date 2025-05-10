@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/auth';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import UserProfile from './UserProfile';
+import AdminApprovalPanel from '../Admin';
 
 const User = () => {
 
@@ -8,11 +9,21 @@ const User = () => {
 
     if (!auth) return <LoadingSpinner />
 
-    const { user } = auth;
+    const { user, admin } = auth;
 
     console.log("User At Main", user)
 
-    return <UserProfile userId={user._id} role={user.role} />
+    if (!admin && !user) {
+        return <LoadingSpinner />
+    }
+
+    if (!admin && user)
+        return <UserProfile userId={user._id} role={user.role} />
+
+    if (admin && user)
+        return <AdminApprovalPanel />
+
+    return <LoadingSpinner />
 }
 
 export default User;

@@ -9,8 +9,6 @@ import Services from "./pages/Services";
 import Layout from "./Layout";
 import Auth from "./pages/Auth";
 import UnProtectedRoute from "./utils/routeProtection/unprotectedRoute";
-import SuccessPage from "./pages/Payment/Success";
-import CancelPage from "./pages/Payment/Cancel";
 import HospitalsPage from "./pages/Hospitals";
 import Hospitals from "./pages/Services/Hospitals";
 import SpecializationsPage from "./pages/Specializations";
@@ -20,11 +18,11 @@ import CheckoutPage from "./pages/Checkout";
 import AppointmentDetailsPage from "./pages/Appointment";
 import ProtectedRoute from "./utils/routeProtection/protectedRoute";
 import User from "./pages/Profile/Main";
-import DoctorDashboard from "./pages/DoctorDashboard";
 import Specialties from "./pages/Services/Specialities";
 import Emergency from "./pages/Services/Emergency";
 import AdminApprovalPanel from "./pages/Admin";
 import AdminProfileView from "./pages/Profile/AdminProfileView";
+import HighlyProtectedRoute from "./utils/routeProtection/highlyProtectedRoute";
 
 const App: React.FC = () => {
 
@@ -91,14 +89,6 @@ const App: React.FC = () => {
           element: <ProtectedRoute><User /></ProtectedRoute>
         },
         {
-          path: "/success",
-          element: <SuccessPage />
-        },
-        {
-          path: "/cancel",
-          element: <CancelPage />
-        },
-        {
           path: "/hospitals",
           element: <HospitalsPage />
         },
@@ -112,11 +102,11 @@ const App: React.FC = () => {
         },
         {
           path: "/admin",
-          element: <AdminApprovalPanel />
+          element: <HighlyProtectedRoute><AdminApprovalPanel /></HighlyProtectedRoute>
         },
         {
           path: "/profile/:id",
-          element: <AdminProfileView />
+          element: <HighlyProtectedRoute><AdminProfileView /></HighlyProtectedRoute>
         },
         {
           path: "*",

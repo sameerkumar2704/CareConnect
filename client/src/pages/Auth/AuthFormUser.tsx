@@ -7,6 +7,7 @@ import { faEnvelope, faEye, faEyeSlash, faLock, faPerson, faPhone } from "@forta
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { validateName, validatePassword, validatePhone } from "../../utils/validations";
+import { verifyToken } from "../../utils/auth";
 
 const AuthFormUser = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
@@ -29,7 +30,7 @@ const AuthFormUser = () => {
         document.getElementById("errorWin")?.scrollIntoView({ behavior: "smooth" });
     }, [errors]);
 
-    const { setUser } = auth;
+    const { setUser, setAdmin } = auth;
 
     const navigate = useNavigate();
 
@@ -132,14 +133,19 @@ const AuthFormUser = () => {
 
             setLoading(false);
 
-            setUser(response.data.user);
+            const details = await verifyToken(response.data.token);
+
+            setUser(details);
+
+            if (details.role === "admin") {
+                setAdmin(details);
+            }
 
             localStorage.setItem("eWauthToken", response.data.token);
 
             alert(isSignUp ? "Account Created, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
 
             document.getElementById("sub")?.scrollIntoView({ behavior: "smooth" });
-
 
             setTimeout(() => {
                 navigate("/");

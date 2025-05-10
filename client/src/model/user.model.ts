@@ -21,6 +21,7 @@ export interface Hospital {
     id: string;
     name: string;
     email: string;
+    doctorCount: number;
     password: string;
     phone: string;
     address: string;
@@ -28,7 +29,7 @@ export interface Hospital {
     appointments: Appointment[];
     specialities: Specialty[];
     createdAt: Date;
-    emergencyAvailable: boolean;
+    emergency: boolean;
     updatedAt: Date;
     fees: number;
     children: Hospital[];

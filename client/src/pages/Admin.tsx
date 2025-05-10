@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_URL } from '../utils/contants';
+import { Link } from 'react-router-dom';
 
 // Define TypeScript interfaces
 interface Profile {
@@ -12,46 +13,59 @@ interface Profile {
     updatedAt: string;
 }
 
-interface Hospital extends Profile {
-    // Add any hospital-specific fields here
-}
-
-interface Doctor extends Profile {
-    // Add any doctor-specific fields here
+interface Appointment {
+    id: string;
+    User: Profile;
+    Hospital: Profile;
+    date: string;
+    time: string;
+    status: string;
+    paidPrice: number;
+    createdAt: string;
 }
 
 type Role = 'HOSPITAL' | 'DOCTOR';
 
 // The main component
 const AdminApprovalPanel: React.FC = () => {
-    const [hospitals, setHospitals] = useState<Hospital[]>([]);
-    const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [hospitals, setHospitals] = useState<Profile[]>([]);
+    const [doctors, setDoctors] = useState<Profile[]>([]);
+    const [refundAppointments, setRefundAppointments] = useState<Appointment[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [activeTab, setActiveTab] = useState<'hospitals' | 'doctors'>('hospitals');
+    const [activeTab, setActiveTab] = useState<'hospitals' | 'doctors' | 'refunds'>('hospitals');
     const [searchTerm, setSearchTerm] = useState<string>('');
 
     const ENDPOINTS = {
         hospitals: `${API_URL}/hospitals?role=HOSPITAL&approved=false`,
         doctors: `${API_URL}/hospitals?role=DOCTOR&approved=false`,
+        refundAppointments: `${API_URL}/appointments?status=REFUND_IN_PROGRESS`,
         approveHospital: (id: string) => `${API_URL}/hospitals/${id}/approve`,
         rejectHospital: (id: string) => `${API_URL}/hospitals/${id}/reject`,
         approveDoctor: (id: string) => `${API_URL}/doctors/${id}/approve`,
-        rejectDoctor: (id: string) => `${API_URL}/doctors/${id}/reject`
+        rejectDoctor: (id: string) => `${API_URL}/doctors/${id}/reject`,
+        approveRefund: (id: string) => `${API_URL}/appointments/${id}/approve-refund`,
+        rejectRefund: (id: string) => `${API_URL}/appointments/${id}/reject-refund`
     };
 
     const fetchUnapprovedProfiles = async (): Promise<void> => {
         setIsLoading(true);
         try {
-            // Fetch both hospitals and doctors in parallel
-            const [hospitalsResponse, doctorsResponse] = await Promise.all([
-                axios.get<Hospital[]>(ENDPOINTS.hospitals),
-                axios.get<Doctor[]>(ENDPOINTS.doctors)
+            // Fetch hospitals, doctors, and refund appointments in parallel
+            const [hospitalsResponse, doctorsResponse, refundsResponse] = await Promise.all([
+                axios.get<Profile[]>(ENDPOINTS.hospitals),
+                axios.get<Profile[]>(ENDPOINTS.doctors),
+                axios.get<Appointment[]>(ENDPOINTS.refundAppointments)
             ]);
 
             setHospitals(hospitalsResponse.data);
             setDoctors(doctorsResponse.data);
+            setRefundAppointments(refundsResponse.data);
+
+            console.log('Fetched hospitals:', hospitalsResponse.data);
+            console.log('Fetched doctors:', doctorsResponse.data);
+            console.log('Fetched refund appointments:', refundsResponse.data);
         } catch (error) {
-            console.error('Error fetching unapproved profiles:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false);
         }
@@ -61,14 +75,22 @@ const AdminApprovalPanel: React.FC = () => {
         fetchUnapprovedProfiles();
     }, []);
 
-    const handleApprove = async (id: string, role: Role): Promise<void> => {
+    const handleApprove = async (id: string, role: Role | 'REFUND'): Promise<void> => {
         try {
             if (role === 'HOSPITAL') {
                 await axios.post(ENDPOINTS.approveHospital(id));
                 setHospitals(hospitals.filter(hospital => hospital.id !== id));
-            } else {
+            } else if (role === 'DOCTOR') {
                 await axios.post(ENDPOINTS.approveDoctor(id));
                 setDoctors(doctors.filter(doctor => doctor.id !== id));
+            } else if (role === 'REFUND') {
+                await axios.put(ENDPOINTS.approveRefund(id));
+
+                if (refundAppointments.length <= 1) {
+                    setRefundAppointments([]);
+                }
+
+                setRefundAppointments(refundAppointments.filter(appointment => appointment.id !== id));
             }
         } catch (error) {
             console.error(`Error approving ${role.toLowerCase()}:`, error);
@@ -76,14 +98,17 @@ const AdminApprovalPanel: React.FC = () => {
         }
     };
 
-    const handleReject = async (id: string, role: Role): Promise<void> => {
+    const handleReject = async (id: string, role: Role | 'REFUND'): Promise<void> => {
         try {
             if (role === 'HOSPITAL') {
                 await axios.post(ENDPOINTS.rejectHospital(id));
                 setHospitals(hospitals.filter(hospital => hospital.id !== id));
-            } else {
+            } else if (role === 'DOCTOR') {
                 await axios.post(ENDPOINTS.rejectDoctor(id));
                 setDoctors(doctors.filter(doctor => doctor.id !== id));
+            } else if (role === 'REFUND') {
+                await axios.put(ENDPOINTS.rejectRefund(id));
+                setRefundAppointments(refundAppointments.filter(appointment => appointment.id !== id));
             }
         } catch (error) {
             console.error(`Error rejecting ${role.toLowerCase()}:`, error);
@@ -101,6 +126,11 @@ const AdminApprovalPanel: React.FC = () => {
 
     const filteredDoctors = doctors.filter(doctor =>
         doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredRefundAppointments = refundAppointments.filter(appointment =>
+        appointment.User.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.Hospital.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     interface ProfileCardProps {
@@ -148,12 +178,12 @@ const AdminApprovalPanel: React.FC = () => {
                     </div>
 
                     <div className="mt-6 flex space-x-3">
-                        <a
-                            href={`/${role.toLowerCase()}/${profile.id}`}
+                        <Link
+                            to={`/profile/${profile.id}?role=${role}`}
                             className="flex-1 bg-blue-50 text-blue-600 py-2 rounded text-sm font-medium text-center hover:bg-blue-100 transition-colors"
                         >
                             View Profile
-                        </a>
+                        </Link>
                         <button
                             onClick={() => handleApprove(profile.id, role)}
                             className="flex-1 bg-green-50 text-green-600 py-2 rounded text-sm font-medium hover:bg-green-100 transition-colors"
@@ -172,6 +202,89 @@ const AdminApprovalPanel: React.FC = () => {
         );
     };
 
+    interface RefundCardProps {
+        appointment: Appointment;
+    }
+
+    const RefundCard: React.FC<RefundCardProps> = ({ appointment }) => {
+        const appointmentDate = new Date(appointment.date).toLocaleDateString();
+        const createdDate = new Date(appointment.createdAt).toLocaleDateString();
+
+        return (
+            <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
+                <div className="p-1 bg-orange-500"></div>
+                <div className="p-4">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-800">{appointment.User.name}</h3>
+                            <p className="text-sm text-gray-500 mt-1">ID: {appointment.id.substring(0, 8)}...</p>
+                        </div>
+                        <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-medium">Refund Pending</span>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                        <div className="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-600">Doctor: {appointment.Hospital.name}</span>
+                        </div>
+
+                        <div className="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm5 5a1 1 0 10-2 0v2H5a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2H9V9z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-600">Hospital: {appointment.Hospital.name}</span>
+                        </div>
+
+                        <div className="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-600">Appointment: {appointmentDate} at {appointment.time}</span>
+                        </div>
+
+                        <div className="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-600">Amount: ${appointment.paidPrice.toFixed(2)}</span>
+                        </div>
+
+                        <div className="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-600">Refund requested on {createdDate}</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex space-x-3">
+                        <a
+                            href={`/appointments/${appointment.id}`}
+                            className="flex-1 bg-blue-50 text-blue-600 py-2 rounded text-sm font-medium text-center hover:bg-blue-100 transition-colors"
+                        >
+                            View Details
+                        </a>
+                        <button
+                            onClick={() => handleApprove(appointment.id, 'REFUND')}
+                            className="flex-1 bg-green-50 text-green-600 py-2 rounded text-sm font-medium hover:bg-green-100 transition-colors"
+                        >
+                            Approve Refund
+                        </button>
+                        <button
+                            onClick={() => handleReject(appointment.id, 'REFUND')}
+                            className="flex-1 bg-red-50 text-red-600 py-2 rounded text-sm font-medium hover:bg-red-100 transition-colors"
+                        >
+                            Reject Refund
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -179,7 +292,7 @@ const AdminApprovalPanel: React.FC = () => {
                 <div className="bg-gradient-to-r from-indigo-600 to-blue-500 p-6">
                     <h1 className="text-2xl font-bold text-white">Admin Approval Panel</h1>
                     <p className="text-indigo-100 mt-2">
-                        Review and approve healthcare providers
+                        Review and approve healthcare providers and refund requests
                     </p>
                 </div>
 
@@ -248,6 +361,20 @@ const AdminApprovalPanel: React.FC = () => {
                                 </span>
                             )}
                         </button>
+                        <button
+                            onClick={() => setActiveTab('refunds')}
+                            className={`px-6 py-4 text-sm font-medium border-b-2 ${activeTab === 'refunds'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Refunds
+                            {refundAppointments.length > 0 && (
+                                <span className="ml-2 bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-xs">
+                                    {refundAppointments.length}
+                                </span>
+                            )}
+                        </button>
                     </nav>
                 </div>
 
@@ -296,6 +423,27 @@ const AdminApprovalPanel: React.FC = () => {
                                             </svg>
                                             <h3 className="mt-4 text-lg font-medium text-gray-700">No pending doctor approvals</h3>
                                             <p className="mt-2 text-gray-500">All doctors have been reviewed.</p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {activeTab === 'refunds' && (
+                                <>
+                                    <h2 className="text-xl font-semibold mb-6">Pending Refund Approvals</h2>
+                                    {filteredRefundAppointments.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {filteredRefundAppointments.map(appointment => (
+                                                <RefundCard key={appointment.id} appointment={appointment} />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <h3 className="mt-4 text-lg font-medium text-gray-700">No pending refund requests</h3>
+                                            <p className="mt-2 text-gray-500">All refund requests have been processed.</p>
                                         </div>
                                     )}
                                 </>

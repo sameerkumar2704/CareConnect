@@ -60,7 +60,7 @@ const Navbar = () => {
             <Link to="/about" className="hover:text-[#60BDBB]">About</Link>
             <Link to="/services" className="hover:text-[#60BDBB]">Services</Link>
             <Link to="/contact" className="hover:text-[#60BDBB]">Contact</Link>
-            {!loading && user && <Link to="/dashboard" className="hover:text-[#60BDBB]">Profile</Link>}
+            {!loading && user && !admin && <Link to="/dashboard" className="hover:text-[#60BDBB]">Profile</Link>}
             {!loading && admin && <Link to="/admin" className="hover:text-[#60BDBB]">Admin</Link>}
           </div>
 
@@ -104,7 +104,7 @@ const Navbar = () => {
             <Link to="/about" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>About</Link>
             <Link to="/services" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Services</Link>
             <Link to="/contact" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Contact</Link>
-            {!loading && user && <Link to="/dashboard" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Profile</Link>}
+            {!loading && user && !admin && <Link to="/dashboard" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Profile</Link>}
             {!loading && admin && <Link to="/admin" className="hover:text-[#60BDBB]" onClick={() => setIsOpen(false)}>Admin</Link>}
 
             {/* Sign In/Logout Button for Mobile */}

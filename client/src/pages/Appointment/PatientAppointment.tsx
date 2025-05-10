@@ -23,7 +23,8 @@ import {
     faTimesCircle,
     faCreditCard, // Add this import for the bank details icon
     faExclamationTriangle,
-    faInfoCircle, // Add this for expired status
+    faInfoCircle,
+    faSync, // Add this for expired status
 } from '@fortawesome/free-solid-svg-icons';
 
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
@@ -187,7 +188,7 @@ const AppointmentDetailsPage: React.FC = () => {
         setSubmittingBankDetails(true);
 
         fetch(`${API_URL}/appointments/${id}/refund`, {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -210,16 +211,17 @@ const AppointmentDetailsPage: React.FC = () => {
                 console.error('Error submitting bank details:', err);
                 setSubmittingBankDetails(false);
                 alert("Error submitting bank details. Please try again.");
-            });
+            })
     };
 
 
     // Add function to check if appointment is expired (to be used in the component)
     const isAppointmentExpired = () => {
         if (!appointment) return false;
+
         const appointmentDate = new Date(appointment.date);
         const now = new Date();
-        return appointmentDate < now && appointment.status.toLowerCase() === 'pending';
+        return appointmentDate < new Date(now.getDate() + 1) && appointment.status.toLowerCase() === 'pending';
     };
 
     useEffect(() => {
@@ -235,30 +237,16 @@ const AppointmentDetailsPage: React.FC = () => {
                 return response.json();
             })
             .then(data => {
-                console.log('Fetched appointment data:', data);
-
-                // Check if appointment is expired but not marked as such
-                const appointmentDate = new Date(data.date);
-                const now = new Date();
-                if (appointmentDate < now && data.status.toLowerCase() === 'pending') {
-                    // Mark the appointment as expired in the backend
-                    return fetch(`${API_URL}/appointments/${id}/mark-expired`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    }).then(response => {
-                        if (!response.ok) {
-                            console.warn('Could not mark appointment as expired');
-                            return data;
-                        }
-                        return response.json();
-                    });
-                }
-                return data;
-            })
-            .then(data => {
                 setAppointment(data);
+                if (data.bankDetails) {
+                    setBankDetails({
+                        accountNumber: data.bankDetails.accountNumber,
+                        ifscCode: data.bankDetails.ifscCode,
+                        accountHolderName: data.bankDetails.accountHolderName,
+                    });
+                    setBankDetailsSubmitted(true);
+                    console.log('Bank details fetched:', data.bankDetails);
+                }
                 setLoading(false);
             })
             .catch(err => {
@@ -332,7 +320,7 @@ const AppointmentDetailsPage: React.FC = () => {
         setCancelling(true);
 
         fetch(`${API_URL}/appointments/${id}/cancel`, {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             }
@@ -466,6 +454,13 @@ const AppointmentDetailsPage: React.FC = () => {
                         Expired
                     </span>
                 );
+            case 'refunded':
+                return (
+                    <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm font-medium flex items-center">
+                        <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
+                        Refunded
+                    </span>
+                );
             default:
                 return (
                     <span className="bg-gray-100 text-gray-800 py-1 px-3 rounded-full text-sm font-medium">
@@ -497,12 +492,22 @@ const AppointmentDetailsPage: React.FC = () => {
                 {/* Confirmation Header */}
                 <div className="bg-white rounded-t-lg shadow-lg p-6 flex items-center justify-between">
                     <div className="flex items-center">
-                        <div className={`${appointment.status.toLowerCase() === 'cancelled' || appointment.status.toLowerCase() === 'expired' ? 'bg-red-100' : 'bg-green-100'} rounded-full p-3 mr-4`}>
+                        <div className={`${['cancelled', 'expired', 'refunded', 'refund_in_progress'].includes(appointment.status.toLowerCase())
+                            ? 'bg-red-100'
+                            : 'bg-green-100'
+                            } rounded-full p-3 mr-4`}>
                             <FontAwesomeIcon
-                                icon={appointment.status.toLowerCase() === 'cancelled' ? faTimesCircle :
-                                    appointment.status.toLowerCase() === 'expired' ? faExclamationTriangle :
-                                        faCheckCircle}
-                                className={`${appointment.status.toLowerCase() === 'cancelled' || appointment.status.toLowerCase() === 'expired' ? 'text-red-500' : 'text-green-500'} text-2xl`}
+                                icon={
+                                    appointment.status.toLowerCase() === 'cancelled' ? faTimesCircle :
+                                        appointment.status.toLowerCase() === 'expired' ? faExclamationTriangle :
+                                            appointment.status.toLowerCase() === 'refunded' ? faMoneyBillWave :
+                                                appointment.status.toLowerCase() === 'refund_in_progress' ? faSync :
+                                                    faCheckCircle
+                                }
+                                className={`${['cancelled', 'expired', 'refunded', 'refund_in_progress'].includes(appointment.status.toLowerCase())
+                                    ? 'text-red-500'
+                                    : 'text-green-500'
+                                    } text-2xl`}
                             />
                         </div>
                         <div>
@@ -511,14 +516,22 @@ const AppointmentDetailsPage: React.FC = () => {
                                     ? 'Appointment Cancelled'
                                     : appointment.status.toLowerCase() === 'expired'
                                         ? 'Appointment Expired'
-                                        : 'Appointment Confirmed'}
+                                        : appointment.status.toLowerCase() === 'refunded'
+                                            ? 'Appointment Refunded'
+                                            : appointment.status.toLowerCase() === 'refund_in_progress'
+                                                ? 'Refund In Progress'
+                                                : 'Appointment Confirmed'}
                             </h1>
                             <p className="text-gray-600">
                                 {appointment.status.toLowerCase() === 'cancelled'
                                     ? 'Your appointment has been cancelled.'
                                     : appointment.status.toLowerCase() === 'expired'
                                         ? 'Your appointment time has passed.'
-                                        : 'Your appointment has been successfully booked and confirmed.'}
+                                        : appointment.status.toLowerCase() === 'refunded'
+                                            ? 'Your appointment payment has been refunded.'
+                                            : appointment.status.toLowerCase() === 'refund_in_progress'
+                                                ? 'Your refund is currently being processed.'
+                                                : 'Your appointment has been successfully booked and confirmed.'}
                             </p>
                         </div>
                     </div>
@@ -560,6 +573,8 @@ const AppointmentDetailsPage: React.FC = () => {
                             </button>
                         </div>
                     )}
+
+
 
                     {(appointment.status.toLowerCase() === 'cancelled' || appointment.status.toLowerCase() === 'expired') && !bankDetailsSubmitted && (
                         <div className="p-6 border-b border-gray-200 bg-orange-50">
@@ -732,10 +747,26 @@ const AppointmentDetailsPage: React.FC = () => {
                             <div className="flex items-center justify-center mb-3">
                                 <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-3xl" />
                             </div>
-                            <h3 className="text-center text-xl font-medium text-green-800">Refund Request Submitted!</h3>
+                            <h3 className="text-center text-xl font-medium text-green-800">Refund Request {appointment.status.toLowerCase() == "refunded" ? "Accepted" : "Submitted"}!</h3>
                             <p className="text-center text-green-700 mt-2">
-                                Your refund of ₹{refundAmount} will be processed to your account within 5-7 business days.
+                                Your refund of ₹{refundAmount} {appointment.status.toLowerCase() == "refunded" ? "has been refunded to your submitted bank details." : "will be processed to your account within 5-7 business days."}
                             </p>
+                        </div>
+                    )}
+
+                    {/* Show User Bank Details */}
+                    {bankDetailsSubmitted && (
+                        <div className="p-6 border-b border-gray-200 bg-gray-50">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                <FontAwesomeIcon icon={faCreditCard} className="text-teal-500 mr-2" />
+                                Your Bank Details
+                            </h2>
+
+                            <div className="bg-white p-4 rounded-lg shadow-sm">
+                                <p className="text-gray-700 mb-3">Bank Account Holder Name: {bankDetails.accountHolderName}</p>
+                                <p className="text-gray-700 mb-3">Account Number: {bankDetails.accountNumber}</p>
+                                <p className="text-gray-700 mb-3">IFSC Code: {bankDetails.ifscCode}</p>
+                            </div>
                         </div>
                     )}
 

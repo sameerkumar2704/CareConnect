@@ -97,7 +97,9 @@ const DoctorSpecialtiesTab = ({ userId }: DoctorSpecialtiesTabProps) => {
     const handleRemoveSpecialty = async (specialtyId: string) => {
         setIsSaving(true);
         try {
-            await axios.delete(`${API_URL}/doctors/${userId}/specialties/${specialtyId}`);
+            await axios.delete(`${API_URL}/speciality/doctor/${userId}`, {
+                data: { specialtyId }
+            });
 
             // Remove the specialty from the list
             setDoctorSpecialties(doctorSpecialties.filter(ds => ds.specialtyId !== specialtyId));

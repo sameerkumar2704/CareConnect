@@ -9,6 +9,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { validateName, validatePassword, validatePhone } from "../../utils/validations";
+import { verifyToken } from "../../utils/auth";
 
 const AuthFormHospital = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
@@ -60,7 +61,7 @@ const AuthFormHospital = () => {
         return;
     }
 
-    const { setUser } = auth;
+    const { setUser, setAdmin } = auth;
 
     useEffect(() => {
         fetchHospitals("");
@@ -293,7 +294,13 @@ const AuthFormHospital = () => {
                 fees: "",
                 maxAppointments: ""
             });
-            setUser(response.data.token);
+            const details = await verifyToken(response.data.token);
+
+            setUser(details);
+
+            if (details.role === "admin") {
+                setAdmin(details);
+            }
             localStorage.setItem("eWauthToken", response.data.token);
 
 
