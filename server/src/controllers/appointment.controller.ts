@@ -34,11 +34,28 @@ export const createAppointment = async (
             where: { id: hospitalId },
         });
 
-        let lastDate = doctor?.freeSlotDate || new Date();
+        const now = new Date();
 
-        if (lastDate < new Date()) {
-            lastDate = new Date();
+        console.log("Current date:", now);
+        console.log("Doctor free slot date:", doctor?.freeSlotDate);
+
+        const nextDate = new Date(now);
+        nextDate.setDate(now.getDate() + 1);
+
+        console.log("Next date:", nextDate);
+
+        let lastDate =
+            doctor?.freeSlotDate == null
+                ? nextDate
+                : new Date(doctor?.freeSlotDate);
+
+        console.log("Last date:", lastDate);
+
+        if (lastDate <= now) {
+            lastDate = nextDate;
         }
+
+        console.log("Adjusted last date:", lastDate);
 
         const appointment = await prisma.appointment.create({
             data: {
@@ -55,16 +72,17 @@ export const createAppointment = async (
         }
 
         const totalAppointments = await prisma.appointment.count({
-            where: { hospitalId },
+            where: { hospitalId, date: lastDate },
         });
+
+        const newLastDate = new Date(lastDate);
+        newLastDate.setDate(lastDate.getDate() + 1);
 
         if (totalAppointments >= (doctor?.maxAppointments || 20)) {
             await prisma.hospital.update({
                 where: { id: hospitalId },
                 data: {
-                    freeSlotDate: new Date(
-                        lastDate.setDate(lastDate.getDate() + 1)
-                    ),
+                    freeSlotDate: newLastDate,
                 },
             });
         }
@@ -94,7 +112,7 @@ export const getAppointmentById = async (
                 Hospital: {
                     include: {
                         parent: true,
-                        currLocation: true,
+                        specialities: true,
                     },
                 },
             },
@@ -106,6 +124,9 @@ export const getAppointmentById = async (
         }
 
         const now = new Date();
+
+        console.log("Current date:", now);
+        console.log("Appointment date:", appointment.date);
 
         if (
             appointment.date < new Date(now.getDate() + 1) &&

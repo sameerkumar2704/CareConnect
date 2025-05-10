@@ -19,9 +19,7 @@ router.get("/", async (req, res) => {
     reqS("get all users");
 
     try {
-        const users = await prisma.user.findMany({
-            include: { currLocation: true },
-        });
+        const users = await prisma.user.findMany({});
 
         console.log("Users := ", users);
 
@@ -56,12 +54,11 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     console.log("ID := ", id);
-    
+
     try {
         const user = await prisma.user.findUnique({
             where: { id: id },
             include: {
-                currLocation: true,
                 appointments: {
                     include: {
                         Hospital: true,
@@ -120,38 +117,26 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
         delete userData.longitude;
         delete userData.latitude;
 
-        let location = await prisma.location.findFirst({
-            where: {
+        const newUserData = {
+            ...userData,
+            currLocation: {
                 longitude: longitude,
                 latitude: latitude,
             },
-        });
+        };
 
-        console.log("Location If Already There :=", location);
-
-        if (!location) {
-            location = await prisma.location.create({
-                data: {
-                    longitude: longitude,
-                    latitude: latitude,
-                },
-            });
-            console.log("Location Created :=", location);
-        }
-
-        const encPass = await encryptPassword(userData.password);
+        const encPass = await encryptPassword(newUserData.password);
 
         if (!encPass) {
             res.status(500).send({ error: "Error in Password Encryption" });
             return;
         }
-        userData.password = encPass;
-        delete userData.confirmPassword;
+        newUserData.password = encPass;
+        delete newUserData.confirmPassword;
 
         const user = await prisma.user.create({
             data: {
-                ...userData,
-                locationId: location.id,
+                ...newUserData,
             },
         });
 
@@ -204,13 +189,6 @@ router.post("/login", async (req, res) => {
         console.log("Latitude:", latDecimal);
         console.log("Longitude:", longDecimal);
 
-        let location = await prisma.location.findFirst({
-            where: {
-                longitude: longDecimal,
-                latitude: latDecimal,
-            },
-        });
-
         // Find user by email or phone
         let user = null;
 
@@ -234,38 +212,15 @@ router.post("/login", async (req, res) => {
             return;
         }
 
-        console.log("Existing Location:", location);
-
-        if (!location) {
-            location = await prisma.location.create({
-                data: {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                currLocation: {
                     longitude: longDecimal,
                     latitude: latDecimal,
                 },
-            });
-
-            console.log("New Location Created:", location);
-
-            if (user.locationId) {
-                const prevLocation = await prisma.location.findFirst({
-                    where: { id: user.locationId },
-                });
-
-                if (prevLocation) {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { locationId: location.id },
-                    });
-
-                    await prisma.user.updateMany({
-                        where: { locationId: prevLocation.id },
-                        data: { locationId: location.id },
-                    });
-
-                    console.log("Previous Location Deleted");
-                }
-            }
-        }
+            },
+        });
 
         const token = await generateToken({ id: user.id });
 
@@ -368,28 +323,11 @@ router.post("/location", async (req, res) => {
         const longDecimal = new Decimal(longitude);
         const latDecimal = new Decimal(latitude);
 
-        let location = await prisma.location.findFirst({
-            where: {
-                longitude: longDecimal,
-                latitude: latDecimal,
-            },
-        });
-
-        console.log("Location := ", location);
-
-        if (!location) {
-            location = await prisma.location.create({
-                data: {
-                    longitude: longDecimal,
-                    latitude: latDecimal,
-                },
-            });
-            console.log("Location Created :=", location);
-        }
-
         await prisma.user.update({
             where: { id: id },
-            data: { locationId: location.id },
+            data: {
+                currLocation: { longitude: longDecimal, latitude: latDecimal },
+            },
         });
 
         console.log("User Location Updated :=", user.id);
@@ -500,10 +438,6 @@ router.delete("/:id", async (req, res) => {
         });
 
         console.log("Deleted User :=", deletedUser);
-
-        await prisma.location.deleteMany({
-            where: { id: deletedUser.locationId },
-        });
 
         console.log("Location Deleted");
 

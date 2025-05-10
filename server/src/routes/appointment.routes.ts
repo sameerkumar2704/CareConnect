@@ -34,7 +34,6 @@ router.get("/", async (req, res) => {
                 Hospital: {
                     include: {
                         specialities: true,
-                        currLocation: true,
                     },
                 },
                 User: true,
@@ -84,7 +83,6 @@ router.get("/byDate", async (req, res) => {
                           Hospital: {
                               include: {
                                   specialities: true,
-                                  currLocation: true,
                               },
                           },
                           User: true,
@@ -102,7 +100,6 @@ router.get("/byDate", async (req, res) => {
                           Hospital: {
                               include: {
                                   specialities: true,
-                                  currLocation: true,
                               },
                           },
                           User: true,
@@ -249,6 +246,31 @@ router.put("/:id/cancel", async (req, res) => {
         res.status(200).send(appointment);
     } catch (error) {
         console.error("Error cancelling appointment:", error);
+        res.status(500).send({ error: "Something went wrong" });
+    }
+});
+
+router.put("/:id/pay-fine", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { fineAmount } = req.body;
+
+        console.log("Paying fine for appointment with ID:", id);
+
+        if (!id) {
+            res.status(400).send({ error: "Appointment ID is required" });
+            return;
+        }
+
+        const appointment = await prisma.appointment.update({
+            where: { id },
+            data: { paidCharges: fineAmount, doctorCharges: 0 },
+        });
+
+        res.status(200).send(appointment);
+    } catch (error) {
+        console.error("Error paying fine:", error);
         res.status(500).send({ error: "Something went wrong" });
     }
 });

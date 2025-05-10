@@ -40,7 +40,6 @@ app.get("/reset", async (req, res) => {
     // Reset the database
 
     await prisma.user.deleteMany({});
-    await prisma.location.deleteMany({});
     await prisma.hospital.deleteMany({});
 
     res.status(200).send({ message: "Database reset" });

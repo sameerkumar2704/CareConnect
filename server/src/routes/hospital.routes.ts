@@ -27,13 +27,19 @@ router.get("/", async (req, res) => {
                 include: { specialities: true },
                 where: emergency === "true" ? { emergency: true } : undefined,
             });
-
-        if (role && approved) {
+        else if (role && approved) {
             hospitals = await prisma.hospital.findMany({
                 include: { specialities: true },
                 where: {
                     parentId: role === "HOSPITAL" ? null : { not: null },
                     approved: approved === "true" ? true : false,
+                },
+            });
+        } else {
+            hospitals = await prisma.hospital.findMany({
+                include: { specialities: true },
+                where: {
+                    parentId: null,
                 },
             });
         }
@@ -120,7 +126,12 @@ router.get("/:id", async (req, res) => {
         const hospital = await prisma.hospital.findUnique({
             where: { id: id },
             include: {
-                children: true,
+                children: {
+                    include: {
+                        specialities: true,
+                        parent: true,
+                    },
+                },
                 parent: true,
                 appointments: {
                     include: {
@@ -128,11 +139,46 @@ router.get("/:id", async (req, res) => {
                         Hospital: true,
                     },
                 },
-                ratings: true,
-                currLocation: true,
+                ratings: {
+                    include: {
+                        Speciality: true,
+                        User: true,
+                    },
+                },
                 specialities: true,
             },
         });
+
+        if (!hospital) {
+            res.status(404).send({ message: "Hospital not found" });
+            return;
+        }
+
+        if (hospital.parent !== null) {
+            if (hospital.freeSlotDate == null) {
+                const freeSlotDate = new Date();
+                freeSlotDate.setDate(freeSlotDate.getDate() + 1);
+                hospital.freeSlotDate = freeSlotDate;
+
+                await prisma.hospital.update({
+                    where: { id: hospital.id },
+                    data: { freeSlotDate: freeSlotDate },
+                });
+            } else {
+                const freeSlotDate = new Date(hospital.freeSlotDate);
+                const now = new Date();
+
+                if (freeSlotDate < now) {
+                    freeSlotDate.setDate(freeSlotDate.getDate() + 1);
+                    hospital.freeSlotDate = freeSlotDate;
+
+                    await prisma.hospital.update({
+                        where: { id: hospital.id },
+                        data: { freeSlotDate: freeSlotDate },
+                    });
+                }
+            }
+        }
 
         console.log("Hospital fetched:", hospital);
 
@@ -166,33 +212,30 @@ router.post("/register", async (req, res) => {
         delete hospitalData.longitude;
         delete hospitalData.latitude;
 
-        let location = await prisma.location.findFirst({
-            where: { longitude, latitude },
-        });
+        const newHospitalData = {
+            ...hospitalData,
+            currLocation: {
+                longitude: longitude,
+                latitude: latitude,
+            },
+        };
 
-        if (!location) {
-            location = await prisma.location.create({
-                data: { longitude, latitude },
-            });
-        }
-
-        const encPass = await encryptPassword(hospitalData.password);
+        const encPass = await encryptPassword(newHospitalData.password);
         if (!encPass) {
             res.status(500).send({ error: "Error in Password Encryption" });
         }
-        hospitalData.password = encPass;
+        newHospitalData.password = encPass;
 
-        delete hospitalData.confirmPassword;
-        const hospitalID = hospitalData.hospital;
-        delete hospitalData.hospital;
+        delete newHospitalData.confirmPassword;
+        const hospitalID = newHospitalData.hospital;
+        delete newHospitalData.hospital;
 
         const hospital = await prisma.hospital.create({
             data: {
-                ...hospitalData,
-                locationId: location.id,
+                ...newHospitalData,
                 parentId: hospitalID || null,
-                fees: Number(hospitalData.fees),
-                maxAppointments: Number(hospitalData.maxAppointments),
+                fees: Number(newHospitalData.fees),
+                maxAppointments: Number(newHospitalData.maxAppointments),
             },
             include: { parent: true },
         });
@@ -308,20 +351,54 @@ router.put("/:id/timings", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
     const { id } = req.params;
-    const currData: Hospital = { ...req.body };
+    const {
+        email,
+        name,
+        password,
+        parentId,
+        phone,
+        documents,
+        currLocation,
+        timings,
+        approved,
+        freeSlotDate,
+        maxAppointments,
+        emergency,
+        fees,
+    } = req.body;
+
+    if (!req.body) {
+        res.status(400).send({ error: "Data is required" });
+        return;
+    }
 
     try {
         const hospital = await prisma.hospital.update({
-            where: { id: id },
+            where: { id },
             data: {
-                ...currData,
-                timings: currData.timings ?? undefined,
+                email,
+                name,
+                password,
+                parentId,
+                phone,
+                documents,
+                currLocation,
+                timings: timings ?? {},
+                approved,
+                freeSlotDate,
+                maxAppointments,
+                emergency,
+                fees,
             },
         });
 
         res.status(200).send(hospital);
     } catch (error) {
-        sendError(res, error as Error);
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            details: (error as Error).message,
+        });
     }
 });
 
@@ -336,28 +413,15 @@ router.post("/location", async (req, res) => {
             return;
         }
 
-        const loc = await prisma.location.findFirst({
-            where: { longitude, latitude },
+        await prisma.hospital.update({
+            where: { id },
+            data: { currLocation: { longitude, latitude } },
         });
 
-        if (!loc) {
-            const location = await prisma.location.create({
-                data: { longitude, latitude },
-            });
-
-            await prisma.hospital.update({
-                where: { id },
-                data: { locationId: location.id },
-            });
-        } else {
-            await prisma.hospital.update({
-                where: { id },
-                data: { locationId: loc.id },
-            });
-        }
-
         res.status(200).send({ message: "Location updated" });
-    } catch (error) {}
+    } catch (error) {
+        res.status(500).send({ error: "Something went wrong" });
+    }
 });
 
 router.put("/date", async (req, res) => {

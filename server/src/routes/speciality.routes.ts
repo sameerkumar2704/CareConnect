@@ -69,6 +69,35 @@ router.get("/top", async (req, res) => {
     }
 });
 
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const speciality = await prisma.speciality.findUnique({
+            where: { id: id },
+            include: {
+                hospitals: {
+                    include: {
+                        specialities: true,
+                        parent: true,
+                    },
+                },
+            },
+        });
+
+        if (!speciality) {
+            res.status(404).send({ message: "Speciality not found" });
+            return;
+        }
+
+        res.status(200).send(speciality);
+    } catch (error) {
+        res.status(500).send({
+            message: "An error occurred while fetching speciality",
+            error,
+        });
+    }
+});
+
 router.get("/doctor/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -159,7 +188,7 @@ router.put("/doctor/:id", async (req, res) => {
 
         console.log("Updated doctor:", updatedDoctor);
 
-        res.status(200).send(updatedDoctor.specialities);
+        res.status(200).send(speciality);
     } catch (error) {
         console.error("Error updating doctor:", error);
 

@@ -20,12 +20,11 @@ model User {
   password     String
   phone        String        @unique
   role         UserRole      @default(PATIENT)
-  currLocation Location      @relation(fields: [locationId], references: [id])
+  currLocation Json          @default("{}")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   appointments Appointment[]
   ratings      Ratings[]
-  locationId   String
 }
 
 model Hospital {
@@ -39,7 +38,7 @@ model Hospital {
   specialities    Speciality[]  @relation("HospitalSpecialities")
   phone           String        @unique
   documents       String[]
-  currLocation    Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  currLocation    Json          @default("{}")
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   timings         Json?
@@ -49,7 +48,6 @@ model Hospital {
   maxAppointments Int?          @default(10)
   emergency       Boolean       @default(false)
   ratings         Ratings[]
-  locationId      String
   fees            Int
 }
 
@@ -57,6 +55,7 @@ model Speciality {
   id          String     @id @default(cuid())
   name        String
   description String
+  tags        Json[]     @default([])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   hospitals   Hospital[] @relation("HospitalSpecialities")
@@ -66,14 +65,6 @@ model Speciality {
 enum UserRole {
   PATIENT
   ADMIN
-}
-
-model Location {
-  id        String     @id @default(cuid())
-  longitude Decimal
-  latitude  Decimal
-  Hospital  Hospital[]
-  User      User[]
 }
 
 model Appointment {
