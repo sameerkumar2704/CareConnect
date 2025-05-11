@@ -124,14 +124,16 @@ export const getAppointmentById = async (
         }
 
         const now = new Date();
+        const nextDate = new Date(now);
+        nextDate.setDate(now.getDate() + 1);
 
+        console.log("appointment", appointment);
         console.log("Current date:", now);
+        console.log("Next date:", nextDate);
+        console.log(appointment.date < nextDate);
         console.log("Appointment date:", appointment.date);
 
-        if (
-            appointment.date < new Date(now.getDate() + 1) &&
-            appointment.status === "PENDING"
-        ) {
+        if (appointment.date < nextDate && appointment.status === "PENDING") {
             await prisma.appointment.update({
                 where: { id },
                 data: {

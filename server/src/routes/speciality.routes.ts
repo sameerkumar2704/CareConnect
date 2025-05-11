@@ -7,28 +7,59 @@ const prisma = new PrismaClient();
 router.get("/", async (req, res) => {
     try {
         const specialities = await prisma.speciality.findMany({
+            orderBy: {
+                hospitals: {
+                    _count: "desc",
+                },
+            },
             select: {
                 id: true,
                 name: true,
                 description: true,
-                _count: {
-                    select: { hospitals: true },
-                },
             },
         });
 
-        // Optionally format the response if needed
-        const formatted = specialities.map((s) => ({
-            id: s.id,
-            name: s.name,
-            description: s.description,
-            hospitalCount: s._count.hospitals,
-        }));
+        const specialitiesWithCounts = await Promise.all(
+            specialities.map(async (speciality) => {
+                const [rootCount, branchCount] = await prisma.$transaction([
+                    prisma.hospital.count({
+                        where: {
+                            parentId: null,
+                            specialities: {
+                                some: {
+                                    id: speciality.id,
+                                },
+                            },
+                        },
+                    }),
+                    prisma.hospital.count({
+                        where: {
+                            parentId: {
+                                not: null,
+                            },
+                            specialities: {
+                                some: {
+                                    id: speciality.id,
+                                },
+                            },
+                        },
+                    }),
+                ]);
 
-        res.status(200).send(formatted);
+                return {
+                    ...speciality,
+                    _count: {
+                        parent: rootCount,
+                        children: branchCount,
+                    },
+                };
+            })
+        );
+
+        res.status(200).send(specialitiesWithCounts);
     } catch (error) {
         res.status(500).send({
-            message: "An error occurred while fetching specialities",
+            message: "An error occurred while fetching top specialities",
             error,
         });
     }
@@ -37,30 +68,57 @@ router.get("/", async (req, res) => {
 router.get("/top", async (req, res) => {
     try {
         const specialities = await prisma.speciality.findMany({
+            take: 8,
             orderBy: {
                 hospitals: {
-                    _count: "desc", // Sort by the number of hospitals (doctors)
+                    _count: "desc",
                 },
             },
-            take: 8,
             select: {
                 id: true,
                 name: true,
                 description: true,
-                _count: {
-                    select: { hospitals: true },
-                },
             },
         });
 
-        const formatted = specialities.map((s) => ({
-            id: s.id,
-            name: s.name,
-            description: s.description,
-            hospitalCount: s._count.hospitals,
-        }));
+        const specialitiesWithCounts = await Promise.all(
+            specialities.map(async (speciality) => {
+                const [rootCount, branchCount] = await prisma.$transaction([
+                    prisma.hospital.count({
+                        where: {
+                            parentId: null,
+                            specialities: {
+                                some: {
+                                    id: speciality.id,
+                                },
+                            },
+                        },
+                    }),
+                    prisma.hospital.count({
+                        where: {
+                            parentId: {
+                                not: null,
+                            },
+                            specialities: {
+                                some: {
+                                    id: speciality.id,
+                                },
+                            },
+                        },
+                    }),
+                ]);
 
-        res.status(200).send(formatted);
+                return {
+                    ...speciality,
+                    _count: {
+                        parent: rootCount,
+                        children: branchCount,
+                    },
+                };
+            })
+        );
+
+        res.status(200).send(specialitiesWithCounts);
     } catch (error) {
         res.status(500).send({
             message: "An error occurred while fetching top specialities",
@@ -79,6 +137,11 @@ router.get("/:id", async (req, res) => {
                     include: {
                         specialities: true,
                         parent: true,
+                        _count: {
+                            select: {
+                                children: true,
+                            },
+                        },
                     },
                 },
             },
