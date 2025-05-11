@@ -295,7 +295,7 @@ const HospitalDetails = () => {
                                         className="mt-4 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transform transition-all hover:-translate-y-1"
                                     >
                                         <FontAwesomeIcon icon={faCalendarCheck} className="mr-2" />
-                                        Book an Appointment
+                                        View Profile
                                     </Link>
                                 </div>
                             </div>

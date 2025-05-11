@@ -128,7 +128,7 @@ const SpecialtyHospitalCard = ({
                         {isExpanded ? "Show Less" : "Read More →"}
                     </button>
 
-                    <Link to={`/${isDoctor ? "doctor" : "hospital"}/${id}`}
+                    <Link to={`/${isDoctor ? "doctors" : "hospital"}/${id}`}
                         className="bg-teal-500 hover:bg-teal-600 text-white text-sm px-4 py-2 rounded-lg transition-colors"
                     >
                         View Details
@@ -258,7 +258,7 @@ const SpecialtyPage = () => {
                                 image={"/Services/Hospital.jpg"}
                                 fees={hospital.fees}
                                 hasEmergency={hospital.emergency}
-                                doctorCount={hospital.doctorCount || 0}
+                                doctorCount={hospital._count.children}
                                 isDoctor={false}
                             />
                         ))}

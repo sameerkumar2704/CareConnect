@@ -41,12 +41,6 @@ interface Appointment {
     updatedAt: string;
 }
 
-interface Location {
-    id: string;
-    longitude: string;
-    latitude: string;
-}
-
 interface Speciality {
     id: string;
     name: string;
@@ -63,9 +57,11 @@ interface ExtendedUser extends User {
     role: string;
     createdAt: string;
     updatedAt: string;
-    locationId: string;
     timings: JSON;
-    currLocation: Location;
+    currLocation: {
+        longitude: string;
+        latitude: string;
+    };
     appointments: Appointment[];
     ratings: any[];
     isApproved: boolean;
@@ -601,12 +597,12 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                                     </td>
                                                     <td className="py-3 px-6 text-left">
                                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${appointment.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                                                                appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-600' :
-                                                                    appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                                                        appointment.status === 'REFUND_IN_PROGRESS' ? 'bg-blue-100 text-blue-600' :
-                                                                            appointment.status === 'REFUNDED' ? 'bg-indigo-100 text-indigo-700' :
-                                                                                appointment.status === 'EXPIRED' ? 'bg-red-100 text-red-600' :
-                                                                                    'bg-yellow-100 text-yellow-700'
+                                                            appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-600' :
+                                                                appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    appointment.status === 'REFUND_IN_PROGRESS' ? 'bg-blue-100 text-blue-600' :
+                                                                        appointment.status === 'REFUNDED' ? 'bg-indigo-100 text-indigo-700' :
+                                                                            appointment.status === 'EXPIRED' ? 'bg-red-100 text-red-600' :
+                                                                                'bg-yellow-100 text-yellow-700'
                                                             }`}>
                                                             {appointment.status}
                                                         </span>
@@ -641,7 +637,6 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                         <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1 text-teal-500 w-5" />
                                         <div className="ml-4">
                                             <h3 className="text-gray-700 font-medium">Your Saved Location</h3>
-                                            <p className="text-gray-600">ID: {user.currLocation ? user.currLocation.id : "Not set"}</p>
                                         </div>
                                     </div>
                                     <button
@@ -654,7 +649,7 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                     </button>
                                 </div>
                                 <div>
-                                    {user.currLocation ? (
+                                    {user.currLocation && user.currLocation.latitude && user.currLocation.longitude ? (
                                         <UserLocationMap
                                             latitude={user.currLocation.latitude}
                                             longitude={user.currLocation.longitude}

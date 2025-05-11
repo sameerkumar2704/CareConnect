@@ -16,6 +16,10 @@ export interface Specialty {
     hospitalCount: number;
     createdAt: Date;
     updatedAt: Date;
+    _count: {
+        parent: number;
+        children: number;
+    }
 }
 
 export interface Hospital {
@@ -36,6 +40,9 @@ export interface Hospital {
     fees: number;
     children: Hospital[];
     parentId: Hospital;
+    _count: {
+        children: number;
+    };
 }
 
 export interface Appointment {

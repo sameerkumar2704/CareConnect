@@ -221,9 +221,11 @@ const CheckoutPage: React.FC = () => {
                             >
                                 Complete Payment
                             </button>
-                            <Link to="/cancel" className="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-medium text-center">
+                            <button
+                                onClick={() => window.history.back()}
+                                className="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-medium text-center">
                                 Cancel
-                            </Link>
+                            </button>
                         </div>
                     </div>
 

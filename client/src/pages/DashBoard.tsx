@@ -33,6 +33,7 @@ const Dashboard = () => {
       try {
         const response = await fetch(`${API_URL}/speciality/top`);
         const data = await response.json();
+        console.log("Specialties", data);
         setSpecialists(data);
       } catch (error) {
         console.log(error);
@@ -83,7 +84,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12">
           {!loading && specialists !== null && specialists !== undefined && specialists.length != 0 &&
             specialists.map((specialty) => (
-              <SpecialtyCard key={specialty.id} count={specialty.hospitalCount} id={specialty.id} name={specialty.name} description={specialty.description} />
+              <SpecialtyCard key={specialty.id} count={specialty._count} id={specialty.id} name={specialty.name} description={specialty.description} />
             ))}
         </div>
       </div>
