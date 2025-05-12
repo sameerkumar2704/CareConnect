@@ -123,7 +123,7 @@ export const getAppointmentById = async (
             return;
         }
 
-        const now = appointment.date;
+        const now = new Date();
         const nextDate = new Date(now);
         nextDate.setDate(now.getDate() + 1);
 
