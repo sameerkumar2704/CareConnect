@@ -71,28 +71,86 @@ router.get("/reset", async (req, res) => {
 
 router.get("/top", async (req, res) => {
     try {
+        const { latitude, longitude } = req.query;
+
+        if (!latitude || !longitude) {
+            res.status(400).send({
+                message: "Latitude and Longitude are required in query params.",
+            });
+        }
+
+        const lat = parseFloat(latitude as string);
+        const lon = parseFloat(longitude as string);
+
+        const hospitals = await prisma.$queryRawUnsafe<any[]>(`
+            SELECT h.id, h.email, h.name, h.password, h."parentId",
+                ST_AsText(h."location") AS location,  
+                h."currLocation", h."createdAt", h."updatedAt", h."timings",
+                h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
+                h."fees", h."phone", h."documents",
+                ST_DistanceSphere(
+                    ST_MakePoint(CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION), 
+                                CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION)),
+                    ST_MakePoint(${lon}, ${lat})
+                ) AS distance,
+
+                (
+                    SELECT COUNT(*)::INT
+                    FROM "Hospital" AS child 
+                    WHERE child."parentId" = h.id
+                ) AS "doctorCount",
+
+                COALESCE(
+                    json_agg(
+                        DISTINCT jsonb_build_object(
+                            'id', s.id,
+                            'name', s.name,
+                            'description', s.description
+                        )
+                    ) FILTER (WHERE s.id IS NOT NULL),
+                    '[]'
+                ) AS specialities
+
+            FROM "Hospital" h
+            LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
+            LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
+            WHERE h."parentId" IS NULL
+            GROUP BY h.id
+            ORDER BY distance
+            LIMIT 8;
+        `);
+
+        res.status(200).send(hospitals);
+    } catch (error) {
+        console.error("Error fetching top hospitals:", error);
+        res.status(500).send({
+            message: "An error occurred while fetching top hospitals",
+            error,
+        });
+    }
+});
+
+router.get("/doctors", async (req, res) => {
+    try {
+        const now = new Date();
+        const nextSevenDays = new Date(now);
+        nextSevenDays.setDate(now.getDate() + 7);
+
         const hospitals = await prisma.hospital.findMany({
-            take: 8,
             include: {
                 specialities: true,
-
-                _count: {
-                    select: {
-                        children: true,
-                    },
-                },
+                parent: true,
             },
             where: {
-                parent: null,
+                parentId: { not: null },
+                freeSlotDate: {
+                    gte: now,
+                    lte: nextSevenDays,
+                },
             },
         });
 
-        const hospitalsWithDoctorCount = hospitals.map((hospital) => ({
-            ...hospital,
-            doctorCount: hospital._count.children,
-        }));
-
-        res.status(200).send(hospitalsWithDoctorCount);
+        res.status(200).send(hospitals);
     } catch (error) {
         res.status(500).send({
             message: "An error occurred while fetching hospitals",
@@ -242,7 +300,17 @@ router.post("/register", async (req, res) => {
 
         console.log("Created Hospital :=", hospital);
 
+        await prisma.$executeRawUnsafe(`
+            UPDATE "Hospital"
+            SET location = ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)
+            WHERE id = '${hospital.id}';
+        `);
+
+        console.log("Updated Hospital Location :=", hospital);
+
         const token = await generateToken({ userId: hospital.id });
+
+        console.log("Token := ", token);
 
         res.status(201).send({ hospital, token });
     } catch (error) {
@@ -292,6 +360,45 @@ router.post("/login", async (req, res) => {
 
         const token = await generateToken({ id: hospital.id });
         res.status(200).send({ token });
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+});
+
+interface NewHospital extends Hospital {
+    longitude: number;
+    latitude: number;
+}
+
+router.post("/manyHospitals", async (req, res) => {
+    const hospitals = req.body;
+
+    console.log("Creating multiple hospitals...");
+    console.log("Hospitals Data := ", hospitals);
+
+    if (!hospitals || hospitals.length === 0) {
+        res.status(400).send({ error: "Hospitals are required" });
+        return;
+    }
+
+    const hospitalsData = hospitals.map((hospital: NewHospital) => {
+        const { longitude, latitude, ...rest } = hospital;
+
+        return {
+            ...rest,
+            currLocation: {
+                longitude: new Decimal(longitude),
+                latitude: new Decimal(latitude),
+            },
+        };
+    });
+
+    try {
+        const createdHospitals = await prisma.hospital.createMany({
+            data: hospitalsData,
+        });
+
+        res.status(201).send(createdHospitals);
     } catch (error) {
         sendError(res, error as Error);
     }

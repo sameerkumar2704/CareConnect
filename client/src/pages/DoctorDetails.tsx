@@ -18,6 +18,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital, Specialty, User } from "../model/user.model";
 import { useAuth } from "../context/auth";
+import { GoogleMap } from "../utils/location/GoogleMap";
 
 // Interface for reverse geocoding response
 interface GeocodingResult {
@@ -205,6 +206,28 @@ const DoctorDetails = () => {
                                     <p className="text-gray-800 font-semibold">{address || "Address not available"}</p>
                                 </div>
                             </div>
+
+
+                            {doctor.currLocation.latitude && doctor.currLocation.longitude && (
+                                <div className="flex items-start p-4 bg-gray-50 rounded-xl h-60 md:col-span-2 lg:col-span-3">
+                                    <GoogleMap
+                                        latitude={Number(doctor.currLocation.latitude)}
+                                        longitude={Number(doctor.currLocation.longitude)}
+                                        mapId={doctor.id}
+                                        name={doctor.name}
+                                    />
+
+                                    {/* Open with Google Maps */}
+                                    <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${doctor.currLocation.latitude},${doctor.currLocation.longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-4 right-4 bg-teal-500 text-white font-bold py-2 px-4 rounded-full shadow-md hover:bg-teal-600 transition duration-300"
+                                    >
+                                        Open in Google Maps
+                                    </a>
+                                </div>
+                            )}
                         </div>
 
                         {/* Go to Profile Link */}

@@ -77,7 +77,7 @@ router.get("/byDate", async (req, res) => {
                           userId: userId as string,
                       },
                       orderBy: {
-                          date: "asc",
+                          date: "desc",
                       },
                       include: {
                           Hospital: {

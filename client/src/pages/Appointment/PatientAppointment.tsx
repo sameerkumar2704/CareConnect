@@ -24,7 +24,8 @@ import {
     faCreditCard, // Add this import for the bank details icon
     faExclamationTriangle,
     faInfoCircle,
-    faSync, // Add this for expired status
+    faSync,
+    faExternalLinkAlt, // Add this for expired status
 } from '@fortawesome/free-solid-svg-icons';
 
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
@@ -34,32 +35,10 @@ import { API_URL } from '../../utils/contants';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
-import {
-    FaCheckCircle,
-    FaCalendarCheck,
-    FaHospital,
-    FaRupeeSign,
-    FaUser,
-    FaInfoCircle,
-    FaClock,
-    FaIdCard,
-    FaFileAlt,
-    FaExclamationTriangle,
-    FaLock,
-    FaPhoneAlt,
-    FaUserMd,
-    FaUserCircle,
-    FaEnvelope,
-    FaPhone,
-    FaMapMarkerAlt,
-} from 'react-icons/fa';
-import {
-    FaRegCalendarAlt,
-    FaRegClock,
-    FaRegCalendar,
-} from 'react-icons/fa';
 // import { HospitalMap } from '../../components/HospitalMap';
 import { useAuth } from '../../context/auth';
+import { GoogleMap } from '../../utils/location/GoogleMap';
+import ReverseGeocoder from '../../utils/location/Address';
 
 // Define interfaces based on your model
 interface Appointment {
@@ -140,6 +119,14 @@ const RatingStars: React.FC<{
 };
 
 const AppointmentDetailsPage: React.FC = () => {
+
+    const auth = useAuth();
+
+    if (!auth) {
+        console.error("Auth context not found");
+        <NotFound />;
+    }
+
     const { id } = useParams<{ id: string }>();
     const [appointment, setAppointment] = useState<Appointment | null>(null);
     const [loading, setLoading] = useState(true);
@@ -225,6 +212,7 @@ const AppointmentDetailsPage: React.FC = () => {
         return appointmentDate < new Date(now.getDate() + 1) && appointment.status.toLowerCase() === 'pending';
     };
 
+
     useEffect(() => {
         if (!id) return;
 
@@ -240,7 +228,17 @@ const AppointmentDetailsPage: React.FC = () => {
             .then(data => {
                 console.log('Fetched appointment data:', data);
                 setAppointment(data);
-                if (data.bankDetails) {
+
+                const now = new Date();
+                const nextDate = new Date(now);
+                nextDate.setDate(now.getDate() + 1);
+
+                if (data.date < nextDate && data.status.toLowerCase() === 'pending') {
+                    alert("Your appointment has expired !");
+                    window.location.reload();
+                }
+
+                if (data.bankDetails && data.bankDetails.accountNumber && data.bankDetails.ifscCode && data.bankDetails.accountHolderName) {
                     setBankDetails({
                         accountNumber: data.bankDetails.accountNumber,
                         ifscCode: data.bankDetails.ifscCode,
@@ -249,7 +247,7 @@ const AppointmentDetailsPage: React.FC = () => {
                     setBankDetailsSubmitted(true);
                     console.log('Bank details fetched:', data.bankDetails);
                 }
-                if (data.doctorCharges > 0 && (!data.paidCharges || data.paidCharges > 0)) {
+                if (data.doctorCharges > 0 || (!data.paidCharges || data.paidCharges > 0)) {
                     setCancelledByDoctor(true);
                 }
                 setLoading(false);
@@ -478,18 +476,15 @@ const AppointmentDetailsPage: React.FC = () => {
     if (loading) return <LoadingSpinner />;
     if (error || !appointment) return <NotFound />;
 
-    const auth = useAuth();
 
-    if (!auth) {
-        console.error("Auth context not found");
-        return null;
-    }
 
     // Check if appointment can be cancelled (only pending appointments and not too close to appointment time)
     const canBeCancelled = appointment.status.toLowerCase() === 'pending';
 
     // Calculate the refund amount (90% of paid price)
     const refundAmount = !cancelledByDoctor ? (appointment.paidPrice * 0.9).toFixed(2) : (appointment.paidPrice).toFixed(2);
+
+
 
     return (
         <div className="bg-gradient-to-r from-teal-500 to-blue-400 min-h-screen py-10 px-4">
@@ -886,7 +881,7 @@ const AppointmentDetailsPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Doctor</p>
-                                    <p className="font-medium text-gray-800">Dr. {appointment.Hospital.name}</p>
+                                    <Link to={"/doctors/" + appointment.hospitalId} className="font-medium hover:underline text-gray-800">Dr. {appointment.Hospital.name}</Link>
                                 </div>
                             </div>
 
@@ -896,7 +891,7 @@ const AppointmentDetailsPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Hospital</p>
-                                    <p className="font-medium text-gray-800">{appointment.Hospital.parent?.name || appointment.Hospital.name}</p>
+                                    <Link to={"/hospital/" + appointment.Hospital.parent?.id} className="font-medium hover:underline text-gray-800">{appointment.Hospital.parent?.name || appointment.Hospital.name}</Link>
                                 </div>
                             </div>
 
@@ -951,7 +946,8 @@ const AppointmentDetailsPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <p className="text-gray-600 mb-1">{appointment.Hospital.address || "123 Healthcare Ave, Medical District"}</p>
+                                <ReverseGeocoder latitude={Number(appointment.Hospital.currLocation?.latitude)}
+                                    longitude={Number(appointment.Hospital.currLocation?.longitude)} />
 
                                 <div className="mt-4 flex flex-col space-y-2">
                                     <div className="flex items-center">
@@ -969,12 +965,25 @@ const AppointmentDetailsPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* <div className="bg-gray-200 h-40 rounded-lg flex items-center justify-center">
-                                <HospitalMap
+                            {appointment.Hospital.currLocation?.latitude &&
+                                appointment.Hospital.currLocation?.longitude && <div className="flex-col gap-2 h-60 rounded-lg flex items-center justify-center">
+                                    {/* <HospitalMap
                                     position={appointment.Hospital.currLocation ? [appointment.Hospital.currLocation.latitude, appointment.Hospital.currLocation.longitude] : [0, 0]}
                                     name={appointment.Hospital.name}
-                                />
-                            </div> */}
+                                /> */}
+                                    <GoogleMap
+                                        mapId={appointment.Hospital.id}
+                                        name={appointment.Hospital.name}
+                                        latitude={appointment.Hospital.currLocation ? appointment.Hospital.currLocation.latitude : 0}
+                                        longitude={appointment.Hospital.currLocation ? appointment.Hospital.currLocation.longitude : 0}
+                                    />
+
+                                    <div className='py-2 text-sm text-bold hover:text-teal-500'>
+                                        <Link to={`https://www.google.com/maps?q=${appointment.Hospital.currLocation?.latitude},${appointment.Hospital.currLocation?.longitude}`} target="_blank" rel="noopener noreferrer">
+                                            Open in Google Maps <FontAwesomeIcon icon={faExternalLinkAlt} className="ml-1" />
+                                        </Link>
+                                    </div>
+                                </div>}
                         </div>
                     </div>
 
@@ -1086,42 +1095,44 @@ const AppointmentDetailsPage: React.FC = () => {
             </div>
 
             {/* PDF Template - Initially hidden */}
+            // Improved PDF template with enhanced UI and no icons
             <div ref={pdfTemplateRef} style={{ display: 'none', backgroundColor: 'white' }}>
-                <div style={{ fontFamily: 'Arial, sans-serif', width: '800px', padding: '20px', margin: '0 auto' }}>
-                    {/* PDF Header */}
+                <div style={{ fontFamily: 'Arial, sans-serif', width: '800px', padding: '40px', margin: '0 auto', color: '#333' }}>
+                    {/* PDF Header - Modern and Clean */}
                     <div style={{
-                        display: "flex",
-                        backgroundColor: '#008080',
+                        backgroundColor: '#00a0a0',
                         color: 'white',
-                        padding: '15px',
-                        borderRadius: '5px 5px 0 0',
-                        justifyContent: "center",
-                        gap: "15px"
+                        padding: '25px',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                        textAlign: 'center',
+                        marginBottom: '30px'
                     }}>
-                        <img src="/logo.png" alt="Logo" style={{ width: '50px', height: '50px' }} />
-                        <h1 style={{ margin: '0', fontSize: '28px' }}>CareConnect</h1>
+                        <h1 style={{ margin: '0', fontSize: '32px', letterSpacing: '1px' }}>CareConnect</h1>
+                        <p style={{ fontSize: '16px', margin: '10px 0 0 0', opacity: '0.9' }}>Your Health, Our Priority</p>
                     </div>
 
-                    <div style={{ textAlign: 'center', margin: '25px 0' }}>
-                        <h2 style={{ display: "flex", alignContent: "center", justifyContent: "center", color: '#008080', fontSize: '24px', margin: '5px 0' }}>
-                            <FaCheckCircle style={{ marginRight: '10px' }} />
+                    {/* Appointment Title Section - Centered and Clean */}
+                    <div style={{ textAlign: 'center', margin: '30px 0', padding: '15px' }}>
+                        <h2 style={{ color: '#00a0a0', fontSize: '28px', margin: '5px 0', fontWeight: '600' }}>
                             Appointment Confirmation
                         </h2>
-                        <p style={{ color: '#666', margin: '10px 0' }}>Appointment ID: {appointment.id}</p>
+                        <p style={{ color: '#666', margin: '10px 0', fontSize: '16px' }}>Appointment ID: {appointment.id}</p>
 
-                        {/* Only show status in PDF if completed */}
+                        {/* Status Indicators with improved styling */}
                         {appointment.status && appointment.status.toLowerCase() === 'completed' && (
                             <div style={{
                                 display: 'inline-block',
                                 backgroundColor: '#d1fae5',
                                 color: '#065f46',
-                                padding: '5px 15px',
-                                borderRadius: '15px',
+                                padding: '8px 20px',
+                                borderRadius: '20px',
                                 fontWeight: 'bold',
-                                fontSize: '14px',
-                                marginTop: '10px'
+                                fontSize: '15px',
+                                marginTop: '15px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                             }}>
-                                ✓ Completed
+                                Completed
                             </div>
                         )}
 
@@ -1130,217 +1141,204 @@ const AppointmentDetailsPage: React.FC = () => {
                                 display: 'inline-block',
                                 backgroundColor: '#fee2e2',
                                 color: '#991b1b',
-                                padding: '5px 15px',
-                                borderRadius: '15px',
+                                padding: '8px 20px',
+                                borderRadius: '20px',
                                 fontWeight: 'bold',
-                                fontSize: '14px',
-                                marginTop: '10px'
+                                fontSize: '15px',
+                                marginTop: '15px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                             }}>
-                                ⚠ Expired
+                                Expired
                             </div>
                         )}
                     </div>
 
-                    {/* Appointment Details Section */}
+                    {/* Appointment Details Section - Improved Layout */}
                     <div style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '5px',
-                        padding: '20px',
-                        backgroundColor: '#f9f9f9',
-                        marginBottom: '25px'
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '30px',
+                        backgroundColor: '#f0f9f9',
+                        marginBottom: '30px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                     }}>
                         <h3 style={{
-                            color: '#008080',
-                            borderBottom: '2px solid #ddd',
-                            paddingBottom: '10px',
-                            margin: '0 0 20px 0',
-                            display: 'flex',
-                            alignItems: 'center'
+                            color: '#00a0a0',
+                            borderBottom: '2px solid #e0e0e0',
+                            paddingBottom: '15px',
+                            margin: '0 0 25px 0',
+                            fontSize: '22px',
+                            fontWeight: '600'
                         }}>
-                            <FaCalendarCheck style={{ marginRight: '10px' }} />
                             Appointment Details
                         </h3>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaRegCalendarAlt style={{ marginRight: '8px', color: '#008080' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px' }}>
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Date
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{formatDate(appointment.date)}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{formatDate(appointment.date)}</p>
                             </div>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaRegClock style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Time
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{formatTime(appointment.date)}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{formatTime(appointment.date)}</p>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaUserMd style={{ marginRight: '8px', color: '#008080' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px' }}>
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Doctor
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>Dr. {appointment.Hospital.name}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>Dr. {appointment.Hospital.name}</p>
                             </div>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaHospital style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Hospital
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{appointment.Hospital.parent?.name || appointment.Hospital.name}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{appointment.Hospital.parent?.name || appointment.Hospital.name}</p>
                             </div>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaRupeeSign style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Amount Paid
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>₹{appointment.paidPrice.toFixed(2)}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>₹{appointment.paidPrice.toFixed(2)}</p>
                             </div>
                         </div>
 
                         <div style={{ display: 'flex' }}>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaMapMarkerAlt style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Address
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{appointment.Hospital.address || "123 Healthcare Ave, Medical District"}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{appointment.Hospital.address || "123 Healthcare Ave, Medical District"}</p>
                             </div>
                             <div style={{ flex: '2' }}></div> {/* Empty flex space for alignment */}
                         </div>
                     </div>
 
-                    {/* Patient Information Section */}
+                    {/* Patient Information Section - Cleaner Design */}
                     <div style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '5px',
-                        padding: '20px',
-                        backgroundColor: '#f9f9f9',
-                        marginBottom: '25px'
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '30px',
+                        backgroundColor: '#f0f9f9',
+                        marginBottom: '30px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                     }}>
                         <h3 style={{
-                            color: '#008080',
-                            borderBottom: '2px solid #ddd',
-                            paddingBottom: '10px',
-                            margin: '0 0 20px 0',
-                            display: 'flex',
-                            alignItems: 'center'
+                            color: '#00a0a0',
+                            borderBottom: '2px solid #e0e0e0',
+                            paddingBottom: '15px',
+                            margin: '0 0 25px 0',
+                            fontSize: '22px',
+                            fontWeight: '600'
                         }}>
-                            <FaUser style={{ marginRight: '10px' }} />
                             Patient Information
                         </h3>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaUserCircle style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Name
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{appointment.User.name}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{appointment.User.name}</p>
                             </div>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaEnvelope style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Email
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{appointment.User.email}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{appointment.User.email}</p>
                             </div>
-                            <div style={{ flex: '1', padding: '0 10px' }}>
-                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                    <FaPhone style={{ marginRight: '8px', color: '#008080' }} />
+                            <div style={{ flex: '1', padding: '0 15px' }}>
+                                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px', fontWeight: '600' }}>
                                     Phone
                                 </p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>{appointment.User.phone}</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '17px' }}>{appointment.User.phone}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Important Information Section */}
+                    {/* Important Information Section - Enhanced Visibility */}
                     <div style={{
-                        border: '1px solid #ffd54f',
-                        borderRadius: '5px',
-                        padding: '20px',
-                        backgroundColor: '#fff8e1',
-                        marginBottom: '25px'
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '30px',
+                        backgroundColor: '#fff9e6',
+                        marginBottom: '30px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                     }}>
                         <h3 style={{
-                            color: '#008080',
-                            borderBottom: '2px solid #ffd54f',
-                            paddingBottom: '10px',
-                            margin: '0 0 15px 0',
-                            display: 'flex',
-                            alignItems: 'center'
+                            color: '#d4a010',
+                            borderBottom: '2px solid #ffe082',
+                            paddingBottom: '15px',
+                            margin: '0 0 20px 0',
+                            fontSize: '22px',
+                            fontWeight: '600'
                         }}>
-                            <FaInfoCircle style={{ marginRight: '10px' }} />
                             Important Information
                         </h3>
 
-                        <ul style={{ paddingLeft: '10px', margin: '0', listStyleType: 'none' }}>
-                            <li style={{ margin: '12px 0', display: 'flex', alignItems: 'flex-start' }}>
-                                <FaClock style={{ color: '#008080', marginRight: '10px', marginTop: '3px' }} />
-                                <span>Please arrive 15 minutes before your appointment time for registration.</span>
+                        <ul style={{ paddingLeft: '15px', margin: '0' }}>
+                            <li style={{ margin: '15px 0', fontSize: '16px', color: '#555' }}>
+                                Please arrive 15 minutes before your appointment time for registration.
                             </li>
-                            <li style={{ margin: '12px 0', display: 'flex', alignItems: 'flex-start' }}>
-                                <FaIdCard style={{ color: '#008080', marginRight: '10px', marginTop: '3px' }} />
-                                <span>Bring your government-issued ID and insurance card if applicable.</span>
+                            <li style={{ margin: '15px 0', fontSize: '16px', color: '#555' }}>
+                                Bring your government-issued ID and insurance card if applicable.
                             </li>
-                            <li style={{ margin: '12px 0', display: 'flex', alignItems: 'flex-start' }}>
-                                <FaFileAlt style={{ color: '#008080', marginRight: '10px', marginTop: '3px' }} />
-                                <span>If you're bringing medical records or test results, please have them ready.</span>
+                            <li style={{ margin: '15px 0', fontSize: '16px', color: '#555' }}>
+                                If you're bringing medical records or test results, please have them ready.
                             </li>
                         </ul>
                     </div>
 
-                    {/* Important Note */}
+                    {/* Important Note - More Attention-Grabbing */}
                     <div style={{
                         backgroundColor: '#ffebee',
-                        padding: '15px',
-                        borderRadius: '5px',
+                        padding: '20px',
+                        borderRadius: '8px',
                         textAlign: 'center',
                         fontWeight: 'bold',
                         color: '#c62828',
-                        marginBottom: '25px',
-                        border: '1px dashed #f44336'
+                        marginBottom: '30px',
+                        border: '2px solid #f44336',
+                        fontSize: '18px',
+                        letterSpacing: '0.5px'
                     }}>
-                        <FaExclamationTriangle style={{ marginRight: '10px' }} />
                         PLEASE BRING THIS PRINTED DOCUMENT TO YOUR APPOINTMENT
                     </div>
 
-                    {/* Footer */}
+                    {/* Footer - Cleaner Layout */}
                     <div style={{
                         width: '100%',
-                        marginTop: '30px',
-                        borderTop: '1px solid #ddd',
-                        paddingTop: '15px',
+                        marginTop: '40px',
+                        borderTop: '1px solid #e0e0e0',
+                        paddingTop: '20px',
                         display: 'flex',
                         justifyContent: 'space-between'
                     }}>
-                        <div style={{ fontSize: '12px', color: '#666' }}>
-                            <FaRegCalendar style={{ marginRight: '5px' }} />
+                        <div style={{ fontSize: '14px', color: '#666' }}>
                             Generated on {new Date().toLocaleDateString()}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>
-                            <FaPhoneAlt style={{ marginRight: '5px' }} />
+                        <div style={{ fontSize: '14px', color: '#666' }}>
                             For assistance, call: +1 (234) 567-890
                         </div>
                     </div>
 
-                    {/* Confidentiality Notice */}
+                    {/* Confidentiality Notice - Enhanced */}
                     <div style={{
                         backgroundColor: '#f5f5f5',
-                        padding: '10px',
+                        padding: '15px',
                         textAlign: 'center',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         color: '#666',
                         fontStyle: 'italic',
-                        marginTop: '20px',
-                        borderRadius: '3px'
+                        marginTop: '25px',
+                        borderRadius: '5px'
                     }}>
-                        <FaLock style={{ marginRight: '5px' }} />
                         CONFIDENTIAL: This document contains private patient information. Please keep secure.
                     </div>
                 </div>

@@ -17,6 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital, Specialty } from "../model/user.model";
 import { useAuth } from "../context/auth";
+import { GoogleMap } from "../utils/location/GoogleMap";
 
 // Interface for reverse geocoding response
 interface GeocodingResult {
@@ -203,6 +204,15 @@ const HospitalDetails = () => {
                                     <p className="text-gray-800 font-semibold">{address || "Address not available"}</p>
                                 </div>
                             </div>
+
+                            {hospital.currLocation.latitude && hospital.currLocation.longitude && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
+                                <GoogleMap
+                                    latitude={hospital.currLocation.latitude}
+                                    longitude={hospital.currLocation.longitude}
+                                    name={hospital.name}
+                                    mapId={hospital.id}
+                                />
+                            </div>}
                         </div>
                     </div>
                 </div>
@@ -288,6 +298,12 @@ const HospitalDetails = () => {
                                     <div className="flex items-center">
                                         <FontAwesomeIcon icon={faEnvelope} className="mr-3 text-teal-500" />
                                         <span>{doctor.email}</span>
+                                    </div>
+
+                                    {/* Last Free Date Available */}
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-teal-500" />
+                                        <span>{doctor.freeSlotDate}</span>
                                     </div>
 
                                     <Link

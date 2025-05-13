@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Hospital } from "../../model/user.model";
 import { API_URL } from "../../utils/contants";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import HospitalCard from "../../components/Cards/Hospital";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendarCheck, faEnvelope, faPerson, faPhone } from "@fortawesome/free-solid-svg-icons";
 
-const Emergency = () => {
+const InstantAppointments = () => {
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -16,7 +18,7 @@ const Emergency = () => {
     const fetchHospitals = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals?emergency=true`);
+            const response = await fetch(`${API_URL}/hospitals/doctors?instant=true`);
             const data = await response.json();
             setHospitals(data);
         } catch (error) {
@@ -30,6 +32,14 @@ const Emergency = () => {
     const filteredHospitals = hospitals.filter(hospital =>
         hospital.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    if (loading || !hospitals) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -64,13 +74,13 @@ const Emergency = () => {
                 {/* Browse by Hospital */}
                 <div className="flex flex-col py-12 gap-2">
                     <h1 className="text-2xl text-[#4fadb1] font-semibold text-center">
-                        Emergency Hospitals
+                        Instant Appointments
                     </h1>
                     <h2 className="text-2xl md:text-5xl font-bold text-center">
-                        Browse Critical Care Facilities
+                        Find the Right Doctor for Your Needs
                     </h2>
                     <h6 className="text-center text-sm md:text-lg text-gray-600">
-                        Explore hospitals equipped for emergency and life-saving medical services.
+                        Explore Doctors Available within 7 Days for Instant Appointments
                     </h6>
 
                 </div>
@@ -91,19 +101,49 @@ const Emergency = () => {
                     )
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 md:px-12 md:py-8">
-                        {filteredHospitals.map((hospital) => (
-                            <HospitalCard
-                                key={hospital.id}
-                                id={hospital.id} // Pass hospital ID for navigation
-                                specialities={hospital.specialities}
-                                parentName={hospital.name}
-                                doctorCount={hospital.doctorCount}
-                                description={hospital.phone}
-                                email={hospital.email}
-                                hasEmergency={hospital.emergency}
-                                fees={hospital.fees}
-                                image={"/Services/Hospital.jpg"}
-                            />
+                        {filteredHospitals.map((doctor) => (
+                            <div
+                                key={doctor.id}
+                                className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all transform hover:shadow-2xl hover:-translate-y-1"
+                            >
+                                <div className="bg-gradient-to-r from-teal-500 to-cyan-500 p-4">
+                                    <h3 className="text-2xl font-bold text-white">{"Dr. " + doctor.name}</h3>
+                                    <div className="mt-2">
+                                        <div className="flex flex-wrap gap-1">
+                                            {doctor.specialities.map((spec) => (
+                                                <Link to={"/specializations/" + spec.id} key={spec.id} className="text-xs bg-white/20 px-2 py-1 rounded-full text-white">
+                                                    {spec.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-6 flex flex-col gap-4">
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faPhone} className="mr-3 text-teal-500" />
+                                        <span>{doctor.phone}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faEnvelope} className="mr-3 text-teal-500" />
+                                        <span>{doctor.email}</span>
+                                    </div>
+
+                                    {/* Last Free Date Available */}
+                                    <div className="flex items-center">
+                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-teal-500" />
+                                        <span>Available on:- {new Date(doctor.freeSlotDate).toLocaleDateString()}</span>
+                                    </div>
+
+                                    <Link
+                                        to={`/doctors/${doctor.id}`}
+                                        className="mt-4 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transform transition-all hover:-translate-y-1"
+                                    >
+                                        <FontAwesomeIcon icon={faPerson} className="mr-2" />
+                                        View Profile
+                                    </Link>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 ))}
@@ -114,4 +154,4 @@ const Emergency = () => {
     );
 };
 
-export default Emergency;
+export default InstantAppointments;

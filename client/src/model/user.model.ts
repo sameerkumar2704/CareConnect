@@ -39,6 +39,10 @@ export interface Hospital {
     updatedAt: Date;
     fees: number;
     children: Hospital[];
+    currLocation: {
+        latitude: number;
+        longitude: number;
+    }
     parentId: Hospital;
     _count: {
         children: number;

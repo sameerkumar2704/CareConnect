@@ -348,6 +348,7 @@ const DoctorAppointmentView: React.FC = () => {
                 setLoading(false);
             });
     }, [id]);
+    
 
     const handleStatusChange = (newStatus: string) => {
         if (!appointment || appointment.status.toLowerCase() === newStatus) return;

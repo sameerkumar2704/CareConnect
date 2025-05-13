@@ -28,38 +28,50 @@ model User {
 }
 
 model Hospital {
-  id              String        @id @default(cuid())
-  email           String        @unique
-  name            String
-  password        String
-  parentId        String?
-  parent          Hospital?     @relation("HospitalSelfRelation", fields: [parentId], references: [id])
-  children        Hospital[]    @relation("HospitalSelfRelation")
-  specialities    Speciality[]  @relation("HospitalSpecialities")
-  phone           String        @unique
-  documents       String[]
-  currLocation    Json          @default("{}")
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  timings         Json?
-  appointments    Appointment[]
-  approved        Boolean       @default(false)
-  freeSlotDate    DateTime?
-  maxAppointments Int?          @default(10)
-  emergency       Boolean       @default(false)
-  ratings         Ratings[]
-  fees            Int
+  id                   String                                @id @default(cuid())
+  email                String                                @unique
+  name                 String
+  password             String
+  parentId             String?
+  location             Unsupported("geometry(Point, 4326)")?
+  parent               Hospital?                             @relation("HospitalSelfRelation", fields: [parentId], references: [id])
+  children             Hospital[]                            @relation("HospitalSelfRelation")
+  specialities         Speciality[]                          @relation("HospitalSpecialities")
+  hospitalSpecialities HospitalSpeciality[]
+  phone                String                                @unique
+  documents            String[]
+  currLocation         Json                                  @default("{}")
+  createdAt            DateTime                              @default(now())
+  updatedAt            DateTime                              @updatedAt
+  timings              Json?
+  appointments         Appointment[]
+  approved             Boolean                               @default(false)
+  freeSlotDate         DateTime?
+  maxAppointments      Int?                                  @default(10)
+  emergency            Boolean                               @default(false)
+  ratings              Ratings[]
+  fees                 Int
 }
 
 model Speciality {
-  id          String     @id @default(cuid())
-  name        String
-  description String
-  tags        Json[]     @default([])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  hospitals   Hospital[] @relation("HospitalSpecialities")
-  Ratings     Ratings[]
+  id                   String               @id @default(cuid())
+  name                 String
+  description          String
+  tags                 Json[]               @default([])
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  hospitalSpecialities HospitalSpeciality[]
+  hospitals            Hospital[]           @relation("HospitalSpecialities")
+  Ratings              Ratings[]
+}
+
+model HospitalSpeciality {
+  hospitalId   String
+  specialityId String
+  hospital     Hospital   @relation(fields: [hospitalId], references: [id])
+  speciality   Speciality @relation(fields: [specialityId], references: [id])
+
+  @@id([hospitalId, specialityId])
 }
 
 enum UserRole {

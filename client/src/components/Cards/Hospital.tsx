@@ -1,15 +1,12 @@
 import { faIndianRupeeSign, faStethoscope, faMedkit, faUserMd } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Specialty } from "../../model/user.model";
 
 const HospitalCard = ({
     id,
     parentName,
-    description,
     specialities,
-    email,
     image,
     fees,
     hasEmergency,
@@ -17,24 +14,13 @@ const HospitalCard = ({
 }: {
     id: string;
     parentName: string;
-    description: string;
     specialities: Specialty[];
-    email: string;
     image: string;
     fees: number;
     hasEmergency: boolean;
     doctorCount: number;
 }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
     const navigate = useNavigate();
-
-    const handleReadMoreClick = () => {
-        if (isExpanded) {
-            setIsExpanded(false);
-        } else {
-            navigate(`/hospital/${id}`);
-        }
-    };
 
     return (
         <div className="w-full bg-white rounded-xl overflow-hidden transition duration-300 hover:transform hover:scale-102 
@@ -65,7 +51,7 @@ const HospitalCard = ({
             </div>
 
             {/* Content area */}
-            <div className="p-4 md:p-5">
+            <div className="p-4 md:p-5 flex flex-col justify-between">
                 {/* Key information in badges */}
                 <div className="flex flex-wrap gap-2 mb-3">
                     <span className="bg-blue-100 text-blue-800 text-xs md:text-sm px-2 py-1 rounded-full flex items-center">
@@ -88,7 +74,7 @@ const HospitalCard = ({
                         {specialities.slice(0, 3).map((specialty, index) => (
                             <span key={index} className="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded">
                                 {specialty.name.charAt(0).toUpperCase() + specialty.name.slice(1)}
-                            </span> 
+                            </span>
                         ))}
                         {specialities.length > 3 && (
                             <span className="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded">
@@ -98,33 +84,11 @@ const HospitalCard = ({
                     </div>
                 </div>}
 
-                {/* Description */}
-                <p className="text-gray-600 text-sm md:text-base mb-3"
-                    style={{
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: isExpanded ? "unset" : 2,
-                        overflow: isExpanded ? "visible" : "hidden",
-                        textOverflow: "ellipsis",
-                    }}>
-                    {description}
-                </p>
-
-                {/* Contact information */}
-                <p className="text-gray-500 text-xs md:text-sm mb-4">{email}</p>
-
                 {/* Action buttons */}
                 <div className="flex justify-between items-center">
                     <button
-                        onClick={handleReadMoreClick}
-                        className="text-teal-600 hover:text-teal-800 text-sm md:text-base font-medium flex items-center group-hover:underline"
-                    >
-                        {isExpanded ? "Show Less" : "Read More →"}
-                    </button>
-
-                    <button
                         onClick={() => navigate(`/hospital/${id}`)}
-                        className="bg-teal-500 hover:bg-teal-600 text-white text-xs md:text-sm px-3 py-1 md:px-4 md:py-2 rounded-lg transition-colors"
+                        className="bg-teal-500 w-full hover:bg-teal-600 text-white text-xs md:text-sm px-3 py-1 md:px-4 md:py-2 rounded-lg transition-colors"
                     >
                         View Details
                     </button>

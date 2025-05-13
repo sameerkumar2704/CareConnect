@@ -21,12 +21,13 @@ import {
     faExclamationTriangle,
     faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
-import UserLocationMap from "./UserLocationMap";
 import { Link } from "react-router-dom";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import DoctorSpecialtiesTab from "./DoctorSpecialities";
 import ProviderTimingsTab from "./HospitalTimings";
 import DocumentVerificationTab from "./DocumentVerificationTab";
+import { GoogleMap } from "../../utils/location/GoogleMap";
+import ReverseGeocoder from "../../utils/location/Address";
 
 interface Appointment {
     id: string;
@@ -171,6 +172,21 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                 }
             });
 
+            const now = new Date();
+            const nextDate = new Date(now);
+            nextDate.setDate(now.getDate() + 1);
+
+            const newAppointments = response.data.map((appointment: Appointment) => {
+                if (appointment.status.toLowerCase() === "pending" && new Date(appointment.date) <= nextDate) {
+                    return {
+                        ...appointment,
+                        status: "EXPIRED"
+                    };
+                } else {
+                    return appointment;
+                }
+            });
+
             // Update only the appointments part of the user data
             setUser(prevUser => prevUser ? {
                 ...prevUser,
@@ -226,7 +242,7 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
             console.log("Location updated:", response.data);
 
             // Refresh user data to show updated location
-            await fetchUser();
+            window.location.reload();
 
             setIsUpdatingLocation(false);
         } catch (error) {
@@ -648,13 +664,20 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                         {isUpdatingLocation ? "Updating..." : "Update with Current Location"}
                                     </button>
                                 </div>
-                                <div>
+                                <div className="h-100 w-full rounded-lg overflow-hidden">
                                     {user.currLocation && user.currLocation.latitude && user.currLocation.longitude ? (
-                                        <UserLocationMap
-                                            latitude={user.currLocation.latitude}
-                                            longitude={user.currLocation.longitude}
-                                            name={user.name}
-                                        />
+                                        <>
+                                            <ReverseGeocoder
+                                                latitude={Number(user.currLocation.latitude)}
+                                                longitude={Number(user.currLocation.longitude)}
+                                            />
+                                            <GoogleMap
+                                                mapId={user.id}
+                                                latitude={Number(user.currLocation.latitude)}
+                                                longitude={Number(user.currLocation.longitude)}
+                                                name={user.name}
+                                            />
+                                        </>
                                     ) : (
                                         <div className="text-center py-8">
                                             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-300 text-5xl mb-3" />

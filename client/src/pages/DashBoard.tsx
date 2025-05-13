@@ -7,17 +7,23 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { getHighlyAccurateLocation } from "../utils/location/Location";
 
 const Dashboard = () => {
   const [doctors, setDoctos] = useState<Hospital[]>([]);
   const [specialists, setSpecialists] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(false);
 
+
   useEffect(() => {
+
     const fetchDoctors = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_URL}/hospitals/top`);
+
+        const coordinates = await getHighlyAccurateLocation();
+
+        const response = await fetch(`${API_URL}/hospitals/top?latitude=${coordinates?.lat}&longitude=${coordinates?.lon}`);
         const data = await response.json();
         console.log("Doctors", data);
         setDoctos(data);
@@ -107,8 +113,6 @@ const Dashboard = () => {
                 id={hospital.id} // Pass hospital ID for navigation
                 specialities={hospital.specialities}
                 parentName={hospital.name}
-                description={hospital.phone}
-                email={hospital.email}
                 hasEmergency={hospital.emergency}
                 doctorCount={hospital.doctorCount}
                 fees={hospital.fees}

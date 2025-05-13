@@ -25,6 +25,7 @@ import AdminProfileView from "./pages/Profile/AdminProfileView";
 import HighlyProtectedRoute from "./utils/routeProtection/highlyProtectedRoute";
 import SpecialtyPage from "./pages/SpecialiityPage";
 import DoctorDetails from "./pages/DoctorDetails";
+import InstantAppointments from "./pages/Services/Instant";
 
 const App: React.FC = () => {
 
@@ -77,6 +78,10 @@ const App: React.FC = () => {
         {
           path: "/services/emergency",
           element: <Emergency />
+        },
+        {
+          path: "/services/appointments",
+          element: <InstantAppointments />
         },
         {
           path: "/contact",
