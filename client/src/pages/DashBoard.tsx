@@ -23,6 +23,8 @@ const Dashboard = () => {
 
         const coordinates = await getHighlyAccurateLocation();
 
+        console.log("Coordinates", coordinates);
+
         const response = await fetch(`${API_URL}/hospitals/top?latitude=${coordinates?.lat}&longitude=${coordinates?.lon}`);
         const data = await response.json();
         console.log("Doctors", data);

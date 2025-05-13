@@ -77,6 +77,7 @@ router.get("/top", async (req, res) => {
             res.status(400).send({
                 message: "Latitude and Longitude are required in query params.",
             });
+            return;
         }
 
         const lat = parseFloat(latitude as string);
