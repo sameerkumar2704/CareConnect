@@ -98,8 +98,6 @@ const Emergency = () => {
                                 specialities={hospital.specialities}
                                 parentName={hospital.name}
                                 doctorCount={hospital.doctorCount}
-                                description={hospital.phone}
-                                email={hospital.email}
                                 hasEmergency={hospital.emergency}
                                 fees={hospital.fees}
                                 image={"/Services/Hospital.jpg"}

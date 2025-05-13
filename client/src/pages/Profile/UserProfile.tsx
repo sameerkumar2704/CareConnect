@@ -176,16 +176,16 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
             const nextDate = new Date(now);
             nextDate.setDate(now.getDate() + 1);
 
-            const newAppointments = response.data.map((appointment: Appointment) => {
-                if (appointment.status.toLowerCase() === "pending" && new Date(appointment.date) <= nextDate) {
-                    return {
-                        ...appointment,
-                        status: "EXPIRED"
-                    };
-                } else {
-                    return appointment;
-                }
-            });
+            // const newAppointments = response.data.map((appointment: Appointment) => {
+            //     if (appointment.status.toLowerCase() === "pending" && new Date(appointment.date) <= nextDate) {
+            //         return {
+            //             ...appointment,
+            //             status: "EXPIRED"
+            //         };
+            //     } else {
+            //         return appointment;
+            //     }
+            // });
 
             // Update only the appointments part of the user data
             setUser(prevUser => prevUser ? {

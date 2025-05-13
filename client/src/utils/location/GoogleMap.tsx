@@ -1,6 +1,5 @@
 import { AdvancedMarker, APIProvider, Map, MapCameraChangedEvent, Pin } from '@vis.gl/react-google-maps';
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 
 type Poi = { key: string, location: google.maps.LatLngLiteral }
 
