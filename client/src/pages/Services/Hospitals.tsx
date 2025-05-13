@@ -91,8 +91,6 @@ const Hospitals = () => {
                                 id={hospital.id} // Pass hospital ID for navigation
                                 specialities={hospital.specialities}
                                 parentName={hospital.name}
-                                description={hospital.phone}
-                                email={hospital.email}
                                 fees={hospital.fees}
                                 hasEmergency={hospital.emergency}
                                 doctorCount={hospital.doctorCount}
