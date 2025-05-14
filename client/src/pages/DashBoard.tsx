@@ -54,6 +54,10 @@ const Dashboard = () => {
     fetchSpecialties();
   }, []);
 
+  if (loading) {
+    <LoadingSpinner />;
+  }
+
   return (
     <div className="bg-gray-50">
       {/* Hero Section with Search */}
@@ -108,10 +112,11 @@ const Dashboard = () => {
         </div>
         {loading && <LoadingSpinner />}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 md:px-12 md:py-8">
-          {!loading && doctors &&
+          {!loading && doctors && doctors.length != 0 &&
             doctors.map((hospital) => (
               <HospitalCard
                 key={hospital.id}
+                distance={hospital.distance}
                 id={hospital.id} // Pass hospital ID for navigation
                 specialities={hospital.specialities}
                 parentName={hospital.name}

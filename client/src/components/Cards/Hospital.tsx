@@ -6,6 +6,7 @@ import { Specialty } from "../../model/user.model";
 const HospitalCard = ({
     id,
     parentName,
+    distance,
     specialities,
     image,
     fees,
@@ -13,6 +14,7 @@ const HospitalCard = ({
     doctorCount
 }: {
     id: string;
+    distance: number;
     parentName: string;
     specialities: Specialty[];
     image: string;
@@ -23,7 +25,7 @@ const HospitalCard = ({
     const navigate = useNavigate();
 
     return (
-        <div className="w-full bg-white rounded-xl overflow-hidden transition duration-300 hover:transform hover:scale-102 
+        <div className="flex flex-col justify-between w-full bg-white rounded-xl overflow-hidden transition duration-300 hover:transform hover:scale-102 
                       shadow-lg hover:shadow-2xl border border-gray-100 group">
             {/* Banner at top to show emergency status */}
             {hasEmergency && (
@@ -62,6 +64,12 @@ const HospitalCard = ({
                         <FontAwesomeIcon icon={faIndianRupeeSign} className="mr-1" />
                         {fees} Fees
                     </span>
+                    {distance && (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs md:text-sm px-2 py-1 rounded-full flex items-center">
+                            <FontAwesomeIcon icon={faStethoscope} className="mr-1" />
+                            Almost {(distance / 1000).toFixed(3)} km away
+                        </span>
+                    )}
                 </div>
 
                 {/* Specialities */}

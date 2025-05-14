@@ -4,7 +4,7 @@ import { API_URL } from '../../utils/contants';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faFileUpload,
+    faLink,
     faCheckCircle,
     faTimesCircle,
     faFilePdf,
@@ -13,8 +13,10 @@ import {
     faBuilding,
     faTrash,
     faFileImage,
-    faDownload,
+    faExternalLinkAlt,
     faExclamationTriangle,
+    faLock,
+    faEdit,
 } from '@fortawesome/free-solid-svg-icons';
 
 interface Document {
@@ -23,7 +25,8 @@ interface Document {
     type: string;
     status: 'PENDING' | 'VERIFIED' | 'REJECTED';
     url: string;
-    uploadedAt: string;
+    createdAt: string; // Changed from uploadedAt to match backend model
+    updatedAt: string; // Added to match backend model
     rejectionReason?: string;
 }
 
@@ -35,9 +38,10 @@ interface DocumentVerificationTabProps {
 const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps) => {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [uploading, setUploading] = useState<boolean>(false);
-    const [uploadType, setUploadType] = useState<string>('');
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [submitting, setSubmitting] = useState<boolean>(false);
+    const [selectedType, setSelectedType] = useState<string>('');
+    const [driveLink, setDriveLink] = useState<string>('');
+    const [documentName, setDocumentName] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
 
@@ -67,7 +71,8 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
     const fetchDocuments = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_URL}/${role.toLowerCase()}/documents/${userId}`);
+            // Updated API URL to match your specified endpoint
+            const response = await axios.get(`${API_URL}/hospitals/documents/${userId}`);
             setDocuments(response.data);
         } catch (error) {
             console.error('Error fetching documents:', error);
@@ -77,65 +82,62 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
         }
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0]) {
-            const file = event.target.files[0];
-            // Check if file size is less than 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                setError('File size should be less than 5MB');
-                return;
-            }
-
-            // Check file type
-            const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-            if (!validTypes.includes(file.type)) {
-                setError('File type should be PDF, JPEG, or PNG');
-                return;
-            }
-
-            setSelectedFile(file);
-            setError('');
-        }
+    const validateDriveLink = (link: string): boolean => {
+        // Basic validation for Google Drive links
+        return link.includes('drive.google.com') || link.includes('docs.google.com');
     };
 
-    const handleUpload = async () => {
-        if (!selectedFile || !uploadType) {
-            setError('Please select a file and document type');
+    const handleSubmitLink = async () => {
+        if (!selectedType || !driveLink) {
+            setError('Please select a document type and provide a Google Drive link');
             return;
         }
 
-        setUploading(true);
+        if (!validateDriveLink(driveLink)) {
+            setError('Please provide a valid Google Drive link');
+            return;
+        }
+
+        if (!documentName.trim()) {
+            setError('Please provide a document name');
+            return;
+        }
+
+        setSubmitting(true);
         setError('');
         setSuccess('');
 
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('type', uploadType);
-        formData.append('userId', userId);
+        const documentData = {
+            name: selectedType,
+            url: driveLink,
+        };
 
         try {
-            await axios.post(`${API_URL}/${role.toLowerCase()}/documents/upload`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            // Updated API URL and request structure to match your specified endpoint
+            await axios.post(`${API_URL}/hospitals/documents/${userId}`, {
+                document: documentData,
             });
 
-            setSuccess('Document uploaded successfully!');
-            setSelectedFile(null);
-            setUploadType('');
+            setSuccess('Document link submitted successfully!');
+            setDriveLink('');
+            setSelectedType('');
+            setDocumentName('');
             fetchDocuments(); // Refresh the documents list
         } catch (error) {
-            console.error('Error uploading document:', error);
-            setError('Failed to upload document. Please try again.');
+            console.error('Error submitting document link:', error);
+            setError('Failed to submit document link. Please try again.');
         } finally {
-            setUploading(false);
+            setSubmitting(false);
         }
     };
 
     const handleDeleteDocument = async (documentId: string) => {
         if (window.confirm('Are you sure you want to delete this document?')) {
             try {
-                await axios.delete(`${API_URL}/${role.toLowerCase()}/documents/${documentId}`);
+                // Updated API URL to match your specified endpoint
+                await axios.delete(`${API_URL}/documents/${userId}`, {
+                    data: { id: documentId }
+                });
                 setSuccess('Document deleted successfully!');
                 fetchDocuments(); // Refresh the documents list
             } catch (error) {
@@ -143,6 +145,18 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                 setError('Failed to delete document. Please try again.');
             }
         }
+    };
+
+    const handleEditLink = (document: Document) => {
+        setSelectedType(document.type);
+        setDriveLink(document.url);
+        setDocumentName(document.name);
+
+        // Scroll to the form
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     };
 
     const formatDate = (dateString: string) => {
@@ -172,36 +186,69 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
         }
     };
 
+    // Check if document type is already submitted and pending/verified
+    const isDocumentLocked = (documentType: string) => {
+        return documents.some(doc =>
+            doc.name === documentType &&
+            (doc.status === 'PENDING' || doc.status === 'VERIFIED')
+        );
+    };
+
+    // Get available document types for submission (not locked)
+    const getAvailableDocumentTypes = () => {
+        return documentTypes.filter(type => !isDocumentLocked(type.id));
+    };
+
     return (
         <div>
             <h2 className="text-xl font-semibold mb-4">Document Verification</h2>
 
-            {/* Document Upload Section */}
+            {/* Document Link Submission Section */}
             <div className="bg-gray-50 p-6 rounded-lg mb-6 shadow-sm border border-gray-200">
-                <h3 className="text-lg font-medium mb-4">Upload New Document</h3>
+                <h3 className="text-lg font-medium mb-4">Submit Document Link</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-gray-700 mb-2">Document Type</label>
                         <select
-                            value={uploadType}
-                            onChange={(e) => setUploadType(e.target.value)}
+                            value={selectedType}
+                            onChange={(e) => setSelectedType(e.target.value)}
                             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                         >
                             <option value="">Select Document Type</option>
-                            {documentTypes.map((type) => (
+                            {getAvailableDocumentTypes().map((type) => (
                                 <option key={type.id} value={type.id}>{type.name}</option>
                             ))}
                         </select>
+                        {getAvailableDocumentTypes().length === 0 && (
+                            <p className="text-sm text-gray-600 mt-2">All document types are currently locked (pending verification or already verified)</p>
+                        )}
                     </div>
                     <div>
-                        <label className="block text-gray-700 mb-2">File (PDF, JPEG, PNG only, max 5MB)</label>
+                        <label className="block text-gray-700 mb-2">Document Name</label>
                         <input
-                            type="file"
-                            onChange={handleFileChange}
-                            accept=".pdf,.jpg,.jpeg,.png"
+                            type="text"
+                            value={documentName}
+                            onChange={(e) => setDocumentName(e.target.value)}
+                            placeholder="Enter document name"
                             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                         />
                     </div>
+                </div>
+
+                <div className="mt-4">
+                    <label className="block text-gray-700 mb-2">Google Drive Link</label>
+                    <div className="flex">
+                        <input
+                            type="text"
+                            value={driveLink}
+                            onChange={(e) => setDriveLink(e.target.value)}
+                            placeholder="Paste your Google Drive link here"
+                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Please ensure your document is shared with viewing permissions
+                    </p>
                 </div>
 
                 {error && (
@@ -218,12 +265,12 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
 
                 <div className="mt-6 flex justify-end">
                     <button
-                        onClick={handleUpload}
-                        disabled={uploading || !selectedFile || !uploadType}
+                        onClick={handleSubmitLink}
+                        disabled={submitting || !driveLink || !selectedType || !documentName || getAvailableDocumentTypes().length === 0}
                         className="bg-teal-500 text-white px-6 py-2 rounded-md hover:bg-teal-600 transition duration-300 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
-                        {uploading ? 'Uploading...' : 'Upload Document'}
+                        <FontAwesomeIcon icon={faLink} className="mr-2" />
+                        {submitting ? 'Submitting...' : 'Submit Document Link'}
                     </button>
                 </div>
             </div>
@@ -234,10 +281,11 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                 <div className="mt-2 mb-4 bg-blue-50 p-4 rounded-md text-blue-700 text-sm">
                     <p className="font-medium mb-1">Important Information:</p>
                     <ul className="list-disc pl-5 space-y-1">
-                        <li>All uploaded documents will be reviewed by our team within 2-3 business days</li>
-                        <li>Make sure all documents are clear, legible, and valid</li>
+                        <li>All submitted document links will be reviewed by our team within 2-3 business days</li>
+                        <li>Make sure all documents are accessible via the provided Google Drive links</li>
                         <li>You will receive an email notification once your documents are verified</li>
-                        <li>Documents that are rejected will require re-submission</li>
+                        <li>Documents that are rejected will require re-submission with a new link</li>
+                        <li>You cannot submit new links for documents that are pending verification or already verified</li>
                     </ul>
                 </div>
 
@@ -253,7 +301,7 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                                     <th className="py-3 px-6 text-left">Document</th>
                                     <th className="py-3 px-6 text-left">Type</th>
                                     <th className="py-3 px-6 text-left">Status</th>
-                                    <th className="py-3 px-6 text-left">Uploaded</th>
+                                    <th className="py-3 px-6 text-left">Submitted</th>
                                     <th className="py-3 px-6 text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -263,14 +311,14 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                                         <td className="py-3 px-6 text-left">
                                             <div className="flex items-center">
                                                 <FontAwesomeIcon
-                                                    icon={doc.type.includes('photo') ? faFileImage : faFilePdf}
+                                                    icon={doc.name.includes('photo') ? faFileImage : faFilePdf}
                                                     className="mr-2 text-teal-500"
                                                 />
                                                 <span className="font-medium">{doc.name}</span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-6 text-left">
-                                            {documentTypes.find(t => t.id === doc.type)?.name || doc.type}
+                                            {documentTypes.find(t => t.id === doc.name)?.name || doc.name}
                                         </td>
                                         <td className="py-3 px-6 text-left">
                                             <div className="flex items-center">
@@ -286,7 +334,7 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                                             )}
                                         </td>
                                         <td className="py-3 px-6 text-left">
-                                            {formatDate(doc.uploadedAt)}
+                                            {formatDate(doc.createdAt)}
                                         </td>
                                         <td className="py-3 px-6 text-right">
                                             <div className="flex item-center justify-end">
@@ -296,14 +344,30 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                                                     rel="noopener noreferrer"
                                                     className="w-4 mr-4 transform hover:text-teal-500 hover:scale-110"
                                                 >
-                                                    <FontAwesomeIcon icon={faDownload} />
+                                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
                                                 </a>
-                                                <button
-                                                    onClick={() => handleDeleteDocument(doc.id)}
-                                                    className="w-4 mr-2 transform hover:text-red-500 hover:scale-110"
-                                                >
-                                                    <FontAwesomeIcon icon={faTrash} />
-                                                </button>
+
+                                                {doc.status === 'REJECTED' && (
+                                                    <button
+                                                        onClick={() => handleEditLink(doc)}
+                                                        className="w-4 mr-4 transform hover:text-blue-500 hover:scale-110"
+                                                    >
+                                                        <FontAwesomeIcon icon={faEdit} />
+                                                    </button>
+                                                )}
+
+                                                {doc.status === 'PENDING' || doc.status === 'VERIFIED' ? (
+                                                    <span className="w-4 mr-2 text-gray-400">
+                                                        <FontAwesomeIcon icon={faLock} />
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleDeleteDocument(doc.id)}
+                                                        className="w-4 mr-2 transform hover:text-red-500 hover:scale-110"
+                                                    >
+                                                        <FontAwesomeIcon icon={faTrash} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -314,7 +378,7 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                 ) : (
                     <div className="text-center py-8">
                         <FontAwesomeIcon icon={faFilePdf} className="text-gray-300 text-5xl mb-3" />
-                        <p className="text-gray-500">No documents uploaded yet. Please upload required documents for verification.</p>
+                        <p className="text-gray-500">No documents submitted yet. Please submit required document links for verification.</p>
                     </div>
                 )}
 
@@ -323,26 +387,33 @@ const DocumentVerificationTab = ({ userId, role }: DocumentVerificationTabProps)
                     <h3 className="text-lg font-medium mb-3">Required Documents</h3>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {documentTypes.map((docType) => {
-                            const isUploaded = documents.some(doc => doc.type === docType.id);
-                            const isVerified = documents.some(doc => doc.type === docType.id && doc.status === 'VERIFIED');
+                            const isVerified = documents.some(doc => doc.name === docType.id && doc.status === 'VERIFIED');
+                            const isPending = documents.some(doc => doc.name === docType.id && doc.status === 'PENDING');
+                            const isRejected = documents.some(doc => doc.name === docType.id && doc.status === 'REJECTED');
 
                             return (
-                                <div key={docType.id} className={`p-4 rounded-lg border ${isVerified ? 'border-green-200 bg-green-50' : isUploaded ? 'border-yellow-200 bg-yellow-50' : 'border-gray-200'}`}>
+                                <div key={docType.id} className={`p-4 rounded-lg border ${isVerified ? 'border-green-200 bg-green-50' : isPending ? 'border-yellow-200 bg-yellow-50' : isRejected ? 'border-red-100 bg-red-50' : 'border-gray-200'}`}>
                                     <div className="flex items-center mb-2">
-                                        <FontAwesomeIcon icon={docType.icon} className={`${isVerified ? 'text-green-500' : isUploaded ? 'text-yellow-500' : 'text-gray-400'} mr-2`} />
+                                        <FontAwesomeIcon icon={docType.icon} className={`${isVerified ? 'text-green-500' : isPending ? 'text-yellow-500' : isRejected ? 'text-red-500' : 'text-gray-400'} mr-2`} />
                                         <h4 className="font-medium">{docType.name}</h4>
                                     </div>
                                     <div className="ml-6 text-sm">
                                         {isVerified ? (
                                             <span className="text-green-600 flex items-center">
                                                 <FontAwesomeIcon icon={faCheckCircle} className="mr-1" /> Verified
+                                                <FontAwesomeIcon icon={faLock} className="ml-2 text-gray-500" title="This document is locked" />
                                             </span>
-                                        ) : isUploaded ? (
+                                        ) : isPending ? (
                                             <span className="text-yellow-600 flex items-center">
                                                 <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1" /> Pending Verification
+                                                <FontAwesomeIcon icon={faLock} className="ml-2 text-gray-500" title="This document is locked" />
+                                            </span>
+                                        ) : isRejected ? (
+                                            <span className="text-red-600 flex items-center">
+                                                <FontAwesomeIcon icon={faTimesCircle} className="mr-1" /> Rejected (Re-submit)
                                             </span>
                                         ) : (
-                                            <span className="text-gray-500">Not uploaded</span>
+                                            <span className="text-gray-500">Not submitted</span>
                                         )}
                                     </div>
                                 </div>

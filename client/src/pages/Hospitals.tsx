@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { API_URL } from "../utils/contants";
+import { getHighlyAccurateLocation } from "../utils/location/Location";
 
 const Hospitals = () => {
     interface Hospital {
@@ -19,23 +20,33 @@ const Hospitals = () => {
     const [specializationFilter, setSpecializationFilter] = useState("");
 
     useEffect(() => {
-        fetch(`${API_URL}/hospitals/top`)
-            .then((response) => response.json())
-            .then((data) => {
-                // Map API response to expected structure
-                const formattedHospitals = data.map((hospital: any) => ({
-                    id: hospital.id,
-                    name: hospital.name,
-                    location: hospital.locationId || "Unknown Location", // Assuming a default value
-                    specialization: hospital.specialities.length > 0 ? hospital.specialities.join(", ") : "General",
-                    availability: "Open", // Default value
-                    rating: 4.5, // Default rating since API does not provide one
-                    phone: hospital.phone,
-                }));
 
-                setHospitals(formattedHospitals);
-            })
-            .catch((error) => console.error("Error fetching hospitals:", error));
+        const fetchHospitals = async () => {
+
+            const coordinates = await getHighlyAccurateLocation();
+
+            console.log("Coordinates", coordinates);
+
+            fetch(`${API_URL}/hospitals/top?latitude=${coordinates?.lat}&longitude=${coordinates?.lon}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    // Map API response to expected structure
+                    const formattedHospitals = data.map((hospital: any) => ({
+                        id: hospital.id,
+                        name: hospital.name,
+                        location: hospital.locationId || "Unknown Location", // Assuming a default value
+                        specialization: hospital.specialities.length > 0 ? hospital.specialities.join(", ") : "General",
+                        availability: "Open", // Default value
+                        rating: 4.5, // Default rating since API does not provide one
+                        phone: hospital.phone,
+                    }));
+
+                    setHospitals(formattedHospitals);
+                })
+                .catch((error) => console.error("Error fetching hospitals:", error));
+        }
+
+        fetchHospitals();
     }, []);
 
     // Filter hospitals based on search, location, and specialization

@@ -151,7 +151,7 @@ const AuthFormHospital = () => {
                 return;
             }
 
-            if (!isHospital && (!formData.hospital || formData.hospital.trim() === "")) {
+            if (isSignUp && !isHospital && (!formData.hospital || formData.hospital.trim() === "")) {
                 setErrors("Please select a hospital");
                 setLoading(false);
                 return;
@@ -307,7 +307,7 @@ const AuthFormHospital = () => {
 
             alert(isSignUp ? "SignUp Success, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
 
-            navigate("/");
+            navigate("/dashboard");
         } catch (error) {
             setErrors("An unexpected error occurred. Please try again.");
             console.error(error);
@@ -402,7 +402,7 @@ const AuthFormHospital = () => {
                     </div>
 
                     {/* Hospital Selection */}
-                    {!isHospital && (
+                    {isSignUp && !isHospital && (
                         <div className="border border-gray-300 p-4 rounded-md">
                             <label className="block text-gray-700 font-medium mb-2">Select Associated Hospital</label>
                             <input

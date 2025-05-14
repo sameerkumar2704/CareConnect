@@ -119,7 +119,7 @@ const DoctorDetails = () => {
             });
     }, [id]);
 
-    if (loading) return <LoadingSpinner />;
+    if (loading || !user) return <LoadingSpinner />;
     if (!doctor) return <NotFound />;
 
     const getRatingColor = (rating: number) => {
@@ -138,7 +138,7 @@ const DoctorDetails = () => {
                     <div className="p-8">
                         <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
                             <FontAwesomeIcon icon={faUserMd} className="mr-4 text-teal-500" />
-                            Doctor Information
+                            Doctor Information {user && user._id === doctor.id && " (You)"}
                         </h2>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -370,7 +370,7 @@ const DoctorDetails = () => {
                 </div>
 
                 {/* Book Appointment Button */}
-                <div className="flex justify-center">
+                {user.role !== "HOSPITAL" && (user._id !== doctor.id) && <div className="flex justify-center">
                     <Link
                         to={`/checkout/${doctor.id}`}
                         className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
@@ -378,7 +378,7 @@ const DoctorDetails = () => {
                         <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
                         Book an Appointment
                     </Link>
-                </div>
+                </div>}
             </div>
         </div>
     );

@@ -38,6 +38,7 @@ export interface Hospital {
     emergency: boolean;
     updatedAt: Date;
     fees: number;
+    distance: number;
     children: Hospital[];
     currLocation: {
         latitude: number;

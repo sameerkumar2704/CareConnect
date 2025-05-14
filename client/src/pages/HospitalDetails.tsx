@@ -49,6 +49,10 @@ const HospitalDetails = () => {
 
     const { user } = auth;
 
+    if (!user) {
+        <LoadingSpinner />;
+    }
+
     // Function to fetch address from coordinates
     const fetchAddress = async (latitude: number, longitude: number) => {
         try {
@@ -135,7 +139,7 @@ const HospitalDetails = () => {
                 />
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-white z-20 p-6">
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center drop-shadow-lg">
-                        {hospital.name}
+                        {hospital.name} {user && user._id === id ? "(Your Hospital)" : ""}
                     </h1>
                     <div className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full">
                         <p className="text-xl text-white">

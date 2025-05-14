@@ -147,9 +147,7 @@ const AuthFormUser = () => {
 
             document.getElementById("sub")?.scrollIntoView({ behavior: "smooth" });
 
-            setTimeout(() => {
-                navigate("/");
-            }, 2000);
+            navigate("/dashboard");
 
         } catch (error) {
             setLoading(false);

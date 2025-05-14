@@ -97,6 +97,7 @@ const Emergency = () => {
                                 id={hospital.id} // Pass hospital ID for navigation
                                 specialities={hospital.specialities}
                                 parentName={hospital.name}
+                                distance={hospital.distance}
                                 doctorCount={hospital.doctorCount}
                                 hasEmergency={hospital.emergency}
                                 fees={hospital.fees}

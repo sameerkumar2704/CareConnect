@@ -16,6 +16,7 @@ const InstantAppointments = () => {
     }, []);
 
     const fetchHospitals = async () => {
+        
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/hospitals/doctors?instant=true`);

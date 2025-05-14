@@ -3,6 +3,7 @@ import { Hospital } from "../../model/user.model";
 import { API_URL } from "../../utils/contants";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import HospitalCard from "../../components/Cards/Hospital";
+import { getHighlyAccurateLocation } from "../../utils/location/Location";
 
 const Hospitals = () => {
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
@@ -16,7 +17,12 @@ const Hospitals = () => {
     const fetchHospitals = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals`);
+
+            const coordinates = await getHighlyAccurateLocation();
+
+            console.log("Coordinates", coordinates);
+
+            const response = await fetch(`${API_URL}/hospitals?latitude=${coordinates?.lat}&longitude=${coordinates?.lon}`);
             const data = await response.json();
             setHospitals(data);
         } catch (error) {
@@ -88,6 +94,7 @@ const Hospitals = () => {
                         {filteredHospitals.map((hospital) => (
                             <HospitalCard
                                 key={hospital.id}
+                                distance={hospital.distance}
                                 id={hospital.id} // Pass hospital ID for navigation
                                 specialities={hospital.specialities}
                                 parentName={hospital.name}
