@@ -127,6 +127,8 @@ router.get("/top", async (req, res) => {
     }
 });
 
+
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -180,6 +182,24 @@ router.get("/doctor/:id", async (req, res) => {
     } catch (error) {
         res.status(500).send({
             message: "An error occurred while fetching speciality",
+            error,
+        });
+    }
+});
+
+router.post("/", async (req, res) => {
+    const specialities = req.body;
+
+    try {
+        const createdSpecialities = await prisma.speciality.createMany({
+            data: specialities,
+        });
+
+        res.status(201).send(createdSpecialities);
+    } catch (error) {
+        console.error("Error creating specialities:", error);
+        res.status(500).send({
+            message: "An error occurred while creating specialities",
             error,
         });
     }

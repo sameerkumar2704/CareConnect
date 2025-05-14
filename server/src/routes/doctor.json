@@ -1,0 +1,636 @@
+[
+    {
+        "name": "Dr. Abhishek Srivastava",
+        "email": "abhishek.srivastava@progressivecare.in",
+        "phone": "+91-9876500091",
+        "password": "DrSrivastava@PC21",
+        "fees": 800,
+        "hospital": "Progressive Care Hospital"
+    },
+    {
+        "name": "Dr. Monica Mallik",
+        "email": "monica.mallik@progressivecare.in",
+        "phone": "+91-9876500092",
+        "password": "DrMallik#PC22",
+        "fees": 825,
+        "hospital": "Progressive Care Hospital"
+    },
+    {
+        "name": "Dr. Vikas Vashisht",
+        "email": "vikas.vashisht@progressivecare.in",
+        "phone": "+91-9876500093",
+        "password": "DrVashisht@23PC",
+        "fees": 775,
+        "hospital": "Progressive Care Hospital"
+    },
+    {
+        "name": "Dr. Sunita Oberoi",
+        "email": "sunita.oberoi@progressivecare.in",
+        "phone": "+91-9876500094",
+        "password": "DrOberoi!PC24",
+        "fees": 850,
+        "hospital": "Progressive Care Hospital"
+    },
+    {
+        "name": "Dr. Arun Aggarwal",
+        "email": "arun.aggarwal@progressivecare.in",
+        "phone": "+91-9876500095",
+        "password": "DrAggarwal@PC25",
+        "fees": 810,
+        "hospital": "Progressive Care Hospital"
+    },
+    {
+        "name": "Dr. Varsha Menon",
+        "email": "varsha.menon@compassionatemedical.co.in",
+        "phone": "+91-9876500096",
+        "password": "DrMenon@CM21",
+        "fees": 500,
+        "hospital": "Compassionate Medical"
+    },
+    {
+        "name": "Dr. Girish Rawat",
+        "email": "girish.rawat@compassionatemedical.co.in",
+        "phone": "+91-9876500097",
+        "password": "DrRawat#CM22",
+        "fees": 525,
+        "hospital": "Compassionate Medical"
+    },
+    {
+        "name": "Dr. Kavya Mohan",
+        "email": "kavya.mohan@compassionatemedical.co.in",
+        "phone": "+91-9876500098",
+        "password": "DrMohan@23CM",
+        "fees": 475,
+        "hospital": "Compassionate Medical"
+    },
+    {
+        "name": "Dr. Lalit Bedi",
+        "email": "lalit.bedi@compassionatemedical.co.in",
+        "phone": "+91-9876500099",
+        "password": "DrBedi!CM24",
+        "fees": 550,
+        "hospital": "Compassionate Medical"
+    },
+    {
+        "name": "Dr. Meenakshi Raina",
+        "email": "meenakshi.raina@compassionatemedical.co.in",
+        "phone": "+91-9876500100",
+        "password": "DrRaina@CM25",
+        "fees": 510,
+        "hospital": "Compassionate Medical"
+    },
+    {
+        "name": "Dr. Sandeep Bhargava",
+        "email": "sandeep.bhargava@victorymemorial.com",
+        "phone": "+91-9876500101",
+        "password": "DrBhargava@VM21",
+        "fees": 950,
+        "hospital": "Victory Memorial Hospital"
+    },
+    {
+        "name": "Dr. Chitra Sahu",
+        "email": "chitra.sahu@victorymemorial.com",
+        "phone": "+91-9876500102",
+        "password": "DrSahu#VM22",
+        "fees": 975,
+        "hospital": "Victory Memorial Hospital"
+    },
+    {
+        "name": "Dr. Rajeev Kothari",
+        "email": "rajeev.kothari@victorymemorial.com",
+        "phone": "+91-9876500103",
+        "password": "DrKothari@23VM",
+        "fees": 925,
+        "hospital": "Victory Memorial Hospital"
+    },
+    {
+        "name": "Dr. Shalini Goel",
+        "email": "shalini.goel@victorymemorial.com",
+        "phone": "+91-9876500104",
+        "password": "DrGoel!VM24",
+        "fees": 995,
+        "hospital": "Victory Memorial Hospital"
+    },
+    {
+        "name": "Dr. Pranav Khandelwal",
+        "email": "pranav.khandelwal@victorymemorial.com",
+        "phone": "+91-9876500105",
+        "password": "DrKhandelwal@VM25",
+        "fees": 960,
+        "hospital": "Victory Memorial Hospital"
+    },
+    {
+        "name": "Dr. Nandini Prasad",
+        "email": "nandini.prasad@horizonhealth.org",
+        "phone": "+91-9876500106",
+        "password": "DrPrasad@HH21",
+        "fees": 650,
+        "hospital": "Horizon Health Center"
+    },
+    {
+        "name": "Dr. Rajendra Kulkarni",
+        "email": "rajendra.kulkarni@horizonhealth.org",
+        "phone": "+91-9876500107",
+        "password": "DrKulkarni#HH22",
+        "fees": 675,
+        "hospital": "Horizon Health Center"
+    },
+    {
+        "name": "Dr. Sona Basu",
+        "email": "sona.basu@horizonhealth.org",
+        "phone": "+91-9876500108",
+        "password": "DrBasu@23HH",
+        "fees": 625,
+        "hospital": "Horizon Health Center"
+    },
+    {
+        "name": "Dr. Vikrant Desai",
+        "email": "vikrant.desai@horizonhealth.org",
+        "phone": "+91-9876500109",
+        "password": "DrDesai!HH24",
+        "fees": 700,
+        "hospital": "Horizon Health Center"
+    },
+    {
+        "name": "Dr. Anjana Natarajan",
+        "email": "anjana.natarajan@horizonhealth.org",
+        "phone": "+91-9876500110",
+        "password": "DrNatarajan@HH25",
+        "fees": 660,
+        "hospital": "Horizon Health Center"
+    },
+    {
+        "name": "Dr. Alisha Khullar",
+        "email": "alisha.khullar@noblecare.net",
+        "phone": "+91-9876500111",
+        "password": "DrKhullar@NC21",
+        "fees": 400,
+        "hospital": "Noble Care Institute"
+    },
+    {
+        "name": "Dr. Gautam Seth",
+        "email": "gautam.seth@noblecare.net",
+        "phone": "+91-9876500112",
+        "password": "DrSeth#NC22",
+        "fees": 425,
+        "hospital": "Noble Care Institute"
+    },
+    {
+        "name": "Dr. Bhavna Gill",
+        "email": "bhavna.gill@noblecare.net",
+        "phone": "+91-9876500113",
+        "password": "DrGill@23NC",
+        "fees": 375,
+        "hospital": "Noble Care Institute"
+    },
+    {
+        "name": "Dr. Sachin Mehra",
+        "email": "sachin.mehra@noblecare.net",
+        "phone": "+91-9876500114",
+        "password": "DrMehra!NC24",
+        "fees": 450,
+        "hospital": "Noble Care Institute"
+    },
+    {
+        "name": "Dr. Kiran Naidu",
+        "email": "kiran.naidu@noblecare.net",
+        "phone": "+91-9876500115",
+        "password": "DrNaidu@NC25",
+        "fees": 410,
+        "hospital": "Noble Care Institute"
+    },
+    {
+        "name": "Dr. Neeraj Bhatt",
+        "email": "neeraj.bhatt@guardianmedical.in",
+        "phone": "+91-9876500116",
+        "password": "DrBhatt@GM21",
+        "fees": 850,
+        "hospital": "Guardian Medical Center"
+    },
+    {
+        "name": "Dr. Sakshi Prakash",
+        "email": "sakshi.prakash@guardianmedical.in",
+        "phone": "+91-9876500117",
+        "password": "DrPrakash#GM22",
+        "fees": 875,
+        "hospital": "Guardian Medical Center"
+    },
+    {
+        "name": "Dr. Faiz Ahmed",
+        "email": "faiz.ahmed@guardianmedical.in",
+        "phone": "+91-9876500118",
+        "password": "DrAhmed@23GM",
+        "fees": 825,
+        "hospital": "Guardian Medical Center"
+    },
+    {
+        "name": "Dr. Geeta Subramanian",
+        "email": "geeta.subramanian@guardianmedical.in",
+        "phone": "+91-9876500119",
+        "password": "DrSubramanian!GM24",
+        "fees": 900,
+        "hospital": "Guardian Medical Center"
+    },
+    {
+        "name": "Dr. Harsh Vardhan",
+        "email": "harsh.vardhan@guardianmedical.in",
+        "phone": "+91-9876500120",
+        "password": "DrVardhan@GM25",
+        "fees": 860,
+        "hospital": "Guardian Medical Center"
+    },
+    {
+        "name": "Dr. Pradeep Narang",
+        "email": "pradeep.narang@divinehealthcare.co.in",
+        "phone": "+91-9876500121",
+        "password": "DrNarang@DH21",
+        "fees": 550,
+        "hospital": "Divine Healthcare"
+    },
+    {
+        "name": "Dr. Suman Chauhan",
+        "email": "suman.chauhan@divinehealthcare.co.in",
+        "phone": "+91-9876500122",
+        "password": "DrChauhan#DH22",
+        "fees": 575,
+        "hospital": "Divine Healthcare"
+    },
+    {
+        "name": "Dr. Rakesh Talwar",
+        "email": "rakesh.talwar@divinehealthcare.co.in",
+        "phone": "+91-9876500123",
+        "password": "DrTalwar@23DH",
+        "fees": 525,
+        "hospital": "Divine Healthcare"
+    },
+    {
+        "name": "Dr. Jagriti Sharma",
+        "email": "jagriti.sharma@divinehealthcare.co.in",
+        "phone": "+91-9876500124",
+        "password": "DrSharma!DH24",
+        "fees": 590,
+        "hospital": "Divine Healthcare"
+    },
+    {
+        "name": "Dr. Manoj Grover",
+        "email": "manoj.grover@divinehealthcare.co.in",
+        "phone": "+91-9876500125",
+        "password": "DrGrover@DH25",
+        "fees": 560,
+        "hospital": "Divine Healthcare"
+    },
+    {
+        "name": "Dr. Sameer Goswami",
+        "email": "sameer.goswami@pinnaclehospital.com",
+        "phone": "+91-9876500126",
+        "password": "DrGoswami@PH21",
+        "fees": 750,
+        "hospital": "Pinnacle Hospital"
+    },
+    {
+        "name": "Dr. Nalini Dubey",
+        "email": "nalini.dubey@pinnaclehospital.com",
+        "phone": "+91-9876500127",
+        "password": "DrDubey#PH22",
+        "fees": 775,
+        "hospital": "Pinnacle Hospital"
+    },
+    {
+        "name": "Dr. Raghav Kamra",
+        "email": "raghav.kamra@pinnaclehospital.com",
+        "phone": "+91-9876500128",
+        "password": "DrKamra@23PH",
+        "fees": 725,
+        "hospital": "Pinnacle Hospital"
+    },
+    {
+        "name": "Dr. Poonam Kaushik",
+        "email": "poonam.kaushik@pinnaclehospital.com",
+        "phone": "+91-9876500129",
+        "password": "DrKaushik!PH24",
+        "fees": 800,
+        "hospital": "Pinnacle Hospital"
+    },
+    {
+        "name": "Dr. Abhay Nagpal",
+        "email": "abhay.nagpal@pinnaclehospital.com",
+        "phone": "+91-9876500130",
+        "password": "DrNagpal@PH25",
+        "fees": 760,
+        "hospital": "Pinnacle Hospital"
+    },
+    {
+        "name": "Dr. Heena Rastogi",
+        "email": "heena.rastogi@serenitymedical.org",
+        "phone": "+91-9876500131",
+        "password": "DrRastogi@SM21",
+        "fees": 350,
+        "hospital": "Serenity Medical Institute"
+    },
+    {
+        "name": "Dr. Vishal Kohli",
+        "email": "vishal.kohli@serenitymedical.org",
+        "phone": "+91-9876500132",
+        "password": "DrKohli#SM22",
+        "fees": 375,
+        "hospital": "Serenity Medical Institute"
+    },
+    {
+        "name": "Dr. Ayesha Khan",
+        "email": "ayesha.khan@serenitymedical.org",
+        "phone": "+91-9876500133",
+        "password": "DrKhan@23SM",
+        "fees": 325,
+        "hospital": "Serenity Medical Institute"
+    },
+    {
+        "name": "Dr. Lokesh Taneja",
+        "email": "lokesh.taneja@serenitymedical.org",
+        "phone": "+91-9876500134",
+        "password": "DrTaneja!SM24",
+        "fees": 400,
+        "hospital": "Serenity Medical Institute"
+    },
+    {
+        "name": "Dr. Vidya Chaudhary",
+        "email": "vidya.chaudhary@serenitymedical.org",
+        "phone": "+91-9876500135",
+        "password": "DrChaudhary@SM25",
+        "fees": 360,
+        "hospital": "Serenity Medical Institute"
+    },
+    {
+        "name": "Dr. Keshav Bhatia",
+        "email": "keshav.bhatia@faithmemorial.net",
+        "phone": "+91-9876500136",
+        "password": "DrBhatia@FM21",
+        "fees": 900,
+        "hospital": "Faith Memorial Hospital"
+    },
+    {
+        "name": "Dr. Deepti Khare",
+        "email": "deepti.khare@faithmemorial.net",
+        "phone": "+91-9876500137",
+        "password": "DrKhare#FM22",
+        "fees": 925,
+        "hospital": "Faith Memorial Hospital"
+    },
+    {
+        "name": "Dr. Rishabh Jha",
+        "email": "rishabh.jha@faithmemorial.net",
+        "phone": "+91-9876500138",
+        "password": "DrJha@23FM",
+        "fees": 875,
+        "hospital": "Faith Memorial Hospital"
+    },
+    {
+        "name": "Dr. Yamini Sabharwal",
+        "email": "yamini.sabharwal@faithmemorial.net",
+        "phone": "+91-9876500139",
+        "password": "DrSabharwal!FM24",
+        "fees": 950,
+        "hospital": "Faith Memorial Hospital"
+    },
+    {
+        "name": "Dr. Shashank Mitra",
+        "email": "shashank.mitra@faithmemorial.net",
+        "phone": "+91-9876500140",
+        "password": "DrMitra@FM25",
+        "fees": 910,
+        "hospital": "Faith Memorial Hospital"
+    },
+    {
+        "name": "Dr. Mohini Guha",
+        "email": "mohini.guha@tranquilcare.in",
+        "phone": "+91-9876500141",
+        "password": "DrGuha@TC21",
+        "fees": 450,
+        "hospital": "Tranquil Care Center"
+    },
+    {
+        "name": "Dr. Amit Khater",
+        "email": "amit.khater@tranquilcare.in",
+        "phone": "+91-9876500142",
+        "password": "DrKhater#TC22",
+        "fees": 475,
+        "hospital": "Tranquil Care Center"
+    },
+    {
+        "name": "Dr. Pooja Nanda",
+        "email": "pooja.nanda@tranquilcare.in",
+        "phone": "+91-9876500143",
+        "password": "DrNanda@23TC",
+        "fees": 425,
+        "hospital": "Tranquil Care Center"
+    },
+    {
+        "name": "Dr. Sudhir Kansal",
+        "email": "sudhir.kansal@tranquilcare.in",
+        "phone": "+91-9876500144",
+        "password": "DrKansal!TC24",
+        "fees": 490,
+        "hospital": "Tranquil Care Center"
+    },
+    {
+        "name": "Dr. Ridhi Arora",
+        "email": "ridhi.arora@tranquilcare.in",
+        "phone": "+91-9876500145",
+        "password": "DrArora@TC25",
+        "fees": 460,
+        "hospital": "Tranquil Care Center"
+    },
+    {
+        "name": "Dr. Kamal Dhillon",
+        "email": "kamal.dhillon@evergreenhospital.co.in",
+        "phone": "+91-9876500146",
+        "password": "DrDhillon@EH21",
+        "fees": 800,
+        "hospital": "Evergreen Hospital"
+    },
+    {
+        "name": "Dr. Renu Kalra",
+        "email": "renu.kalra@evergreenhospital.co.in",
+        "phone": "+91-9876500147",
+        "password": "DrKalra#EH22",
+        "fees": 825,
+        "hospital": "Evergreen Hospital"
+    },
+    {
+        "name": "Dr. Dinesh Chandna",
+        "email": "dinesh.chandna@evergreenhospital.co.in",
+        "phone": "+91-9876500148",
+        "password": "DrChandna@23EH",
+        "fees": 775,
+        "hospital": "Evergreen Hospital"
+    },
+    {
+        "name": "Dr. Sarita Ahuja",
+        "email": "sarita.ahuja@evergreenhospital.co.in",
+        "phone": "+91-9876500149",
+        "password": "DrAhuja!EH24",
+        "fees": 850,
+        "hospital": "Evergreen Hospital"
+    },
+    {
+        "name": "Dr. Yogesh Lalwani",
+        "email": "yogesh.lalwani@evergreenhospital.co.in",
+        "phone": "+91-9876500150",
+        "password": "DrLalwani@EH25",
+        "fees": 810,
+        "hospital": "Evergreen Hospital"
+    },
+    {
+        "name": "Dr. Aisha Patel",
+        "email": "apatel@example-med.in",
+        "phone": "(+91) 98765-43210",
+        "fees": 1500,
+        "password": "DummyPass123"
+    },
+    {
+        "name": "Dr. Rajesh Kumar",
+        "email": "rkumar@example-med.in",
+        "phone": "(+91) 98765-43211",
+        "fees": 1800,
+        "password": "DummyPass124"
+    },
+    {
+        "name": "Dr. Priya Sharma",
+        "email": "psharma@example-med.in",
+        "phone": "(+91) 98765-43212",
+        "fees": 2000,
+        "password": "DummyPass125"
+    },
+    {
+        "name": "Dr. Vikram Singh",
+        "email": "vsingh@example-med.in",
+        "phone": "(+91) 98765-43213",
+        "fees": 1700,
+        "password": "DummyPass126"
+    },
+    {
+        "name": "Dr. Deepa Agarwal",
+        "email": "dagarwal@example-med.in",
+        "phone": "(+91) 98765-43214",
+        "fees": 2200,
+        "password": "DummyPass127"
+    },
+    {
+        "name": "Dr. Sanjay Gupta",
+        "email": "sgupta@example-med.in",
+        "phone": "(+91) 98765-43215",
+        "fees": 1900,
+        "password": "DummyPass128"
+    },
+    {
+        "name": "Dr. Meera Reddy",
+        "email": "mreddy@example-med.in",
+        "phone": "(+91) 98765-43216",
+        "fees": 1600,
+        "password": "DummyPass129"
+    },
+    {
+        "name": "Dr. Anand Desai",
+        "email": "adesai@example-med.in",
+        "phone": "(+91) 98765-43217",
+        "fees": 2100,
+        "password": "DummyPass130"
+    },
+    {
+        "name": "Dr. Lakshmi Nair",
+        "email": "lnair@example-med.in",
+        "phone": "(+91) 98765-43218",
+        "fees": 1850,
+        "password": "DummyPass131"
+    },
+    {
+        "name": "Dr. Arjun Mehta",
+        "email": "amehta@example-med.in",
+        "phone": "(+91) 98765-43219",
+        "fees": 2300,
+        "password": "DummyPass132"
+    },
+    {
+        "name": "Dr. Kavita Joshi",
+        "email": "kjoshi@example-med.in",
+        "phone": "(+91) 98765-43220",
+        "fees": 1750,
+        "password": "DummyPass133"
+    },
+    {
+        "name": "Dr. Nikhil Verma",
+        "email": "nverma@example-med.in",
+        "phone": "(+91) 98765-43221",
+        "fees": 2000,
+        "password": "DummyPass134"
+    },
+    {
+        "name": "Dr. Sunita Choudhary",
+        "email": "schoudhary@example-med.in",
+        "phone": "(+91) 98765-43222",
+        "fees": 1950,
+        "password": "DummyPass135"
+    },
+    {
+        "name": "Dr. Amit Malhotra",
+        "email": "amalhotra@example-med.in",
+        "phone": "(+91) 98765-43223",
+        "fees": 2200,
+        "password": "DummyPass136"
+    },
+    {
+        "name": "Dr. Neha Iyer",
+        "email": "niyer@example-med.in",
+        "phone": "(+91) 98765-43224",
+        "fees": 1800,
+        "password": "DummyPass137"
+    },
+    {
+        "name": "Dr. Rahul Banerjee",
+        "email": "rbanerjee@example-med.in",
+        "phone": "(+91) 98765-43225",
+        "fees": 2100,
+        "password": "DummyPass138"
+    },
+    {
+        "name": "Dr. Pooja Kapoor",
+        "email": "pkapoor@example-med.in",
+        "phone": "(+91) 98765-43226",
+        "fees": 1650,
+        "password": "DummyPass139"
+    },
+    {
+        "name": "Dr. Vivek Mishra",
+        "email": "vmishra@example-med.in",
+        "phone": "(+91) 98765-43227",
+        "fees": 2250,
+        "password": "DummyPass140"
+    },
+    {
+        "name": "Dr. Anjali Rao",
+        "email": "arao@example-med.in",
+        "phone": "(+91) 98765-43228",
+        "fees": 1900,
+        "password": "DummyPass141"
+    },
+    {
+        "name": "Dr. Karan Bhatia",
+        "email": "kbhatia@example-med.in",
+        "phone": "(+91) 98765-43229",
+        "fees": 2050,
+        "password": "DummyPass142"
+    },
+    {
+        "name": "Dr. Divya Chauhan",
+        "email": "dchauhan@example-med.in",
+        "phone": "(+91) 98765-43230",
+        "fees": 1750,
+        "password": "DummyPass143"
+    },
+    {
+        "name": "Dr. Suresh Pillai",
+        "email": "spillai@example-med.in",
+        "phone": "(+91) 98765-43231",
+        "fees": 2150,
+        "password": "DummyPass144"
+    }
+]

@@ -39,7 +39,7 @@ model Hospital {
   specialities         Speciality[]                          @relation("HospitalSpecialities")
   hospitalSpecialities HospitalSpeciality[]
   phone                String                                @unique
-  documents            String[]
+  documents            Document[]
   currLocation         Json                                  @default("{}")
   createdAt            DateTime                              @default(now())
   updatedAt            DateTime                              @updatedAt
@@ -51,6 +51,23 @@ model Hospital {
   emergency            Boolean                               @default(false)
   ratings              Ratings[]
   fees                 Int
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  hospitalId String
+  name       String
+  url        String
+  status     DocumentStatus @default(PENDING)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  Hospital   Hospital       @relation(fields: [hospitalId], references: [id])
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Speciality {

@@ -1,0 +1,561 @@
+[
+    {
+        "name": "Family Medicine",
+        "description": "Provides comprehensive healthcare for individuals and families across all ages, genders, and diseases. Family physicians focus on preventive care, routine checkups, and management of chronic conditions.",
+        "tags": [
+            { "name": "Common Cold", "severity": "Low" },
+            { "name": "Flu", "severity": "Low" },
+            { "name": "Hypertension", "severity": "Moderate" },
+            { "name": "Diabetes Type 2", "severity": "Moderate" },
+            { "name": "Allergies", "severity": "Low" },
+            { "name": "Preventive Care", "severity": "Low" },
+            { "name": "Minor Injuries", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Internal Medicine",
+        "description": "Specializes in the prevention, diagnosis, and treatment of adult diseases. Internists are trained to manage complex illnesses and multiple conditions in adult patients.",
+        "tags": [
+            { "name": "Hypertension", "severity": "Moderate" },
+            { "name": "Diabetes", "severity": "Moderate" },
+            { "name": "Heart Disease", "severity": "High" },
+            { "name": "Thyroid Disorders", "severity": "Moderate" },
+            { "name": "Respiratory Infections", "severity": "Moderate" },
+            { "name": "Chronic Disease Management", "severity": "Moderate" },
+            { "name": "Geriatric Care", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Pediatrics",
+        "description": "Focused on the health and medical care of infants, children, and adolescents. Pediatricians provide preventive health maintenance, treat acute and chronic diseases, and monitor development.",
+        "tags": [
+            { "name": "Childhood Immunizations", "severity": "Low" },
+            { "name": "Growth & Development", "severity": "Low" },
+            { "name": "Ear Infections", "severity": "Low" },
+            { "name": "Asthma", "severity": "Moderate" },
+            { "name": "Childhood Obesity", "severity": "Moderate" },
+            { "name": "ADHD", "severity": "Moderate" },
+            { "name": "Adolescent Medicine", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Cardiology",
+        "description": "Specializes in diagnosing, treating, and preventing diseases of the heart and blood vessels. Cardiologists manage conditions like heart attacks, heart failure, and arrhythmias.",
+        "tags": [
+            { "name": "Coronary Artery Disease", "severity": "High" },
+            { "name": "Heart Failure", "severity": "High" },
+            { "name": "Arrhythmias", "severity": "Moderate" },
+            { "name": "Hypertension", "severity": "Moderate" },
+            { "name": "Heart Valve Disease", "severity": "High" },
+            { "name": "Congenital Heart Defects", "severity": "High" },
+            { "name": "Cardiac Rehabilitation", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Neurology",
+        "description": "Deals with disorders of the nervous system, including the brain, spinal cord, and peripheral nerves. Neurologists diagnose and treat conditions like stroke, epilepsy, multiple sclerosis, and Parkinson's disease.",
+        "tags": [
+            { "name": "Stroke", "severity": "High" },
+            { "name": "Epilepsy", "severity": "Moderate" },
+            { "name": "Multiple Sclerosis", "severity": "High" },
+            { "name": "Parkinson's Disease", "severity": "High" },
+            { "name": "Alzheimer's Disease", "severity": "High" },
+            { "name": "Migraines", "severity": "Moderate" },
+            { "name": "Neuropathy", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Psychiatry",
+        "description": "Focuses on the diagnosis, treatment, and prevention of mental, emotional, and behavioral disorders. Psychiatrists can prescribe medications and provide various forms of therapy.",
+        "tags": [
+            { "name": "Depression", "severity": "Moderate" },
+            { "name": "Anxiety Disorders", "severity": "Moderate" },
+            { "name": "Bipolar Disorder", "severity": "High" },
+            { "name": "Schizophrenia", "severity": "High" },
+            { "name": "PTSD", "severity": "High" },
+            { "name": "Addiction", "severity": "High" },
+            { "name": "Eating Disorders", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Orthopedics",
+        "description": "Specializes in the diagnosis and treatment of conditions affecting the musculoskeletal system, including bones, joints, ligaments, tendons, and muscles.",
+        "tags": [
+            { "name": "Fractures", "severity": "Moderate" },
+            { "name": "Arthritis", "severity": "Moderate" },
+            { "name": "Joint Replacement", "severity": "High" },
+            { "name": "Sports Injuries", "severity": "Moderate" },
+            { "name": "Spine Disorders", "severity": "High" },
+            { "name": "Carpal Tunnel Syndrome", "severity": "Moderate" },
+            { "name": "Osteoporosis", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Dermatology",
+        "description": "Focuses on conditions affecting the skin, hair, and nails. Dermatologists diagnose and treat diseases such as acne, eczema, psoriasis, and skin cancer.",
+        "tags": [
+            { "name": "Acne", "severity": "Low" },
+            { "name": "Eczema", "severity": "Moderate" },
+            { "name": "Psoriasis", "severity": "Moderate" },
+            { "name": "Skin Cancer", "severity": "High" },
+            { "name": "Rosacea", "severity": "Low" },
+            { "name": "Hair Loss", "severity": "Low" },
+            { "name": "Fungal Infections", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Obstetrics & Gynecology",
+        "description": "Specializes in women's health, particularly pregnancy, childbirth, and disorders of the female reproductive system. OB/GYNs provide care during pregnancy and childbirth as well as gynecological care.",
+        "tags": [
+            { "name": "Pregnancy Care", "severity": "Moderate" },
+            { "name": "Childbirth", "severity": "Moderate" },
+            { "name": "Menstrual Disorders", "severity": "Low" },
+            { "name": "Infertility", "severity": "Moderate" },
+            { "name": "Menopause", "severity": "Low" },
+            { "name": "Gynecological Cancer", "severity": "High" },
+            { "name": "Contraception", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Ophthalmology",
+        "description": "Specializes in the diagnosis and treatment of eye disorders. Ophthalmologists provide comprehensive eye care, from vision tests to complex surgeries.",
+        "tags": [
+            { "name": "Cataracts", "severity": "Moderate" },
+            { "name": "Glaucoma", "severity": "High" },
+            { "name": "Macular Degeneration", "severity": "High" },
+            { "name": "Diabetic Retinopathy", "severity": "High" },
+            { "name": "Refractive Errors", "severity": "Low" },
+            { "name": "Dry Eye Syndrome", "severity": "Low" },
+            { "name": "Eye Infections", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Otolaryngology (ENT)",
+        "description": "Focuses on diseases and disorders of the ear, nose, throat, and related structures of the head and neck. ENT specialists treat conditions such as hearing loss, sinus problems, and throat disorders.",
+        "tags": [
+            { "name": "Hearing Loss", "severity": "Moderate" },
+            { "name": "Sinusitis", "severity": "Low" },
+            { "name": "Tonsillitis", "severity": "Low" },
+            { "name": "Sleep Apnea", "severity": "Moderate" },
+            { "name": "Voice Disorders", "severity": "Moderate" },
+            { "name": "Head & Neck Cancer", "severity": "High" },
+            { "name": "Balance Disorders", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Gastroenterology",
+        "description": "Specializes in disorders of the digestive system, including the esophagus, stomach, intestines, liver, and pancreas. Gastroenterologists diagnose and treat conditions like acid reflux, ulcers, and inflammatory bowel disease.",
+        "tags": [
+            { "name": "GERD (Acid Reflux)", "severity": "Moderate" },
+            { "name": "Peptic Ulcers", "severity": "Moderate" },
+            { "name": "Inflammatory Bowel Disease", "severity": "High" },
+            { "name": "Irritable Bowel Syndrome", "severity": "Moderate" },
+            { "name": "Hepatitis", "severity": "High" },
+            { "name": "Colon Polyps", "severity": "Moderate" },
+            { "name": "Colorectal Cancer", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Urology",
+        "description": "Focuses on the urinary tract system in both genders and the reproductive system in males. Urologists treat conditions such as urinary tract infections, kidney stones, and prostate disorders.",
+        "tags": [
+            { "name": "Urinary Tract Infections", "severity": "Low" },
+            { "name": "Kidney Stones", "severity": "Moderate" },
+            { "name": "Prostate Disorders", "severity": "Moderate" },
+            { "name": "Urinary Incontinence", "severity": "Moderate" },
+            { "name": "Erectile Dysfunction", "severity": "Low" },
+            { "name": "Bladder Cancer", "severity": "High" },
+            { "name": "Prostate Cancer", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Endocrinology",
+        "description": "Specializes in disorders of the endocrine system, which includes hormone-producing glands. Endocrinologists treat conditions like diabetes, thyroid disorders, and hormonal imbalances.",
+        "tags": [
+            { "name": "Diabetes", "severity": "Moderate" },
+            { "name": "Thyroid Disorders", "severity": "Moderate" },
+            { "name": "Adrenal Disorders", "severity": "Moderate" },
+            { "name": "Pituitary Disorders", "severity": "High" },
+            { "name": "Osteoporosis", "severity": "Moderate" },
+            { "name": "Hormonal Imbalances", "severity": "Moderate" },
+            { "name": "Metabolic Disorders", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Pulmonology",
+        "description": "Focuses on diseases of the respiratory system, including the lungs, upper airways, and chest. Pulmonologists diagnose and treat conditions like asthma, COPD, and pneumonia.",
+        "tags": [
+            { "name": "Asthma", "severity": "Moderate" },
+            { "name": "COPD", "severity": "High" },
+            { "name": "Pneumonia", "severity": "Moderate" },
+            { "name": "Lung Cancer", "severity": "High" },
+            { "name": "Sleep Apnea", "severity": "Moderate" },
+            { "name": "Tuberculosis", "severity": "High" },
+            { "name": "Pulmonary Fibrosis", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Nephrology",
+        "description": "Specializes in kidney care and treating diseases of the kidneys. Nephrologists focus on conditions that affect kidney function, blood pressure, and the balance of electrolytes.",
+        "tags": [
+            { "name": "Chronic Kidney Disease", "severity": "High" },
+            { "name": "Kidney Failure", "severity": "High" },
+            { "name": "Kidney Stones", "severity": "Moderate" },
+            { "name": "Glomerulonephritis", "severity": "High" },
+            { "name": "Polycystic Kidney Disease", "severity": "High" },
+            { "name": "Dialysis Management", "severity": "High" },
+            { "name": "Electrolyte Imbalances", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Oncology",
+        "description": "Focuses on the diagnosis and treatment of cancer. Oncologists provide various treatments including chemotherapy, radiation therapy, and targeted therapies.",
+        "tags": [
+            { "name": "Breast Cancer", "severity": "High" },
+            { "name": "Lung Cancer", "severity": "High" },
+            { "name": "Colorectal Cancer", "severity": "High" },
+            { "name": "Leukemia", "severity": "High" },
+            { "name": "Lymphoma", "severity": "High" },
+            { "name": "Chemotherapy", "severity": "High" },
+            { "name": "Radiation Therapy", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Rheumatology",
+        "description": "Specializes in diseases affecting the joints, muscles, and bones. Rheumatologists diagnose and treat conditions such as arthritis, autoimmune diseases, and musculoskeletal pain disorders.",
+        "tags": [
+            { "name": "Rheumatoid Arthritis", "severity": "High" },
+            { "name": "Osteoarthritis", "severity": "Moderate" },
+            { "name": "Lupus", "severity": "High" },
+            { "name": "Fibromyalgia", "severity": "Moderate" },
+            { "name": "Gout", "severity": "Moderate" },
+            { "name": "Vasculitis", "severity": "High" },
+            { "name": "Ankylosing Spondylitis", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Hematology",
+        "description": "Focuses on the study, diagnosis, and treatment of blood disorders. Hematologists treat conditions such as anemia, blood clotting disorders, and blood cancers.",
+        "tags": [
+            { "name": "Anemia", "severity": "Moderate" },
+            { "name": "Hemophilia", "severity": "High" },
+            { "name": "Leukemia", "severity": "High" },
+            { "name": "Lymphoma", "severity": "High" },
+            { "name": "Blood Clotting Disorders", "severity": "High" },
+            { "name": "Sickle Cell Disease", "severity": "High" },
+            { "name": "Thalassemia", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Infectious Disease",
+        "description": "Specializes in diagnosing and treating infections caused by bacteria, viruses, fungi, and parasites. Infectious disease specialists deal with complex infections and manage epidemics.",
+        "tags": [
+            { "name": "HIV/AIDS", "severity": "High" },
+            { "name": "Tuberculosis", "severity": "High" },
+            { "name": "Sepsis", "severity": "High" },
+            { "name": "Meningitis", "severity": "High" },
+            { "name": "Complicated Pneumonia", "severity": "High" },
+            { "name": "Hepatitis", "severity": "High" },
+            { "name": "Tropical Diseases", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Allergy & Immunology",
+        "description": "Focuses on disorders of the immune system, such as allergies and immunodeficiencies. Allergists/immunologists diagnose and treat conditions like hay fever, food allergies, and asthma.",
+        "tags": [
+            { "name": "Hay Fever", "severity": "Low" },
+            { "name": "Food Allergies", "severity": "Moderate" },
+            { "name": "Asthma", "severity": "Moderate" },
+            { "name": "Eczema", "severity": "Moderate" },
+            { "name": "Immunodeficiency", "severity": "High" },
+            { "name": "Drug Allergies", "severity": "Moderate" },
+            { "name": "Anaphylaxis", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Physical Medicine & Rehabilitation",
+        "description": "Specializes in the diagnosis, treatment, and prevention of disorders that affect the brain, spinal cord, nerves, bones, joints, ligaments, muscles, and tendons. PM&R physicians focus on restoring function and improving quality of life.",
+        "tags": [
+            { "name": "Spinal Cord Injury", "severity": "High" },
+            { "name": "Stroke Rehabilitation", "severity": "High" },
+            { "name": "Traumatic Brain Injury", "severity": "High" },
+            { "name": "Chronic Pain Management", "severity": "Moderate" },
+            { "name": "Sports Medicine", "severity": "Moderate" },
+            { "name": "Amputee Rehabilitation", "severity": "High" },
+            { "name": "Musculoskeletal Disorders", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "General Surgery",
+        "description": "Focuses on operations involving the abdomen, breasts, peripheral vasculature, endocrine system, and skin. General surgeons are trained to provide surgical care for the whole patient.",
+        "tags": [
+            { "name": "Appendectomy", "severity": "Moderate" },
+            { "name": "Gallbladder Removal", "severity": "Moderate" },
+            { "name": "Hernia Repair", "severity": "Moderate" },
+            { "name": "Colon Surgery", "severity": "High" },
+            { "name": "Breast Surgery", "severity": "Moderate" },
+            { "name": "Trauma Surgery", "severity": "High" },
+            { "name": "Thyroid Surgery", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Plastic Surgery",
+        "description": "Involves the restoration, reconstruction, or alteration of the human body. Plastic surgeons perform procedures to repair defects due to birth disorders, trauma, burns, and disease.",
+        "tags": [
+            { "name": "Reconstructive Surgery", "severity": "Moderate" },
+            { "name": "Burn Care", "severity": "High" },
+            { "name": "Hand Surgery", "severity": "Moderate" },
+            { "name": "Craniofacial Surgery", "severity": "High" },
+            { "name": "Cosmetic Surgery", "severity": "Low" },
+            { "name": "Microsurgery", "severity": "High" },
+            { "name": "Scar Revision", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Neurosurgery",
+        "description": "Specializes in the surgical treatment of disorders affecting the brain, spinal cord, and peripheral nerves. Neurosurgeons perform procedures to treat conditions like brain tumors, spinal disorders, and traumatic injuries.",
+        "tags": [
+            { "name": "Brain Tumors", "severity": "High" },
+            { "name": "Spinal Disorders", "severity": "High" },
+            { "name": "Traumatic Brain Injury", "severity": "High" },
+            { "name": "Aneurysms", "severity": "High" },
+            { "name": "Herniated Discs", "severity": "Moderate" },
+            { "name": "Stroke", "severity": "High" },
+            { "name": "Epilepsy Surgery", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Vascular Surgery",
+        "description": "Focuses on disorders of the vascular system, including arteries, veins, and lymphatic circulation. Vascular surgeons treat conditions like aneurysms, blood clots, and circulatory disorders.",
+        "tags": [
+            { "name": "Aneurysm Repair", "severity": "High" },
+            { "name": "Carotid Artery Disease", "severity": "High" },
+            { "name": "Deep Vein Thrombosis", "severity": "High" },
+            { "name": "Peripheral Artery Disease", "severity": "High" },
+            { "name": "Varicose Veins", "severity": "Low" },
+            { "name": "Dialysis Access", "severity": "Moderate" },
+            { "name": "Venous Insufficiency", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Thoracic Surgery",
+        "description": "Specializes in operations on organs inside the chest, including the heart, lungs, and esophagus. Thoracic surgeons treat conditions like lung cancer, chest trauma, and esophageal disorders.",
+        "tags": [
+            { "name": "Lung Cancer Surgery", "severity": "High" },
+            { "name": "Esophageal Surgery", "severity": "High" },
+            { "name": "Chest Wall Reconstruction", "severity": "High" },
+            { "name": "Lung Transplantation", "severity": "High" },
+            { "name": "Mediastinal Tumors", "severity": "High" },
+            { "name": "Pleural Diseases", "severity": "Moderate" },
+            { "name": "Chest Trauma", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Emergency Medicine",
+        "description": "Focuses on the diagnosis and treatment of acute illnesses and injuries that require immediate medical attention. Emergency physicians provide care for a wide range of conditions in emergency departments.",
+        "tags": [
+            { "name": "Trauma", "severity": "High" },
+            { "name": "Heart Attack", "severity": "High" },
+            { "name": "Stroke", "severity": "High" },
+            { "name": "Severe Infections", "severity": "High" },
+            { "name": "Fractures", "severity": "Moderate" },
+            { "name": "Respiratory Distress", "severity": "High" },
+            { "name": "Poisoning", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Anesthesiology",
+        "description": "Specializes in perioperative care, development of anesthetic plans, and administration of anesthetics. Anesthesiologists ensure patient safety and comfort during surgical procedures.",
+        "tags": [
+            { "name": "General Anesthesia", "severity": "Moderate" },
+            { "name": "Regional Anesthesia", "severity": "Moderate" },
+            { "name": "Sedation", "severity": "Moderate" },
+            { "name": "Pain Management", "severity": "Moderate" },
+            { "name": "Critical Care", "severity": "High" },
+            { "name": "Obstetric Anesthesia", "severity": "Moderate" },
+            { "name": "Pediatric Anesthesia", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Radiology",
+        "description": "Specializes in diagnosing and treating diseases using imaging techniques such as X-rays, CT scans, MRIs, and ultrasound. Radiologists interpret medical images to diagnose various conditions.",
+        "tags": [
+            { "name": "X-ray Interpretation", "severity": "Low" },
+            { "name": "CT Scans", "severity": "Moderate" },
+            { "name": "MRI Studies", "severity": "Moderate" },
+            { "name": "Ultrasound", "severity": "Low" },
+            { "name": "Mammography", "severity": "Moderate" },
+            { "name": "Interventional Procedures", "severity": "Moderate" },
+            { "name": "Nuclear Medicine", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Pathology",
+        "description": "Focuses on the study and diagnosis of disease through examination of organs, tissues, bodily fluids, and whole bodies. Pathologists provide crucial diagnostic information to guide treatment decisions.",
+        "tags": [
+            { "name": "Surgical Pathology", "severity": "Moderate" },
+            { "name": "Cytopathology", "severity": "Moderate" },
+            { "name": "Hematopathology", "severity": "High" },
+            { "name": "Forensic Pathology", "severity": "High" },
+            { "name": "Molecular Pathology", "severity": "High" },
+            { "name": "Clinical Chemistry", "severity": "Moderate" },
+            { "name": "Autopsy", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Geriatrics",
+        "description": "Specializes in the care of elderly patients. Geriatricians focus on promoting health and treating diseases in older adults, considering the unique needs of the aging population.",
+        "tags": [
+            { "name": "Dementia", "severity": "High" },
+            { "name": "Falls Prevention", "severity": "Moderate" },
+            { "name": "Polypharmacy Management", "severity": "Moderate" },
+            { "name": "Frailty", "severity": "Moderate" },
+            { "name": "Elder Care", "severity": "Moderate" },
+            { "name": "Palliative Care", "severity": "High" },
+            { "name": "Age-related Disorders", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Pain Medicine",
+        "description": "Focuses on the evaluation, diagnosis, and treatment of all different types of pain. Pain medicine specialists use a multidisciplinary approach to treat acute, chronic, and cancer-related pain.",
+        "tags": [
+            { "name": "Chronic Pain", "severity": "Moderate" },
+            { "name": "Back Pain", "severity": "Moderate" },
+            { "name": "Neuropathic Pain", "severity": "Moderate" },
+            { "name": "Cancer Pain", "severity": "High" },
+            { "name": "Headache Disorders", "severity": "Moderate" },
+            { "name": "Fibromyalgia", "severity": "Moderate" },
+            { "name": "Interventional Pain Procedures", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Sports Medicine",
+        "description": "Specializes in the treatment and prevention of sports-related injuries and fitness issues. Sports medicine physicians work with athletes to improve performance and recover from injuries.",
+        "tags": [
+            { "name": "Sprains & Strains", "severity": "Low" },
+            { "name": "Concussions", "severity": "Moderate" },
+            { "name": "Tendonitis", "severity": "Low" },
+            { "name": "Stress Fractures", "severity": "Moderate" },
+            { "name": "Exercise Counseling", "severity": "Low" },
+            { "name": "Joint Injuries", "severity": "Moderate" },
+            { "name": "Performance Enhancement", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Palliative Care",
+        "description": "Focuses on improving the quality of life for patients with serious illnesses. Palliative care specialists provide relief from symptoms, pain, and stress while addressing psychological and spiritual needs.",
+        "tags": [
+            { "name": "Pain Management", "severity": "Moderate" },
+            { "name": "Symptom Control", "severity": "Moderate" },
+            { "name": "End-of-Life Care", "severity": "High" },
+            { "name": "Chronic Disease Support", "severity": "High" },
+            { "name": "Emotional Support", "severity": "Moderate" },
+            { "name": "Advanced Care Planning", "severity": "Moderate" },
+            { "name": "Family Support", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Critical Care Medicine",
+        "description": "Specializes in the diagnosis and management of life-threatening conditions that require sophisticated organ support and invasive monitoring. Critical care specialists work in intensive care units.",
+        "tags": [
+            { "name": "Respiratory Failure", "severity": "High" },
+            { "name": "Septic Shock", "severity": "High" },
+            { "name": "Multi-organ Failure", "severity": "High" },
+            { "name": "Ventilator Management", "severity": "High" },
+            { "name": "Trauma Care", "severity": "High" },
+            { "name": "Post-surgical Complications", "severity": "High" },
+            { "name": "Cardiac Emergencies", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Medical Genetics",
+        "description": "Focuses on the diagnosis and management of hereditary disorders. Medical geneticists identify genetic conditions, provide genetic counseling, and offer specialized treatments for genetic disorders.",
+        "tags": [
+            { "name": "Genetic Testing", "severity": "Moderate" },
+            { "name": "Birth Defects", "severity": "High" },
+            { "name": "Chromosomal Abnormalities", "severity": "High" },
+            { "name": "Hereditary Cancer Syndromes", "severity": "High" },
+            { "name": "Metabolic Disorders", "severity": "High" },
+            { "name": "Genetic Counseling", "severity": "Moderate" },
+            { "name": "Rare Disease Diagnosis", "severity": "High" }
+        ]
+    },
+    {
+        "name": "Preventive Medicine",
+        "description": "Focuses on the health of individuals and defined populations to protect, promote, and maintain health and well-being. Preventive medicine specialists develop strategies to prevent disease and promote health.",
+        "tags": [
+            { "name": "Immunizations", "severity": "Low" },
+            { "name": "Health Screenings", "severity": "Low" },
+            { "name": "Lifestyle Counseling", "severity": "Low" },
+            { "name": "Disease Prevention", "severity": "Low" },
+            { "name": "Population Health", "severity": "Moderate" },
+            { "name": "Occupational Health", "severity": "Moderate" },
+            { "name": "Travel Medicine", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Dental Medicine",
+        "description": "Specializes in the diagnosis, prevention, and treatment of diseases and conditions of the oral cavity. Dentists provide care for teeth, gums, and related parts of the mouth.",
+        "tags": [
+            { "name": "Cavity Treatment", "severity": "Low" },
+            { "name": "Gum Disease", "severity": "Moderate" },
+            { "name": "Root Canal", "severity": "Moderate" },
+            { "name": "Dental Implants", "severity": "Moderate" },
+            { "name": "Orthodontics", "severity": "Low" },
+            { "name": "Oral Cancer Screening", "severity": "High" },
+            { "name": "Preventive Dental Care", "severity": "Low" }
+        ]
+    },
+    {
+        "name": "Podiatry",
+        "description": "Specializes in the diagnosis, treatment, and prevention of diseases and disorders of the foot, ankle, and lower extremities. Podiatrists provide medical and surgical care for foot-related conditions.",
+        "tags": [
+            { "name": "Foot Pain", "severity": "Low" },
+            { "name": "Ingrown Toenails", "severity": "Low" },
+            { "name": "Diabetic Foot Care", "severity": "Moderate" },
+            { "name": "Bunions", "severity": "Moderate" },
+            { "name": "Heel Pain", "severity": "Low" },
+            { "name": "Foot Deformities", "severity": "Moderate" },
+            { "name": "Sports-related Foot Injuries", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Sleep Medicine",
+        "description": "Focuses on the diagnosis and treatment of sleep disorders and disturbances. Sleep medicine specialists address conditions that affect sleep and can impact overall health and quality of life.",
+        "tags": [
+            { "name": "Insomnia", "severity": "Moderate" },
+            { "name": "Sleep Apnea", "severity": "Moderate" },
+            { "name": "Narcolepsy", "severity": "Moderate" },
+            { "name": "Restless Leg Syndrome", "severity": "Low" },
+            { "name": "Sleepwalking", "severity": "Low" },
+            { "name": "Circadian Rhythm Disorders", "severity": "Moderate" },
+            { "name": "Chronic Fatigue", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Neonatology",
+        "description": "Specializes in the medical care of newborn infants, especially ill or premature newborns. Neonatologists work in neonatal intensive care units caring for the most complex and high-risk newborn cases.",
+        "tags": [
+            { "name": "Premature Birth", "severity": "High" },
+            { "name": "Respiratory Distress", "severity": "High" },
+            { "name": "Jaundice", "severity": "Moderate" },
+            { "name": "Congenital Abnormalities", "severity": "High" },
+            { "name": "Neonatal Infections", "severity": "High" },
+            { "name": "Birth Asphyxia", "severity": "High" },
+            { "name": "Feeding Difficulties", "severity": "Moderate" }
+        ]
+    },
+    {
+        "name": "Nuclear Medicine",
+        "description": "Involves the use of radioactive substances for diagnosis and treatment of disease. Nuclear medicine specialists use techniques like PET scans to evaluate organ function and diagnose various conditions.",
+        "tags": [
+            { "name": "PET Scans", "severity": "Moderate" },
+            { "name": "Bone Scans", "severity": "Moderate" },
+            { "name": "Thyroid Studies", "severity": "Moderate" },
+            { "name": "Cancer Imaging", "severity": "High" },
+            { "name": "Cardiac Function Studies", "severity": "Moderate" },
+            { "name": "Radioactive Iodine Treatment", "severity": "Moderate" },
+            { "name": "Brain Imaging", "severity": "Moderate" }
+        ]
+    }
+]
