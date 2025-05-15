@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const SpecialtyCard = ({ name, description, id, count }: { name: string; description: string; id: string; count: { parent: number, children: number }; }) => {
+const SpecialtyCard = ({ name, description, id, count, tags }: { name: string; tags: [{ name: string, severity: string }], description: string; id: string; count: { parent: number, children: number }; }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
@@ -52,6 +52,21 @@ const SpecialtyCard = ({ name, description, id, count }: { name: string; descrip
                         <span className="font-medium">{count.children}</span>{" "}Doctors Available
                     </div>
                 </div>
+            </div>
+
+            {/* Tags String array */}
+            <div className="flex flex-wrap gap-2 mb-4">
+                {tags.slice(0, 3).map((tag, index) => (
+                    <div key={index} className="bg-teal-100 text-teal-600 text-xs font-medium px-2 py-1 rounded-full 
+                                                 transition-all duration-300 group-hover:bg-teal-500 group-hover:text-white">
+                        {tag.name.charAt(0).toUpperCase() + tag.name.slice(1)}
+
+                    </div>
+                ))}
+                {tags.length > 3 && <span
+                    className="bg-teal-100 text-teal-600 text-xs font-medium px-2 py-1 rounded-full 
+                                                 transition-all duration-300 group-hover:bg-teal-500 group-hover:text-white"
+                >{"+ " + (tags.length - 3) + " more"}</span>}
             </div>
 
             {/* Description with better typography and animation */}

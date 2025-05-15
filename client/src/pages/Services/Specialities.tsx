@@ -102,6 +102,7 @@ const Specialties = () => {
                                     key={specialty.id}
                                     id={specialty.id}
                                     name={specialty.name}
+                                    tags={specialty.tags}
                                     description={specialty.description}
                                 />
                             ))}

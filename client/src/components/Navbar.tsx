@@ -4,15 +4,33 @@ import { faFacebook, faTwitter, faInstagram } from "@fortawesome/free-brands-svg
 import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
+import { getHighlyAccurateLocation } from "../utils/location/Location";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [coordinates, setCoordinates] = useState<{
+    lat: number, lon: number
+  } | null>(null);
+
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
+
+  useEffect(() => {
+
+    const fetchLocation = async () => {
+      const currCords = await getHighlyAccurateLocation();
+
+      setCoordinates(currCords);
+    }
+
+    fetchLocation();
+
+
+  }, [])
 
   const auth = useAuth();
   if (!auth) {
@@ -37,6 +55,9 @@ const Navbar = () => {
             <FontAwesomeIcon className="bg-[#26B9C0] rounded-full p-2 hover:bg-white cursor-pointer hover:text-[#26B9C0]" icon={faEnvelope} />
             <p className="text-sm md:text-base">careconnent@gmail.com</p>
           </div>
+          {coordinates && <div className="text-white">
+            {coordinates?.lat + " " + coordinates?.lon}
+          </div>}
         </div>
 
         {/* Social Media Icons */}
@@ -133,7 +154,7 @@ const Navbar = () => {
                 )}
               </div>
             )}
-            
+
             {!loading && (
               <div className="md:hidden block">
                 {user ? (
