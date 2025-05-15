@@ -193,7 +193,7 @@ router.get("/top", async (req, res) => {
                 ST_DistanceSphere(
                     ST_MakePoint(CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION), 
                                 CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION)),
-                    ST_MakePoint(${lat}, ${lon})
+                    ST_MakePoint(${latitude}, ${longitude})
                 ) AS distance,
 
                 (
