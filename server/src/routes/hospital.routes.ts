@@ -181,9 +181,6 @@ router.get("/top", async (req, res) => {
             return;
         }
 
-        const lat = parseFloat(latitude as string);
-        const lon = parseFloat(longitude as string);
-
         const hospitals = await prisma.$queryRawUnsafe<any[]>(`
             SELECT h.id, h.email, h.name, h.password, h."parentId",
                 ST_AsText(h."location") AS location,  
@@ -191,9 +188,9 @@ router.get("/top", async (req, res) => {
                 h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
                 h."fees", h."phone",
                 ST_DistanceSphere(
-                    ST_MakePoint(CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION), 
-                                CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION)),
-                    ST_MakePoint(${latitude}, ${longitude})
+                    ST_MakePoint(CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION), 
+                                CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION)),
+                    ST_MakePoint(${longitude}, ${latitude})
                 ) AS distance,
 
                 (
