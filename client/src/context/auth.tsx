@@ -6,6 +6,8 @@ interface AuthContextType {
     loading: boolean;
     setUser: React.Dispatch<React.SetStateAction<any>>;
     setAdmin: React.Dispatch<React.SetStateAction<any>>;
+    setSeverity: React.Dispatch<React.SetStateAction<string>>;
+    severity: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -24,6 +26,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserType | null>(null);
     const [admin, setAdmin] = useState<UserType | null>(null);
     const [loading, setLoading] = useState(true); // Add loading state
+    const [severity, setSeverity] = useState<string>("Low");
+
+    const handleChangesInSeverity = () => {
+        const severityFromUser = localStorage.getItem("severity");
+
+        if (severityFromUser === "Low") {
+            setSeverity("Low");
+            localStorage.setItem("severity", "Low");
+
+        } else if (severityFromUser === "Moderate") {
+            setSeverity("Moderate");
+            localStorage.setItem("severity", "Moderate");
+        } else if (severityFromUser === "High") {
+            setSeverity("High");
+            localStorage.setItem("severity", "High");
+        } else {
+            setSeverity("Low");
+            localStorage.setItem("severity", "Low");
+        }
+    }
+
+
 
     useEffect(() => {
         const checkUser = async () => {
@@ -62,11 +86,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
 
         checkUser();
+        handleChangesInSeverity();
     }, []);
 
     return (
         <AuthContext.Provider
-            value={{ user, admin, loading, setUser, setAdmin }}
+            value={{ user, admin, loading, setUser, setAdmin, severity, setSeverity }}
         >
             {children}
         </AuthContext.Provider>

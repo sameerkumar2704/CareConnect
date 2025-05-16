@@ -5,21 +5,28 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarCheck, faEnvelope, faPerson, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "../../context/auth";
 
 const InstantAppointments = () => {
+
+    const auth = useAuth();
+
+    const { severity } = auth;
+
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [filteredHospitals, setFilteredHospitals] = useState<Hospital[]>([]);
 
     useEffect(() => {
         fetchHospitals();
     }, []);
 
     const fetchHospitals = async () => {
-        
+
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals/doctors?instant=true`);
+            const response = await fetch(`${API_URL}/hospitals/doctors?instant=true?severity=${severity}`);
             const data = await response.json();
             setHospitals(data);
         } catch (error) {
@@ -29,10 +36,24 @@ const InstantAppointments = () => {
         }
     };
 
+    useEffect(() => {
+        fetchHospitals();
+    }, [severity]);
 
-    const filteredHospitals = hospitals.filter(hospital =>
-        hospital.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+
+        if (value.trim() === "") {
+            setFilteredHospitals(hospitals);
+        } else {
+            const filtered = hospitals.filter((hospital) =>
+                hospital.name.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredHospitals(filtered);
+        }
+    }
 
     if (loading || !hospitals) {
         return (
@@ -60,7 +81,7 @@ const InstantAppointments = () => {
                             type="text"
                             placeholder="Search hospitals by name..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={handleSearch}
                             className="flex-grow px-6 py-3 bg-white rounded-l-full text-gray-800 focus:outline-none"
                         />
                         <button className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-r-full transition-colors duration-300">
@@ -137,7 +158,7 @@ const InstantAppointments = () => {
                                     </div>
 
                                     <Link
-                                        to={`/doctors/${doctor.id}`}
+                                        to={`/ doctors / ${doctor.id}`}
                                         className="mt-4 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transform transition-all hover:-translate-y-1"
                                     >
                                         <FontAwesomeIcon icon={faPerson} className="mr-2" />

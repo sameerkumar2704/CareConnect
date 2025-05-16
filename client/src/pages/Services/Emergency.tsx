@@ -3,11 +3,22 @@ import { Hospital } from "../../model/user.model";
 import { API_URL } from "../../utils/contants";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import HospitalCard from "../../components/Cards/Hospital";
+import { useAuth } from "../../context/auth";
 
 const Emergency = () => {
+    const auth = useAuth();
+
+    if (!auth) {
+        console.error("Auth context not found");
+        return;
+    }
+
+    const { severity } = auth;
+
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [filteredHospitals, setFilteredHospitals] = useState<Hospital[]>([]);
 
     useEffect(() => {
         fetchHospitals();
@@ -16,7 +27,7 @@ const Emergency = () => {
     const fetchHospitals = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals?emergency=true`);
+            const response = await fetch(`${API_URL}/hospitals?emergency=true&severity=${severity}`);
             const data = await response.json();
             setHospitals(data);
         } catch (error) {
@@ -26,10 +37,19 @@ const Emergency = () => {
         }
     };
 
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchTerm(value);
 
-    const filteredHospitals = hospitals.filter(hospital =>
-        hospital.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        if (value.trim() === "") {
+            setFilteredHospitals(hospitals);
+        } else {
+            const filtered = hospitals.filter((hospital) =>
+                hospital.name.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredHospitals(filtered);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -49,7 +69,7 @@ const Emergency = () => {
                             type="text"
                             placeholder="Search hospitals by name..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={handleSearch}
                             className="flex-grow px-6 py-3 bg-white rounded-l-full text-gray-800 focus:outline-none"
                         />
                         <button className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-r-full transition-colors duration-300">

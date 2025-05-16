@@ -11,6 +11,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log("Location", location.pathname);
+
   const [coordinates, setCoordinates] = useState<{
     lat: number, lon: number
   } | null>(null);
@@ -28,8 +30,6 @@ const Navbar = () => {
     }
 
     fetchLocation();
-
-
   }, [])
 
   const auth = useAuth();
@@ -38,9 +38,17 @@ const Navbar = () => {
     return null;
   }
 
-  const { user, setUser, loading, admin, setAdmin } = auth;
+
+
+  const { user, setUser, loading, admin, setAdmin, severity, setSeverity } = auth;
 
   console.log("User", user);
+
+  const hanldeSeverityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSeverity = e.target.value;
+    setSeverity(selectedSeverity);
+    localStorage.setItem("severity", selectedSeverity);
+  };
 
   return (
     <div>
@@ -71,7 +79,7 @@ const Navbar = () => {
       {/* Main Navbar */}
       <div className="shadow-md py-4 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="text-2xl flex gap-2 items-center font-bold text-[#00adb5]">
+          <Link to="/" className="text-base md:text-2xl flex gap-2 items-center font-bold text-[#00adb5]">
             <img src="/sitelogo.png" className="w-10 h-10" alt="CareConnect" />
             CareConnect
           </Link>
@@ -85,9 +93,24 @@ const Navbar = () => {
             {!loading && admin && <Link to="/admin" className="hover:text-[#60BDBB]">Admin</Link>}
           </div>
 
+          {/* Severity Selection DropDown Menu */}
+
+
           {/* Sign In/Logout Button */}
           {!loading && (
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center gap-4">
+              {location.pathname !== "/" && <div className="hidden md:flex">
+                <select
+                  value={severity}
+                  className="bg-white text-[#1b8185] border-1 font-bold border-black px-6 py-3 rounded text-sm md:text-lg hover:bg-gray-100 cursor-pointer transition"
+                  onChange={hanldeSeverityChange}
+                >
+                  <option value="" disabled selected>Select Severity</option>
+                  <option value="Low">Normal Severity</option>
+                  <option value="Moderate">Medium Severity</option>
+                  <option value="High">High Severity</option>
+                </select>
+              </div>}
               {user ? (
                 <button
                   onClick={() => {
@@ -117,6 +140,19 @@ const Navbar = () => {
             {isOpen ? "✖" : "☰"}
           </button>
         </div>
+
+        {location.pathname !== "/" && <div className="flex w-full justify-center mt-4 md:hidden">
+          <select
+            value={severity}
+            className="bg-white text-[#1b8185] border-1 font-bold border-black px-6 py-3  rounded text-sm md:text-lg hover:bg-gray-100 cursor-pointer transition"
+            onChange={hanldeSeverityChange}
+          >
+            <option value="" disabled selected>Select Severity</option>
+            <option value="Low">Low Severity</option>
+            <option value="Moderate">Medium Severity</option>
+            <option value="High">High Severity</option>
+          </select>
+        </div>}
 
         {/* Mobile Menu */}
         {isOpen && (

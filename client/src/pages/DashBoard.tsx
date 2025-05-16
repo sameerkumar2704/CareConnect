@@ -8,12 +8,36 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { getHighlyAccurateLocation } from "../utils/location/Location";
+import { useAuth } from "../context/auth";
 
 const Dashboard = () => {
+
+  const auth = useAuth();
+
+  if (!auth) {
+    console.error("Auth context not found");
+    return;
+  }
+
+  const { severity, setSeverity } = auth;
+
   const [doctors, setDoctos] = useState<Hospital[]>([]);
   const [specialists, setSpecialists] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const fetchSpecialties = async (severityfromUser: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/speciality/top?severity=${severityfromUser}`);
+      const data = await response.json();
+      console.log("Specialties", data);
+      setSpecialists(data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
 
@@ -36,23 +60,18 @@ const Dashboard = () => {
       }
     };
 
-    const fetchSpecialties = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`${API_URL}/speciality/top`);
-        const data = await response.json();
-        console.log("Specialties", data);
-        setSpecialists(data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+
 
     fetchDoctors();
-    fetchSpecialties();
+    fetchSpecialties(severity);
   }, []);
+
+  const hanldeSeverityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSeverity = e.target.value;
+    setSeverity(selectedSeverity);
+    localStorage.setItem("severity", selectedSeverity);
+    fetchSpecialties(selectedSeverity);
+  };
 
   if (loading) {
     <LoadingSpinner />;
@@ -80,9 +99,24 @@ const Dashboard = () => {
             Search
           </button>
         </div> */}
+
+        {/* Drop Down for Severlity Level Normal Medium High */}
+        <div className="flex justify-center">
+          <select value={severity} onChange={hanldeSeverityChange} className="w-full md:max-w-2xl text-white px-3 md:px-6 py-3 border-2 border-white rounded-l-full focus:outline-none text-sm md:text-lg">
+            <option className={`text-black`} value="" disabled selected>
+              Select Severity Level
+            </option>
+            <option value="Low" className="text-black">Normal</option>
+            <option value="Moderate" className="text-black">Medium</option>
+            <option value="High" className="text-black">High</option>
+          </select>
+          <button className="bg-white text-[#4fadb1] px-3 md:px-6 md:py-3 rounded-r-full text-sm md:text-lg hover:bg-gray-100 cursor-pointer transition">
+            Set Severity
+          </button>
+        </div>
       </div>
 
-      <div className="p-6 md:p-12">
+      <div className="flex flex-col items-center p-6 md:p-12">
         {/* Browse by Specialty */}
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl md:text-5xl font-bold text-center">Browse by Specialty</h1>
@@ -93,12 +127,13 @@ const Dashboard = () => {
           </h6>
         </div>
         {loading && <LoadingSpinner />}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-8 py-8 md:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 py-8 md:px-12">
           {!loading && specialists !== null && specialists !== undefined && specialists.length != 0 &&
             specialists.map((specialty) => (
               <SpecialtyCard tags={specialty.tags} key={specialty.id} count={specialty._count} id={specialty.id} name={specialty.name} description={specialty.description} />
             ))}
         </div>
+        <Link to={"/services/specialties"} className="w-full text-2xl text-[#4fadb1] font-semibold text-center">View All <FontAwesomeIcon icon={faArrowRight} /></Link>
       </div>
 
       <div className="p-6 md:p-12 bg-gray-100">

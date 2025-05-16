@@ -5,9 +5,20 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import SpecialtyCard from "../../components/Cards/Speciality";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "../../context/auth";
 
 
 const Specialties = () => {
+
+    const auth = useAuth();
+
+    if (!auth) {
+        console.error("Auth context not found");
+        return;
+    }
+
+    const { severity } = auth;
+
     const [specialties, setSpecialties] = useState<Specialty[]>([]);
     const [filteredSpecialties, setFilteredSpecialties] = useState<Specialty[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +34,8 @@ const Specialties = () => {
         } else {
             const filtered = specialties.filter(specialty =>
                 specialty.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                specialty.description.toLowerCase().includes(searchTerm.toLowerCase())
+                specialty.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                specialty.tags.some(tag => tag.name.toLowerCase().includes(searchTerm.toLowerCase()))
             );
             setFilteredSpecialties(filtered);
         }
@@ -32,7 +44,7 @@ const Specialties = () => {
     const fetchSpecialties = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/speciality`);
+            const response = await fetch(`${API_URL}/speciality?severity=${severity}`);
             const data = await response.json();
             setSpecialties(data);
             setFilteredSpecialties(data);
@@ -42,6 +54,10 @@ const Specialties = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchSpecialties();
+    }, [severity])
 
     return (
         <div className="min-h-screen bg-gray-50">

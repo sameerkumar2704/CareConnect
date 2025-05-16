@@ -6,12 +6,24 @@ const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
     try {
-        const specialities = await prisma.speciality.findMany({
-            orderBy: {
-                hospitals: {
-                    _count: "desc",
-                },
-            },
+        const { severity } = req.query;
+
+        console.log("Received severity:", severity);
+
+        // Validate severity parameter
+        if (
+            !severity ||
+            !["Low", "Moderate", "High"].includes(severity as string)
+        ) {
+            res.status(400).send({
+                message:
+                    "Invalid severity parameter. Must be 'Low', 'Moderate', or 'High'.",
+            });
+            return;
+        }
+
+        // Get all specialties first
+        const allSpecialities = await prisma.speciality.findMany({
             select: {
                 id: true,
                 name: true,
@@ -20,6 +32,27 @@ router.get("/", async (req, res) => {
             },
         });
 
+        // Filter and count matching tags for each specialty
+        const specialitiesWithMatchCount = allSpecialities.map((speciality) => {
+            // Count how many tags match the requested severity
+            const matchingTagsCount = speciality.tags.filter((tag) => {
+                const tagObj = typeof tag === "string" ? JSON.parse(tag) : tag;
+                return tagObj.severity === severity;
+            }).length;
+
+            return {
+                ...speciality,
+                matchingTagsCount,
+            };
+        });
+
+        // Filter to only include specialties with at least one matching tag
+        // and sort by the number of matching tags (highest first)
+        const specialities = specialitiesWithMatchCount
+            .filter((specialty) => specialty.matchingTagsCount > 0)
+            .sort((a, b) => b.matchingTagsCount - a.matchingTagsCount);
+
+        // Get hospital counts for each specialty
         const specialitiesWithCounts = await Promise.all(
             specialities.map(async (speciality) => {
                 const [rootCount, branchCount] = await prisma.$transaction([
@@ -59,8 +92,9 @@ router.get("/", async (req, res) => {
 
         res.status(200).send(specialitiesWithCounts);
     } catch (error) {
+        console.error("Error fetching specialties by severity:", error);
         res.status(500).send({
-            message: "An error occurred while fetching top specialities",
+            message: "An error occurred while fetching specialties by severity",
             error,
         });
     }
@@ -68,13 +102,24 @@ router.get("/", async (req, res) => {
 
 router.get("/top", async (req, res) => {
     try {
-        const specialities = await prisma.speciality.findMany({
-            take: 8,
-            orderBy: {
-                hospitals: {
-                    _count: "desc",
-                },
-            },
+        const { severity } = req.query;
+
+        console.log("Received severity:", severity);
+
+        // Validate severity parameter
+        if (
+            !severity ||
+            !["Low", "Moderate", "High"].includes(severity as string)
+        ) {
+            res.status(400).send({
+                message:
+                    "Invalid severity parameter. Must be 'Low', 'Moderate', or 'High'.",
+            });
+            return;
+        }
+
+        // Get all specialties first
+        const allSpecialities = await prisma.speciality.findMany({
             select: {
                 id: true,
                 name: true,
@@ -83,6 +128,27 @@ router.get("/top", async (req, res) => {
             },
         });
 
+        // Filter and count matching tags for each specialty
+        const specialitiesWithMatchCount = allSpecialities.map((speciality) => {
+            // Count how many tags match the requested severity
+            const matchingTagsCount = speciality.tags.filter((tag) => {
+                const tagObj = typeof tag === "string" ? JSON.parse(tag) : tag;
+                return tagObj.severity === severity;
+            }).length;
+
+            return {
+                ...speciality,
+                matchingTagsCount,
+            };
+        });
+
+        // Filter to only include specialties with at least one matching tag
+        // and sort by the number of matching tags (highest first)
+        const specialities = specialitiesWithMatchCount
+            .filter((specialty) => specialty.matchingTagsCount > 0)
+            .sort((a, b) => b.matchingTagsCount - a.matchingTagsCount);
+
+        // Get hospital counts for each specialty
         const specialitiesWithCounts = await Promise.all(
             specialities.map(async (speciality) => {
                 const [rootCount, branchCount] = await prisma.$transaction([
@@ -120,10 +186,11 @@ router.get("/top", async (req, res) => {
             })
         );
 
-        res.status(200).send(specialitiesWithCounts);
+        res.status(200).send(specialitiesWithCounts.slice(0, 8));
     } catch (error) {
+        console.error("Error fetching specialties by severity:", error);
         res.status(500).send({
-            message: "An error occurred while fetching top specialities",
+            message: "An error occurred while fetching specialties by severity",
             error,
         });
     }
