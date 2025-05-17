@@ -1,126 +1,122 @@
 [
     {
-        "id": "cmas3zg01001ai04o9d2p9hh6",
-        "name": "MediCare Center"
-    },
-    {
-        "id": "cmas3zg8x001ci04o5dkulznv",
-        "name": "HealthFirst Clinic"
-    },
-    {
-        "id": "cmas3zgh8001ei04o0l623v4p",
-        "name": "Sunshine Medical"
-    },
-    {
-        "id": "cmas3zgp5001gi04ozrsb5syk",
-        "name": "Wellness Hub"
-    },
-    {
-        "id": "cmas3zgx6001ii04ozmmbadsg",
-        "name": "City General Hospital"
-    },
-    {
-        "id": "cmas3zh4z001ki04ofs1sasnf",
-        "name": "Royal Care Medical"
-    },
-    {
-        "id": "cmas3zhdn001mi04od3s9wkax",
-        "name": "Prime Health Institute"
-    },
-    {
-        "id": "cmas3zhm3001oi04o4bo8p53i",
-        "name": "Phoenix Medical Center"
-    },
-    {
-        "id": "cmas3zhue001qi04o08rhxuwr",
-        "name": "Heritage Hospital"
-    },
-    {
-        "id": "cmas3zi1q001si04o39vsym9r",
-        "name": "New Life Medical Center"
-    },
-    {
-        "id": "cmas3zi9o001ui04o2xlqx003",
-        "name": "Apex Health Services"
-    },
-    {
-        "id": "cmas3zihi001wi04og06ohwrt",
-        "name": "Care Plus Hospital"
-    },
-    {
-        "id": "cmas3zipq001yi04ocnkwpcz8",
-        "name": "Metro Medical Institute"
-    },
-    {
-        "id": "cmas3zixy0020i04o80fooruj",
-        "name": "Harmony Healthcare"
-    },
-    {
-        "id": "cmas3zj5n0022i04ofbn9kjsz",
-        "name": "Lifeline Hospital"
-    },
-    {
-        "id": "cmas3zjdp0024i04opjlwem9u",
-        "name": "United Medical Center"
-    },
-    {
-        "id": "cmas3zjll0026i04ov6592ucm",
-        "name": "Hope Health Institute"
-    },
-    {
-        "id": "cmas3zfpj0018i04odt9hlrym",
+        "id": "cmas86pjq0001i0mojwsu1zob",
         "name": "CityLife Hospital"
     },
     {
-        "id": "cmas3zjtz0028i04ooywyc1l0",
+        "id": "cmas86rcn0003i0movelqovzd",
+        "name": "MediCare Center"
+    },
+    {
+        "id": "cmas86smf0005i0mogevo4ta7",
+        "name": "HealthFirst Clinic"
+    },
+    {
+        "id": "cmas86twk0007i0mooe5vwd4f",
+        "name": "Sunshine Medical"
+    },
+    {
+        "id": "cmas86v6i0009i0mop11lgirj",
+        "name": "Wellness Hub"
+    },
+    {
+        "id": "cmas86wgg000bi0molgrgjq40",
+        "name": "City General Hospital"
+    },
+    {
+        "id": "cmas86xqa000di0mo0ulb9tqz",
+        "name": "Royal Care Medical"
+    },
+    {
+        "id": "cmas86z0c000fi0mo1hbtqvjx",
+        "name": "Prime Health Institute"
+    },
+    {
+        "id": "cmas870a1000hi0mobvscy9qs",
+        "name": "Phoenix Medical Center"
+    },
+    {
+        "id": "cmas871rl000ji0mo100jlu22",
+        "name": "Heritage Hospital"
+    },
+    {
+        "id": "cmas8731f000li0mozwhvf77r",
+        "name": "New Life Medical Center"
+    },
+    {
+        "id": "cmas874bi000ni0moqf4jt4yj",
+        "name": "Apex Health Services"
+    },
+    {
+        "id": "cmas875l6000pi0mo20dqv475",
+        "name": "Care Plus Hospital"
+    },
+    {
+        "id": "cmas876ut000ri0moj9hj1quc",
+        "name": "Metro Medical Institute"
+    },
+    {
+        "id": "cmas8784v000ti0moxg64ght8",
+        "name": "Harmony Healthcare"
+    },
+    {
+        "id": "cmas879ez000vi0moi5jpeuko",
+        "name": "Lifeline Hospital"
+    },
+    {
+        "id": "cmas87aow000xi0mopz9kmz29",
+        "name": "United Medical Center"
+    },
+    {
+        "id": "cmas87byp000zi0mobagqis4a",
+        "name": "Hope Health Institute"
+    },
+    {
+        "id": "cmas87dfy0011i0mozf627j3m",
         "name": "Progressive Care Hospital"
     },
     {
-        "id": "cmas3zk1n002ai04oey4z79i4",
+        "id": "cmas87fwu0013i0moyk6nkvt3",
         "name": "Compassionate Medical"
     },
     {
-        "id": "cmas3zk9d002ci04o5lqod4yt",
+        "id": "cmas87hic0015i0motaj0gy2k",
         "name": "Victory Memorial Hospital"
     },
     {
-        "id": "cmas3zki2002ei04obocpqpu9",
+        "id": "cmas87izb0017i0mobh9klzba",
         "name": "Horizon Health Center"
     },
     {
-        "id": "cmas3zkpz002gi04o48yz9e3o",
+        "id": "cmas87kfn0019i0mog3rh6v2q",
         "name": "Noble Care Institute"
     },
     {
-        "id": "cmas3zkxm002ii04o1ob40uog",
+        "id": "cmas87lws001bi0mo8bboim25",
         "name": "Guardian Medical Center"
     },
     {
-        "id": "cmas3zl58002ki04olykiemdc",
+        "id": "cmas87ncl001di0mord9irrc8",
         "name": "Divine Healthcare"
     },
     {
-        "id": "cmas3zld0002mi04oubx1u0nf",
+        "id": "cmas87ot0001fi0mofm6icne5",
         "name": "Pinnacle Hospital"
     },
     {
-        "id": "cmas3zll9002oi04ote7mn5ul",
+        "id": "cmas87qgi001hi0mo03lzixru",
         "name": "Serenity Medical Institute"
     },
     {
-        "id": "cmas3zltf002qi04ogrm9ur2y",
+        "id": "cmas87rwi001ji0moc88r9tm6",
         "name": "Faith Memorial Hospital"
     },
     {
-        "id": "cmas3zm1g002si04owe74g66a",
+        "id": "cmas87tbs001li0morzcm4mcr",
         "name": "Tranquil Care Center"
     },
     {
-        "id": "cmas3zm9h002ui04o3fpxz8az",
+        "id": "cmas87urh001ni0mokb2u3hsy",
         "name": "Evergreen Hospital"
-    },
-    {
-        "id": "cmas3ztdu002wi04og8g2f8vi",
-        "name": "Abhishek Srivastava"
     }
 ]

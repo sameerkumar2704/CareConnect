@@ -28,11 +28,12 @@ router.get("/", async (req, res) => {
 
         if (emergency)
             hospitals = await prisma.$queryRawUnsafe<any[]>(`
-            SELECT h.id, h.email, h.name, h.password, h."parentId",
+                SELECT h.id, h.email, h.name, h.password, h."parentId",
                 ST_AsText(h."location") AS location,  
                 h."currLocation", h."createdAt", h."updatedAt", h."timings",
                 h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
-                h."fees", h."phone"
+                h."fees", h."phone",
+                
                 ST_DistanceSphere(
                     ST_MakePoint(CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION), 
                                 CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION)),
@@ -59,8 +60,15 @@ router.get("/", async (req, res) => {
             FROM "Hospital" h
             LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
-            WHERE h."parentId" IS NULL and h."emergency" = true
-            ORDER BY h."count"->>'doctorCount' DESC,distance;
+            WHERE h."parentId" IS NULL AND h."emergency" = true
+
+            GROUP BY 
+                h.id, h.email, h.name, h.password, h."parentId",
+                h."location", h."currLocation", h."createdAt", h."updatedAt", h."timings",
+                h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
+                h."fees", h."phone"
+
+            ORDER BY "doctorCount" DESC, distance;
         `);
         else if (role && approved) {
             hospitals = await prisma.$queryRawUnsafe<any[]>(`
@@ -260,30 +268,6 @@ router.get("/doctors", async (req, res) => {
             },
         });
 
-        // Check if any hospital free Slot Date is before the current date and update it with current date
-        for (const hospital of hospitals) {
-            if (hospital.freeSlotDate == null) {
-                const freeSlotDate = new Date();
-                freeSlotDate.setDate(freeSlotDate.getDate() + 1);
-                hospital.freeSlotDate = freeSlotDate;
-
-                await prisma.hospital.update({
-                    where: { id: hospital.id },
-                    data: { freeSlotDate: freeSlotDate },
-                });
-            }
-
-            if (hospital.freeSlotDate < next) {
-                const freeSlotDate = new Date();
-                freeSlotDate.setDate(freeSlotDate.getDate() + 1);
-                hospital.freeSlotDate = freeSlotDate;
-
-                await prisma.hospital.update({
-                    where: { id: hospital.id },
-                    data: { freeSlotDate: freeSlotDate },
-                });
-            }
-        }
 
         console.log("Doctors fetched:", hospitals.length);
 
@@ -542,6 +526,150 @@ router.post("/register", async (req, res) => {
         console.log("Token := ", token);
 
         res.status(201).send({ hospital, token });
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/bulk-register", async (req, res) => {
+    reqS("Bulk Hospital Registration Request");
+
+    try {
+        const { user } = req.query;
+
+        console.log("User := ", user);
+
+        const hospitalEntries = req.body;
+
+        console.log("Hospital Entries := ", hospitalEntries);
+
+        if (!Array.isArray(hospitalEntries) || hospitalEntries.length === 0) {
+            res.status(400).json({
+                error: "Request body must be a non-empty array.",
+            });
+            return;
+        }
+
+        const results: {
+            success: any[];
+            failed: { index: number; error: string }[];
+        } = {
+            success: [],
+            failed: [],
+        };
+
+        for (let i = 0; i < hospitalEntries.length; i++) {
+            let entry = { ...hospitalEntries[i] };
+            try {
+                // Hospital Validation
+                if (
+                    user === "Hospital" &&
+                    (!entry.longitude || !entry.latitude)
+                ) {
+                    throw new Error("Longitude and Latitude are required.");
+                }
+
+                // Doctor Specific Validations
+                if (user === "Doctor") {
+                    const associatedHospital = await prisma.hospital.findUnique(
+                        {
+                            where: { id: entry.hospital },
+                        }
+                    );
+
+                    if (!associatedHospital) {
+                        throw new Error("Associated Hospital not found.");
+                    }
+
+                    if (associatedHospital.parentId !== null) {
+                        throw new Error(
+                            "Associated Hospital is not a parent hospital."
+                        );
+                    }
+
+                    if (
+                        associatedHospital.currLocation !== null &&
+                        typeof associatedHospital.currLocation === "object" &&
+                        "longitude" in associatedHospital.currLocation &&
+                        "latitude" in associatedHospital.currLocation
+                    ) {
+                        const currLoc = associatedHospital.currLocation as {
+                            longitude: number | string;
+                            latitude: number | string;
+                        };
+                        entry.longitude = currLoc.longitude;
+                        entry.latitude = currLoc.latitude;
+                    }
+
+                    // Increment doctor count
+                    await prisma.$executeRawUnsafe(`
+                        UPDATE "Hospital"
+                        SET count = jsonb_set(
+                            count,
+                            '{doctorCount}',
+                            ((count->>'doctorCount')::int + 1)::text::jsonb
+                        )
+                        WHERE id = '${associatedHospital.id}';
+                    `);
+                }
+
+                const longitude = new Decimal(entry.longitude);
+                const latitude = new Decimal(entry.latitude);
+
+                delete entry.longitude;
+                delete entry.latitude;
+
+                const encPass = await encryptPassword(entry.password);
+                if (!encPass) throw new Error("Error in Password Encryption");
+
+                entry.password = encPass;
+                delete entry.confirmPassword;
+
+                const hospitalID = entry.hospital;
+                delete entry.hospital;
+
+                const countField = {
+                    highSeverity: 0,
+                    lowSeverity: 0,
+                    mediumSeverity: 0,
+                    doctorCount: 0,
+                };
+
+                const nextDate = new Date();
+                nextDate.setDate(nextDate.getDate() + 1);
+
+                const hospital = await prisma.hospital.create({
+                    data: {
+                        ...entry,
+                        parentId: hospitalID || null,
+                        fees: Number(entry.fees),
+                        maxAppointments: Number(entry.maxAppointments),
+                        count: countField,
+                        freeSlotDate: nextDate,
+                    },
+                    include: { parent: true },
+                });
+
+                await prisma.$executeRawUnsafe(`
+                    UPDATE "Hospital"
+                    SET location = ST_SetSRID(ST_MakePoint(${latitude}, ${longitude}), 4326)
+                    WHERE id = '${hospital.id}';
+                `);
+
+                const token = await generateToken({ userId: hospital.id });
+
+                results.success.push({ hospital, token });
+            } catch (error: any) {
+                results.failed.push({
+                    index: i,
+                    error: error.message || "Unknown error occurred",
+                });
+            }
+        }
+
+        res.status(207).json(results); // 207 = Multi-Status for partial success/failure
     } catch (error) {
         sendError(res, error as Error);
     }

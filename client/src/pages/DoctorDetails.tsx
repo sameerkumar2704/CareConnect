@@ -139,7 +139,7 @@ const DoctorDetails = () => {
         fetchUserCoordinates();
     }, [id]);
 
-    if (loading || !user) return <LoadingSpinner />;
+    if (loading) return <LoadingSpinner />;
     if (!doctor) return <NotFound />;
 
     const getRatingColor = (rating: number) => {
@@ -383,7 +383,7 @@ const DoctorDetails = () => {
                 </div>
 
                 {/* Book Appointment Button */}
-                {user.role !== "HOSPITAL" && (user._id !== doctor.id) && <div className="flex justify-center">
+                {user && user.role !== "HOSPITAL" && (user._id !== doctor.id) && <div className="flex justify-center">
                     <Link
                         to={`/checkout/${doctor.id}`}
                         className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
