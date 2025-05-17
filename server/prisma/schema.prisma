@@ -51,6 +51,7 @@ model Hospital {
   emergency            Boolean                               @default(false)
   ratings              Ratings[]
   fees                 Int
+  count                Json                                  @default("{\"doctorCount\": 0, \"lowSeverity\": 0, \"mediumSeverity\": 0, \"highSeverity\": 0}")
 }
 
 model Document {
@@ -80,6 +81,7 @@ model Speciality {
   hospitalSpecialities HospitalSpeciality[]
   hospitals            Hospital[]           @relation("HospitalSpecialities")
   Ratings              Ratings[]
+  count                Json                 @default("{\"doctorCount\": 0, \"hospitalCount\": 0}")
 }
 
 model HospitalSpeciality {

@@ -89,7 +89,8 @@ const ProviderTimingsTab = ({ userId }: ProviderTimingsTabProps) => {
         setIsLoading(true);
         try {
             const response = await axios.get(`${API_URL}/hospitals/${userId}/timings`);
-            setProviderTimings(response.data.timings || {});
+            console.log("Provider Timings", response.data);
+            setProviderTimings(response.data || {});
         } catch (error) {
             console.error("Error fetching provider timings:", error);
             setErrorMessage("Failed to load your timings. Please try again later.");
@@ -199,9 +200,13 @@ const ProviderTimingsTab = ({ userId }: ProviderTimingsTabProps) => {
             delete updatedTimings[dayCode];
 
             // Send the entire updated timings object
-            await axios.put(`${API_URL}/hospitals/${userId}/timings`, {
+            const res = await axios.put(`${API_URL}/hospitals/${userId}/timings`, {
                 timings: updatedTimings
             });
+
+            if (res.status !== 200) {
+                throw new Error(res.data);
+            }
 
             // Update state with the new timings
             setProviderTimings(updatedTimings);

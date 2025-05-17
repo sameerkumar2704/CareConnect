@@ -17,7 +17,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital, Specialty } from "../model/user.model";
 import { useAuth } from "../context/auth";
-import { GoogleMap } from "../utils/location/GoogleMap";
+import MapWithCoordinates from "../utils/location/DirectionMap";
+import { getHighlyAccurateLocation } from "../utils/location/Location";
 
 // Interface for reverse geocoding response
 interface GeocodingResult {
@@ -40,6 +41,8 @@ const HospitalDetails = () => {
     const [address, setAddress] = useState<string>("");
     const [specialities, setSpecialities] = useState<Specialty[]>([]);
 
+    const [userCoordinates, setUserCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+
     const auth = useAuth();
 
     if (!auth) {
@@ -56,6 +59,7 @@ const HospitalDetails = () => {
     // Function to fetch address from coordinates
     const fetchAddress = async (latitude: number, longitude: number) => {
         try {
+
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
             );
@@ -122,6 +126,20 @@ const HospitalDetails = () => {
                 console.error("Error fetching hospital details:", error);
                 setLoading(false);
             });
+
+        const fetchUserCoordinates = async () => {
+            const coords = await getHighlyAccurateLocation();
+
+            if (coords) {
+                setUserCoordinates({ lat: coords.lat, lng: coords.lon });
+            }
+
+            // Fetch address from user coordinates
+
+        };
+
+        fetchUserCoordinates();
+
     }, [id]);
 
     if (loading) return <LoadingSpinner />;
@@ -209,12 +227,17 @@ const HospitalDetails = () => {
                                 </div>
                             </div>
 
-                            {hospital.currLocation.latitude && hospital.currLocation.longitude && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
-                                <GoogleMap
+                            {hospital.currLocation.latitude && hospital.currLocation.longitude && userCoordinates && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
+                                {/* <GoogleMap
                                     latitude={hospital.currLocation.latitude}
                                     longitude={hospital.currLocation.longitude}
                                     name={hospital.name}
                                     mapId={hospital.id}
+                                /> */}
+
+                                <MapWithCoordinates
+                                    startCoords={{ lat: hospital.currLocation.latitude, lng: hospital.currLocation.longitude }}
+                                    endCoords={{ lat: userCoordinates.lat, lng: userCoordinates.lng }}
                                 />
                             </div>}
                         </div>

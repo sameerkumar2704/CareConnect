@@ -12,7 +12,7 @@ const UnProtectedRoute = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!loading) {
             if (user) {
-                navigate("/");
+                navigate("/dashboard");
             }
         }
     }, [user, loading, navigate]);

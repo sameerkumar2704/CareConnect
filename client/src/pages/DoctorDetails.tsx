@@ -18,7 +18,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital, Specialty, User } from "../model/user.model";
 import { useAuth } from "../context/auth";
-import { GoogleMap } from "../utils/location/GoogleMap";
+// import { GoogleMap } from "../utils/location/GoogleMap";
+import MapWithCoordinates from "../utils/location/DirectionMap";
+import { getHighlyAccurateLocation } from "../utils/location/Location";
 
 // Interface for reverse geocoding response
 interface GeocodingResult {
@@ -53,10 +55,12 @@ const DoctorDetails = () => {
 
     if (!auth) {
         console.error("Auth context is not available.");
-        return null; // or handle the error as needed
+        return; // or handle the error as needed
     }
 
     const { user } = auth;
+
+    const [userCoordinates, setUserCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
     // Function to fetch address from coordinates
     const fetchAddress = async (latitude: number, longitude: number) => {
@@ -117,6 +121,22 @@ const DoctorDetails = () => {
                 console.error("Error fetching doctor details:", error);
                 setLoading(false);
             });
+
+        const fetchUserCoordinates = async () => {
+            try {
+                const coordinates = await getHighlyAccurateLocation();
+
+                if (coordinates) {
+                    setUserCoordinates({ lat: coordinates.lat, lng: coordinates.lon });
+                } else {
+                    console.error("Unable to get user coordinates");
+                }
+            } catch (error) {
+                console.error("Error fetching user coordinates:", error);
+            }
+        };
+
+        fetchUserCoordinates();
     }, [id]);
 
     if (loading || !user) return <LoadingSpinner />;
@@ -208,26 +228,19 @@ const DoctorDetails = () => {
                             </div>
 
 
-                            {doctor.currLocation.latitude && doctor.currLocation.longitude && (
-                                <div className="flex items-start p-4 bg-gray-50 rounded-xl h-60 md:col-span-2 lg:col-span-3">
-                                    <GoogleMap
-                                        latitude={Number(doctor.currLocation.latitude)}
-                                        longitude={Number(doctor.currLocation.longitude)}
-                                        mapId={doctor.id}
-                                        name={doctor.name}
-                                    />
+                            {doctor.currLocation.latitude && doctor.currLocation.longitude && userCoordinates && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
+                                {/* <GoogleMap
+                                    latitude={hospital.currLocation.latitude}
+                                    longitude={hospital.currLocation.longitude}
+                                    name={hospital.name}
+                                    mapId={hospital.id}
+                                /> */}
 
-                                    {/* Open with Google Maps */}
-                                    <a
-                                        href={`https://www.google.com/maps/search/?api=1&query=${doctor.currLocation.latitude},${doctor.currLocation.longitude}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute bottom-4 right-4 bg-teal-500 text-white font-bold py-2 px-4 rounded-full shadow-md hover:bg-teal-600 transition duration-300"
-                                    >
-                                        Open in Google Maps
-                                    </a>
-                                </div>
-                            )}
+                                <MapWithCoordinates
+                                    startCoords={{ lat: doctor.currLocation.latitude, lng: doctor.currLocation.longitude }}
+                                    endCoords={{ lat: userCoordinates.lat, lng: userCoordinates.lng }}
+                                />
+                            </div>}
                         </div>
 
                         {/* Go to Profile Link */}

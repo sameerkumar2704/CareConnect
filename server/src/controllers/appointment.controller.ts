@@ -55,6 +55,9 @@ export const createAppointment = async (
             lastDate = nextDate;
         }
 
+        const expirationDate = new Date(date);
+        expirationDate.setDate(expirationDate.getDate() + 1);
+
         console.log("Adjusted last date:", lastDate);
 
         const appointment = await prisma.appointment.create({
@@ -62,6 +65,7 @@ export const createAppointment = async (
                 userId,
                 hospitalId,
                 date: lastDate,
+                expiry: expirationDate,
                 paidPrice,
             },
         });

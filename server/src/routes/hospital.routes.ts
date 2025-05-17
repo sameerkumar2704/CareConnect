@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Document, Hospital, Prisma, PrismaClient } from "@prisma/client";
+import { Hospital, PrismaClient } from "@prisma/client";
 import { sendError } from "../utils/error.util";
 import {
     comparePassword,
@@ -13,12 +13,16 @@ const router = Router();
 const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
-    console.log("Fetching hospitals...");
+    reqS("Fetching Hospitals");
 
     try {
         const { emergency, role, approved, longitude, latitude } = req.query;
 
         console.log("Emergency:", emergency);
+        console.log("Role:", role);
+        console.log("Approved:", approved);
+        console.log("Longitude:", longitude);
+        console.log("Latitude:", latitude);
 
         let hospitals = null;
 
@@ -28,11 +32,11 @@ router.get("/", async (req, res) => {
                 ST_AsText(h."location") AS location,  
                 h."currLocation", h."createdAt", h."updatedAt", h."timings",
                 h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
-                h."fees", h."phone",
+                h."fees", h."phone"
                 ST_DistanceSphere(
-                    ST_MakePoint(CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION), 
-                                CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION)),
-                    ST_MakePoint(${latitude}, ${longitude})
+                    ST_MakePoint(CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION), 
+                                CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION)),
+                    ST_MakePoint(${longitude}, ${latitude})
                 ) AS distance,
 
                 (
@@ -56,8 +60,7 @@ router.get("/", async (req, res) => {
             LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
             WHERE h."parentId" IS NULL and h."emergency" = true
-            GROUP BY h.id
-            ORDER BY distance
+            ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
         else if (role && approved) {
             hospitals = await prisma.$queryRawUnsafe<any[]>(`
@@ -96,27 +99,19 @@ router.get("/", async (req, res) => {
                 role === "HOSPITAL" ? "null" : "not null"
             } and h."approved" = ${approved}
             GROUP BY h.id
-            ORDER BY distance
-            LIMIT 8;
+            ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
         } else {
-            hospitals = await prisma.hospital.findMany({
-                include: { specialities: true },
-                where: {
-                    parentId: null,
-                },
-            });
-
             hospitals = await prisma.$queryRawUnsafe<any[]>(`
             SELECT h.id, h.email, h.name, h.password, h."parentId",
                 ST_AsText(h."location") AS location,  
                 h."currLocation", h."createdAt", h."updatedAt", h."timings",
                 h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
-                h."fees", h."phone",
+                h."fees", h."phone", h."count",
                 ST_DistanceSphere(
-                    ST_MakePoint(CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION), 
-                                CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION)),
-                    ST_MakePoint(${latitude}, ${longitude})
+                    ST_MakePoint(CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION), 
+                                CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION)),
+                    ST_MakePoint(${longitude}, ${latitude})
                 ) AS distance,
 
                 (
@@ -141,7 +136,7 @@ router.get("/", async (req, res) => {
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
             WHERE h."parentId" IS NULL
             GROUP BY h.id
-            ORDER BY distance
+            ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
         }
 
@@ -156,6 +151,19 @@ router.get("/", async (req, res) => {
     } catch (error) {
         console.error("Error fetching hospitals:", error);
         res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+router.get("/testing", async (req, res) => {
+    console.log("Testing database connection");
+
+    try {
+        const hospitals = await prisma.$queryRawUnsafe<Hospital[]>(`
+            select id, name from "Hospital";
+        `);
+        res.status(200).send(hospitals);
+    } catch (error) {
+        res.status(500).send({ error: "Something went wrong" });
     }
 });
 
@@ -215,7 +223,7 @@ router.get("/top", async (req, res) => {
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
             WHERE h."parentId" IS NULL
             GROUP BY h.id
-            ORDER BY distance
+            ORDER BY h."count"->>'doctorCount' DESC,distance
             LIMIT 8;
         `);
 
@@ -227,11 +235,15 @@ router.get("/top", async (req, res) => {
             error,
         });
     }
+
+    reqE();
 });
 
 router.get("/doctors", async (req, res) => {
     try {
         const now = new Date();
+        const next = new Date(now);
+        next.setDate(now.getDate() + 1);
         const nextSevenDays = new Date(now);
         nextSevenDays.setDate(now.getDate() + 7);
 
@@ -243,11 +255,37 @@ router.get("/doctors", async (req, res) => {
             where: {
                 parentId: { not: null },
                 freeSlotDate: {
-                    gte: now,
                     lte: nextSevenDays,
                 },
             },
         });
+
+        // Check if any hospital free Slot Date is before the current date and update it with current date
+        for (const hospital of hospitals) {
+            if (hospital.freeSlotDate == null) {
+                const freeSlotDate = new Date();
+                freeSlotDate.setDate(freeSlotDate.getDate() + 1);
+                hospital.freeSlotDate = freeSlotDate;
+
+                await prisma.hospital.update({
+                    where: { id: hospital.id },
+                    data: { freeSlotDate: freeSlotDate },
+                });
+            }
+
+            if (hospital.freeSlotDate < next) {
+                const freeSlotDate = new Date();
+                freeSlotDate.setDate(freeSlotDate.getDate() + 1);
+                hospital.freeSlotDate = freeSlotDate;
+
+                await prisma.hospital.update({
+                    where: { id: hospital.id },
+                    data: { freeSlotDate: freeSlotDate },
+                });
+            }
+        }
+
+        console.log("Doctors fetched:", hospitals.length);
 
         res.status(200).send(hospitals);
     } catch (error) {
@@ -429,6 +467,17 @@ router.post("/register", async (req, res) => {
                     latitude: currLoc.latitude,
                 };
             }
+
+            // Update the doctor count for the associated hospital
+            await prisma.$executeRawUnsafe(`
+                UPDATE "Hospital"
+                SET count = jsonb_set(
+                    count,
+                    '{doctorCount}',
+                    ((count->>'doctorCount')::int + 1)::text::jsonb
+                )
+                WHERE id = '${associatedHospital.id}';
+            `);
         }
 
         const longitude = new Decimal(hospitalData.longitude);
@@ -455,12 +504,25 @@ router.post("/register", async (req, res) => {
         const hospitalID = newHospitalData.hospital;
         delete newHospitalData.hospital;
 
+        const now = new Date();
+
+        const nextDate = new Date(now);
+        nextDate.setDate(now.getDate() + 1);
+
+        const countField = {
+            highSeverity: 0,
+            lowSeverity: 0,
+            mediumSeverity: 0,
+            doctorCount: 0,
+        };
+
         const hospital = await prisma.hospital.create({
             data: {
                 ...newHospitalData,
                 parentId: hospitalID || null,
                 fees: Number(newHospitalData.fees),
                 maxAppointments: Number(newHospitalData.maxAppointments),
+                count: countField,
             },
             include: { parent: true },
         });
@@ -661,6 +723,27 @@ router.post("/documents/:id", async (req, res) => {
         console.log("Updated Hospital with new document:", updatedHospital);
 
         res.status(200).send(updatedHospital);
+    } catch (error) {
+        sendError(res, error as Error);
+    }
+});
+
+router.put("/date/:id", async (req, res) => {
+    const { id } = req.params;
+    const { date } = req.body;
+
+    if (!date) {
+        res.status(400).send({ error: "Date is required" });
+        return;
+    }
+
+    try {
+        const hospital = await prisma.hospital.update({
+            where: { id },
+            data: { freeSlotDate: new Date(date) },
+        });
+
+        res.status(200).send(hospital);
     } catch (error) {
         sendError(res, error as Error);
     }

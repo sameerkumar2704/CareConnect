@@ -21,7 +21,7 @@ import {
     faExclamationTriangle,
     faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import DoctorSpecialtiesTab from "./DoctorSpecialities";
 import ProviderTimingsTab from "./HospitalTimings";
@@ -63,6 +63,7 @@ interface ExtendedUser extends User {
         longitude: string;
         latitude: string;
     };
+    freeSlotDate: string;
     appointments: Appointment[];
     ratings: any[];
     isApproved: boolean;
@@ -83,6 +84,78 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
     const [activeTab, setActiveTab] = useState<string>("profile");
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
+    const [date, setDate] = useState('');
+    const [saved, setSaved] = useState(false);
+    const [error, setError] = useState('');
+
+    const validateDate = (dateString: string) => {
+        // Basic validation for dd/mm/yyyy format
+        const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        const match = dateString.match(regex);
+
+        if (!match) return false;
+
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+
+        // Check if date values are valid
+        if (month < 1 || month > 12) return false;
+        if (day < 1) return false;
+
+        // Check for days in month
+        const daysInMonth = new Date(year, month, 0).getDate();
+        if (day > daysInMonth) return false;
+
+        const selectedDate = new Date(year, month - 1, day);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Ensure date is not in the past
+        if (selectedDate < today) return false;
+
+        return true;
+    };
+
+    const handleSave = async () => {
+        if (!date) {
+            setError('Please enter a date');
+            return;
+        }
+
+        if (!validateDate(date)) {
+            setError('Please enter a valid future date in DD/MM/YYYY format');
+            return;
+        }
+
+        console.log("Selected date:", date);
+
+        const [day, month, year] = date.split('/').map(Number);
+
+        console.log("Parsed date:", { day, month, year });
+
+        const dataDate = new Date();
+        dataDate.setFullYear(year);
+        dataDate.setMonth(month - 1);
+        dataDate.setDate(day);
+
+        console.log("Date object:", dataDate);
+
+        const res = await axios.put(`${API_URL}/hospitals/date/${userId}`, {
+            date: dataDate,
+        });
+
+        if (res.status !== 200) {
+            setError('Failed to save date');
+            return;
+        }
+
+
+
+        setSaved(true);
+        setError('');
+    };
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -258,6 +331,12 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
         setSelectedDate(newDate);
         fetchAppointmentsByDate(newDate);
     };
+
+    const handleUnavailableDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDate(e.target.value);
+        setSaved(false);
+        setError('');
+    }
 
     // Initial loading of appointments for current date when tab changes to appointments
     useEffect(() => {
@@ -520,13 +599,67 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
                                                 <p className="text-gray-700 font-medium">{formatDate(user.updatedAt)}</p>
                                             </div>
                                         </div>
-                                        {role !== "PATIENT" && <div className="flex items-start">
+                                        {/* {role !== "PATIENT" && <div className="flex items-start">
                                             <FontAwesomeIcon icon={faStar} className="mt-1 text-teal-500 w-5" />
                                             <div className="ml-4">
                                                 <h3 className="text-gray-500 text-sm">Ratings</h3>
                                                 <p className="text-gray-700 font-medium">
                                                     {user.ratings && user.ratings.length > 0 ? `${user.ratings.length} ratings` : "No ratings yet"}
                                                 </p>
+                                            </div>
+                                        </div>} */}
+                                        {role !== "PATIENT" && <div className="flex items-start">
+                                            <FontAwesomeIcon icon={faHospital} className="mt-1 text-teal-500 w-5" />
+                                            <div className="ml-4">
+                                                <h3 className="text-gray-500 text-sm">Available Date for Appointment</h3>
+                                                <p className="text-gray-700 font-medium">{new Date(user.freeSlotDate).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>}
+
+                                        {role !== "PATIENT" && <div className="max-w-md p-6 bg-white rounded-lg shadow-md">
+                                            <div className="flex items-start mb-4">
+                                                <div className="flex-shrink-0 text-teal-500 mt-1">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div className="ml-4">
+                                                    <h3 className="text-lg font-medium text-gray-800">Set Available Date for Appointment</h3>
+                                                    <p className="text-sm text-gray-500">Enter your next available date in DD/MM/YYYY format</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <div className="flex flex-col md:flex-row gap-3">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                                        value={date}
+                                                        onChange={handleUnavailableDateChange}
+                                                    />
+                                                    <button
+                                                        onClick={handleSave}
+                                                        className="px-6 py-2 text-white bg-teal-500 rounded-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                </div>
+
+                                                {error && (
+                                                    <p className="mt-2 text-sm text-red-600">{error}</p>
+                                                )}
+
+                                                {saved && (
+                                                    <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md">
+                                                        <p className="text-sm text-green-700 flex items-center">
+                                                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                                                            </svg>
+                                                            Available date saved successfully
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>}
                                     </div>

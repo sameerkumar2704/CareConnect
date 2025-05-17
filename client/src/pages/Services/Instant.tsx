@@ -26,9 +26,11 @@ const InstantAppointments = () => {
 
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals/doctors?instant=true?severity=${severity}`);
+            const response = await fetch(`${API_URL}/hospitals/doctors?severity=${severity}`);
             const data = await response.json();
+            console.log("Hospitals", data);
             setHospitals(data);
+            setFilteredHospitals(data);
         } catch (error) {
             console.log("Error fetching hospitals:", error);
         } finally {
@@ -158,7 +160,7 @@ const InstantAppointments = () => {
                                     </div>
 
                                     <Link
-                                        to={`/ doctors / ${doctor.id}`}
+                                        to={`/doctors/${doctor.id}`}
                                         className="mt-4 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transform transition-all hover:-translate-y-1"
                                     >
                                         <FontAwesomeIcon icon={faPerson} className="mr-2" />

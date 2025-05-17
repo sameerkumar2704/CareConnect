@@ -296,6 +296,8 @@ const AuthFormHospital = () => {
             });
             const details = await verifyToken(response.data.token);
 
+            navigate("/dashboard");
+
             setUser(details);
 
             if (details.role === "admin") {
@@ -303,11 +305,7 @@ const AuthFormHospital = () => {
             }
             localStorage.setItem("eWauthToken", response.data.token);
 
-
-
-            alert(isSignUp ? "SignUp Success, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
-
-            navigate("/dashboard");
+            // alert(isSignUp ? "SignUp Success, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
         } catch (error) {
             setErrors("An unexpected error occurred. Please try again.");
             console.error(error);

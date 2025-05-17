@@ -97,7 +97,7 @@ const Specialties = () => {
 
             {/* Specialties Section */}
             <section className="py-16 px-6">
-                <div className="max-w-6xl mx-auto">
+                <div className="px-6 md:px-12 mx-auto">
                     <div className="text-center mb-12">
                         <span className="text-teal-500 font-semibold text-lg">Services</span>
                         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">Browse by Specialty</h2>
@@ -111,7 +111,7 @@ const Specialties = () => {
                             <LoadingSpinner />
                         </div>
                     ) : filteredSpecialties.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {filteredSpecialties.map((specialty) => (
                                 <SpecialtyCard
                                     count={specialty._count}

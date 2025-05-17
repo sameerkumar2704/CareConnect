@@ -4,6 +4,7 @@ import { API_URL } from "../../utils/contants";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import HospitalCard from "../../components/Cards/Hospital";
 import { useAuth } from "../../context/auth";
+import { getHighlyAccurateLocation } from "../../utils/location/Location";
 
 const Emergency = () => {
     const auth = useAuth();
@@ -27,9 +28,13 @@ const Emergency = () => {
     const fetchHospitals = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/hospitals?emergency=true&severity=${severity}`);
+
+            const coordinates = await getHighlyAccurateLocation();
+
+            const response = await fetch(`${API_URL}/hospitals?latitude=${coordinates.lat}&longitude=${coordinates.lon}&emergency=true&severity=${severity}`);
             const data = await response.json();
             setHospitals(data);
+            setFilteredHospitals(data);
         } catch (error) {
             console.log("Error fetching hospitals:", error);
         } finally {

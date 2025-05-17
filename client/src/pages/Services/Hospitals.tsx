@@ -36,7 +36,10 @@ const Hospitals = () => {
 
             const response = await fetch(`${API_URL}/hospitals?latitude=${coordinates?.lat}&longitude=${coordinates?.lon}&severity=${severity}`);
             const data = await response.json();
+
+            console.log("Hospitals", data); 
             setHospitals(data);
+            setFilteredHospitals(data);
         } catch (error) {
             console.log("Error fetching hospitals:", error);
         } finally {
