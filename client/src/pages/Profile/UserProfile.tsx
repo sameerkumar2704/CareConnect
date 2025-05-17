@@ -12,7 +12,6 @@ import {
     faCalendarAlt,
     faClock,
     faHospital,
-    faStar,
     faArrowCircleUp,
     faLocationArrow,
     faSearch,
@@ -21,7 +20,7 @@ import {
     faExclamationTriangle,
     faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
-import { data, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import DoctorSpecialtiesTab from "./DoctorSpecialities";
 import ProviderTimingsTab from "./HospitalTimings";
