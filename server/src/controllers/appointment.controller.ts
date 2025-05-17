@@ -65,7 +65,6 @@ export const createAppointment = async (
                 userId,
                 hospitalId,
                 date: lastDate,
-                expiry: expirationDate,
                 paidPrice,
             },
         });
