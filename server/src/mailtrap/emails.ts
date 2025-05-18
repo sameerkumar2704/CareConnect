@@ -12,6 +12,7 @@ export const sendVerificationEmail = async (
 ) => {
     try {
         const response = await client.sendMail({
+            from: "Care Connect",
             to: email,
             subject: "Verify your email",
             html: VERIFICATION_EMAIL_TEMPLATE.replace(
@@ -30,6 +31,7 @@ export const sendVerificationEmail = async (
 export const sendWelcomeEmail = async (email: string, name: string) => {
     try {
         const response = await client.sendMail({
+            from: "Care Connect",
             to: email,
             subject: "Logged in Success",
             html: WELCOME_EMAIL.replace("{company_info_name}", "Care Connect")
@@ -52,6 +54,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 export const sendPasswordResetEmail = async (email: string, resetURL: string) => {
     try {
         const response = await client.sendMail({
+            from: "Care Connect",
             to: email,
             subject: "Reset Your Password",
             html: PASSWORD_RESET_REQUEST_TEMPLATE.replace(
@@ -70,6 +73,7 @@ export const sendPasswordResetEmail = async (email: string, resetURL: string) =>
 export const sendResetSuccessfullEmail = async (email: string) => {
     try {
         const response = await client.sendMail({
+            from: "Care Connect",
             to: email,
             subject: "Password Reset Successful",
             html: PASSWORD_RESET_SUCCESS_TEMPLATE,
