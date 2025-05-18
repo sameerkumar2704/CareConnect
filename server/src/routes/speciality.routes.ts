@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Speciality } from "@prisma/client";
 import { Router } from "express";
 
 const router = Router();
@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
                 name: true,
                 description: true,
                 tags: true,
-                count: true, // Assumes this is a JSON field like { doctorCount, hospitalCount }
+                count: true,
             },
         });
 
@@ -61,6 +61,31 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.get("/test", async (req, res) => {
+    try {
+        const { severity } = req.query;
+        console.log("Received severity:", severity);
+
+        // Fetch all specialties with count field included
+        const allSpecialities = await prisma.speciality.findMany({
+            select: {
+                id: true,
+            },
+        });
+
+        // create a string array of ids
+        const ids = allSpecialities.map((speciality) => speciality.id);
+
+        res.status(200).send({ ids: ids });
+    } catch (error) {
+        console.error("Error fetching specialties:", error);
+        res.status(500).send({
+            message: "An error occurred while fetching specialties",
+            error,
+        });
+    }
+});
+
 router.get("/top", async (req, res) => {
     try {
         const { severity } = req.query;
@@ -80,14 +105,15 @@ router.get("/top", async (req, res) => {
         }
 
         // Get all specialties first
-        const allSpecialities = await prisma.speciality.findMany({
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                tags: true,
-            },
-        });
+        const allSpecialities: Speciality[] = await prisma.$queryRawUnsafe(`
+                SELECT 
+                id,
+                name,
+                description,
+                tags,
+                count
+                FROM "Speciality"
+            `);
 
         // Filter and count matching tags for each specialty
         const specialitiesWithMatchCount = allSpecialities.map((speciality) => {
@@ -109,45 +135,7 @@ router.get("/top", async (req, res) => {
             .filter((specialty) => specialty.matchingTagsCount > 0)
             .sort((a, b) => b.matchingTagsCount - a.matchingTagsCount);
 
-        // Get hospital counts for each specialty
-        const specialitiesWithCounts = await Promise.all(
-            specialities.map(async (speciality) => {
-                const [rootCount, branchCount] = await prisma.$transaction([
-                    prisma.hospital.count({
-                        where: {
-                            parentId: null,
-                            specialities: {
-                                some: {
-                                    id: speciality.id,
-                                },
-                            },
-                        },
-                    }),
-                    prisma.hospital.count({
-                        where: {
-                            parentId: {
-                                not: null,
-                            },
-                            specialities: {
-                                some: {
-                                    id: speciality.id,
-                                },
-                            },
-                        },
-                    }),
-                ]);
-
-                return {
-                    ...speciality,
-                    _count: {
-                        parent: rootCount,
-                        children: branchCount,
-                    },
-                };
-            })
-        );
-
-        res.status(200).send(specialitiesWithCounts.slice(0, 8));
+        res.status(200).send(specialities.slice(0, 8));
     } catch (error) {
         console.error("Error fetching specialties by severity:", error);
         res.status(500).send({
@@ -167,11 +155,6 @@ router.get("/:id", async (req, res) => {
                     include: {
                         specialities: true,
                         parent: true,
-                        _count: {
-                            select: {
-                                children: true,
-                            },
-                        },
                     },
                 },
             },
@@ -219,6 +202,34 @@ router.post("/", async (req, res) => {
     const specialities = req.body;
 
     try {
+        // For each speciality, count Low, Medium, and High severity tags and set the count
+        specialities.forEach((speciality: Speciality) => {
+            const count = {
+                doctorCount: 0,
+                hospitalCount: 0,
+                lowSeverity: 0,
+                mediumSeverity: 0,
+                highSeverity: 0,
+            };
+            const tags = speciality.tags as Array<{ severity: string }>;
+
+            tags.forEach((tag) => {
+                switch ((tag.severity || "").toLowerCase()) {
+                    case "low":
+                        count.lowSeverity++;
+                        break;
+                    case "medium":
+                        count.mediumSeverity++;
+                        break;
+                    case "high":
+                        count.highSeverity++;
+                        break;
+                }
+            });
+
+            speciality.count = count;
+        });
+
         const createdSpecialities = await prisma.speciality.createMany({
             data: specialities,
         });
@@ -338,6 +349,13 @@ router.put("/doctor/:id", async (req, res) => {
             });
 
             if (!alreadyConnected) {
+                await prisma.hospitalSpeciality.create({
+                    data: {
+                        hospitalId: doctor.parentId,
+                        specialityId: specialtyId,
+                    },
+                });
+
                 await prisma.$executeRawUnsafe(`
                     UPDATE "Speciality"
                     SET count = jsonb_set(
@@ -384,6 +402,174 @@ router.put("/doctor/:id", async (req, res) => {
 
         res.status(500).send({
             message: "An error occurred while fetching speciality",
+            error,
+        });
+    }
+});
+
+router.put("/doctors/bulk-specialities", async (req, res) => {
+    const doctorsData = req.body;
+
+    if (!Array.isArray(doctorsData)) {
+        res.status(400).send({
+            message:
+                "Invalid input format. Expected array of doctor-speciality objects.",
+        });
+        return;
+    }
+
+    try {
+        for (const entry of doctorsData) {
+            const { id: doctorId, specialities } = entry;
+
+            if (
+                !doctorId ||
+                !Array.isArray(specialities) ||
+                specialities.length === 0
+            ) {
+                console.warn(
+                    `Skipping invalid entry: ${JSON.stringify(entry)}`
+                );
+                return;
+            }
+
+            const doctor = await prisma.hospital.findUnique({
+                where: { id: doctorId },
+                include: { specialities: true },
+            });
+
+            if (!doctor) {
+                console.warn(`Doctor not found: ${doctorId}`);
+                return;
+            }
+
+            for (const specialtyId of specialities) {
+                const speciality = await prisma.speciality.findUnique({
+                    where: { id: specialtyId },
+                });
+
+                if (!speciality) {
+                    console.warn(`Speciality not found: ${specialtyId}`);
+                    return;
+                }
+
+                const tags = speciality.tags as Array<{ severity: string }>;
+                let low = 0,
+                    medium = 0,
+                    high = 0;
+
+                tags.forEach((tag) => {
+                    switch ((tag.severity || "").toLowerCase()) {
+                        case "low":
+                            low++;
+                            break;
+                        case "medium":
+                            medium++;
+                            break;
+                        case "high":
+                            high++;
+                            break;
+                    }
+                });
+
+                const increment = 1;
+
+                // Update speciality doctor count
+                await prisma.$executeRawUnsafe(`
+                    UPDATE "Speciality"
+                    SET count = jsonb_set(
+                        count,
+                        '{doctorCount}', ((count->>'doctorCount')::int + ${increment})::text::jsonb
+                    )
+                    WHERE id = '${speciality.id}';
+                `);
+
+                // Attach speciality to doctor
+                await prisma.hospital.update({
+                    where: { id: doctorId },
+                    data: {
+                        specialities: {
+                            connect: { id: specialtyId },
+                        },
+                    },
+                });
+
+                // Update hospital severity count
+                await prisma.$executeRawUnsafe(`
+                    UPDATE "Hospital"
+                    SET count = jsonb_set(
+                        jsonb_set(
+                            jsonb_set(
+                                count,
+                                '{lowSeverity}', ((count->>'lowSeverity')::int + ${low})::text::jsonb
+                            ),
+                            '{mediumSeverity}', ((count->>'mediumSeverity')::int + ${medium})::text::jsonb
+                        ),
+                        '{highSeverity}', ((count->>'highSeverity')::int + ${high})::text::jsonb
+                    )
+                    WHERE id = '${doctor.id}';
+                `);
+
+                // Update parent hospital if exists
+                if (doctor.parentId) {
+                    const alreadyConnected =
+                        await prisma.hospitalSpeciality.findFirst({
+                            where: {
+                                hospitalId: doctor.parentId,
+                                specialityId: specialtyId,
+                            },
+                        });
+
+                    if (!alreadyConnected) {
+                        await prisma.hospitalSpeciality.create({
+                            data: {
+                                hospitalId: doctor.parentId,
+                                specialityId: specialtyId,
+                            },
+                        });
+
+                        await prisma.$executeRawUnsafe(`
+                            UPDATE "Speciality"
+                            SET count = jsonb_set(
+                                count,
+                                '{hospitalCount}', ((count->>'hospitalCount')::int + ${increment})::text::jsonb
+                            )
+                            WHERE id = '${speciality.id}';
+                        `);
+                    }
+
+                    await prisma.hospital.update({
+                        where: { id: doctor.parentId },
+                        data: {
+                            specialities: {
+                                connect: { id: specialtyId },
+                            },
+                        },
+                    });
+
+                    await prisma.$executeRawUnsafe(`
+                        UPDATE "Hospital"
+                        SET count = jsonb_set(
+                            jsonb_set(
+                                jsonb_set(
+                                    count,
+                                    '{lowSeverity}', ((count->>'lowSeverity')::int + ${low})::text::jsonb
+                                ),
+                                '{mediumSeverity}', ((count->>'mediumSeverity')::int + ${medium})::text::jsonb
+                            ),
+                            '{highSeverity}', ((count->>'highSeverity')::int + ${high})::text::jsonb
+                        )
+                        WHERE id = '${doctor.parentId}';
+                    `);
+                }
+            }
+        }
+
+        res.status(200).send({ message: "Doctors updated successfully" });
+    } catch (error) {
+        console.error("Error updating doctors:", error);
+        res.status(500).send({
+            message: "An error occurred during bulk update",
             error,
         });
     }

@@ -16,13 +16,31 @@ router.get("/", async (req, res) => {
     reqS("Fetching Hospitals");
 
     try {
-        const { emergency, role, approved, longitude, latitude } = req.query;
+        const { emergency, role, approved, longitude, latitude, search } =
+            req.query;
 
         console.log("Emergency:", emergency);
         console.log("Role:", role);
         console.log("Approved:", approved);
         console.log("Longitude:", longitude);
         console.log("Latitude:", latitude);
+        console.log("Search:", search);
+
+        if (search !== undefined) {
+            const hospitals = await prisma.hospital.findMany({
+                where: {
+                    name: {
+                        contains: (search && (search as string)) || "",
+                        mode: "insensitive",
+                    },
+                },
+            });
+
+            console.log("Hospitals fetched:", hospitals.length);
+
+            res.status(200).send(hospitals);
+            return;
+        }
 
         let hospitals = null;
 
@@ -231,7 +249,7 @@ router.get("/top", async (req, res) => {
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
             WHERE h."parentId" IS NULL
             GROUP BY h.id
-            ORDER BY h."count"->>'doctorCount' DESC,distance
+            ORDER BY h."count"->>'doctorCount' DESC, distance
             LIMIT 8;
         `);
 
@@ -268,10 +286,34 @@ router.get("/doctors", async (req, res) => {
             },
         });
 
-
         console.log("Doctors fetched:", hospitals.length);
 
         res.status(200).send(hospitals);
+    } catch (error) {
+        res.status(500).send({
+            message: "An error occurred while fetching hospitals",
+            error,
+        });
+    }
+});
+
+router.get("/doc", async (req, res) => {
+    try {
+        const hospitals = await prisma.hospital.findMany({
+            select: {
+                id: true,
+            },
+            where: {
+                parentId: { not: null },
+            },
+        });
+
+        // create a string array of ids
+        const ids = hospitals.map((hospital) => hospital.id);
+
+        console.log("Doctors fetched:", hospitals.length);
+
+        res.status(200).send({ ids: ids });
     } catch (error) {
         res.status(500).send({
             message: "An error occurred while fetching hospitals",
@@ -637,6 +679,31 @@ router.post("/bulk-register", async (req, res) => {
                     doctorCount: 0,
                 };
 
+                const timings = {
+                    mon: {
+                        start: "09:00",
+                        end: "17:00",
+                    },
+                    tue: {
+                        start: "09:00",
+                        end: "17:00",
+                    },
+                    wed: {
+                        start: "09:00",
+                        end: "17:00",
+                    },
+                    thu: {
+                        start: "09:00",
+                        end: "17:00",
+                    },
+                    fri: {
+                        start: "09:00",
+                        end: "17:00",
+                    },
+                    sat: null,
+                    sun: null,
+                };
+
                 const nextDate = new Date();
                 nextDate.setDate(nextDate.getDate() + 1);
 
@@ -647,6 +714,7 @@ router.post("/bulk-register", async (req, res) => {
                         fees: Number(entry.fees),
                         maxAppointments: Number(entry.maxAppointments),
                         count: countField,
+                        timings: timings,
                         freeSlotDate: nextDate,
                     },
                     include: { parent: true },
