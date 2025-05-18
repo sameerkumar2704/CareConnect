@@ -26,6 +26,8 @@ import HighlyProtectedRoute from "./utils/routeProtection/highlyProtectedRoute";
 import SpecialtyPage from "./pages/SpecialiityPage";
 import DoctorDetails from "./pages/DoctorDetails";
 import InstantAppointments from "./pages/Services/Instant";
+import EmailVerification from "./pages/Auth/EmailVerification";
+import PasswordReset from "./pages/Auth/PasswordReset";
 
 const App: React.FC = () => {
 
@@ -52,8 +54,16 @@ const App: React.FC = () => {
             {
               path: "/auth/hospital",
               element: <UnProtectedRoute><AuthFormHospital /></UnProtectedRoute>
-            }
+            },
           ]
+        },
+        {
+          path: "/email-verification/:id",
+          element: <UnProtectedRoute><EmailVerification /></UnProtectedRoute>
+        },
+        {
+          path: "/reset-password",
+          element: <PasswordReset />
         },
         {
           path: "/specializations/:id",

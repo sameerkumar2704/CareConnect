@@ -10,6 +10,7 @@ import jwt from "jsonwebtoken";
 import { sendError } from "../utils/error.util";
 import { Decimal } from "@prisma/client/runtime/library";
 import { reqE, reqER, reqS } from "../utils/logger.utils";
+import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails";
 
 const prisma = new PrismaClient();
 
@@ -237,6 +238,173 @@ router.post("/login", async (req, res) => {
     reqE();
 });
 
+router.post("/email/:id", async (req, res) => {
+    reqS("send email");
+
+    try {
+        const { id } = req.params;
+
+        console.log("ID := ", id);
+
+        const user = await prisma.user.findUnique({
+            where: { id: id },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Create a random 6 digit verification code as string
+        const verificationCode =
+            Math.floor(100000 + Math.random() * 900000) + "";
+
+        const updatedUser = await prisma.user.update({
+            where: { id: id },
+            data: { verificationCode: verificationCode },
+        });
+
+        console.log("Verification Code := ", verificationCode);
+        console.log("Updated User := ", updatedUser);
+
+        await sendVerificationEmail(user.email, verificationCode);
+
+        res.status(200).send({ message: "Email sent" });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/verify/:id", async (req, res) => {
+    reqS("email verify");
+
+    try {
+        const { code } = req.body;
+
+        const { id } = req.params;
+
+        console.log("Id := ", id);
+
+        const user = await prisma.user.findUnique({
+            where: { id: id },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (user.verificationCode !== code) {
+            await prisma.user.delete({
+                where: { id: id },
+            });
+
+            throw new Error("Invalid Verification Code");
+        }
+
+        await prisma.user.update({
+            where: { id: id },
+            data: { isVerified: true, verificationCode: null },
+        });
+
+        await sendWelcomeEmail(user.email, user.name);
+
+        const token = await generateToken({ userId: user.id });
+
+        console.log("Generated Token :=", token);
+
+        res.status(200).send({ token });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/forgotpassword", async (req, res) => {
+    // Recieve an email and send a 6 digit code to the email
+    reqS("forgot password");
+
+    try {
+        const { email } = req.body;
+
+        console.log("Email := ", email);
+
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Create a random 6 digit verification code as string
+        const verificationCode =
+            Math.floor(100000 + Math.random() * 900000) + "";
+
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: { verificationCode: verificationCode },
+        });
+
+        console.log("Verification Code := ", verificationCode);
+        console.log("Updated User := ", updatedUser);
+
+        await sendVerificationEmail(user.email, verificationCode);
+
+        res.status(200).send({ message: "Email sent" });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+});
+
+router.post("/verify-reset-code", async (req, res) => {
+    // Recieve an email and send a 6 digit code to the email
+    reqS("verify reset code");
+
+    try {
+        const { code, email } = req.body;
+
+        console.log("Code := ", code);
+        console.log("Email := ", email);
+
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (user.verificationCode !== code) {
+            throw new Error("Invalid Verification Code");
+        }
+
+        const resetToken = await generateToken({ userId: user.id });
+        console.log("Generated Reset Token :=", resetToken);
+
+        res.status(200).send({ message: "Code verified", resetToken });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+});
+
 router.post("/verify", async (req, res) => {
     reqS("verify user");
 
@@ -340,6 +508,48 @@ router.post("/location", async (req, res) => {
     }
 });
 
+router.put("/resetpassword", async (req, res) => {
+    reqS("reset password");
+
+    try {
+        const { email, password } = req.body;
+
+        console.log("Email := ", email);
+
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        console.log("Password := ", password);
+
+        const encPass = await encryptPassword(password);
+        if (!encPass) {
+            throw new Error("Error in Password Encryption");
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: { password: encPass },
+        });
+
+        console.log("Updated User :=", updatedUser);
+
+        res.status(200).send(updatedUser);
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
 router.put("/:id", async (req, res) => {
     reqS("update user");
 
@@ -367,50 +577,6 @@ router.put("/:id", async (req, res) => {
         console.log("Generated Token :=", token);
 
         res.status(201).send({ user, token });
-    } catch (error) {
-        reqER(error as Error);
-
-        sendError(res, error as Error);
-    }
-
-    reqE();
-});
-
-router.put("/resetpassword/:id", async (req, res) => {
-    reqS("reset password");
-
-    try {
-        const { id } = req.params;
-
-        console.log("ID := ", id);
-
-        const user = await prisma.user.findUnique({
-            where: { id: id },
-        });
-
-        console.log("User := ", user);
-
-        if (!user) {
-            throw new Error("User not found");
-        }
-
-        const { password } = req.body;
-
-        console.log("Password := ", password);
-
-        const encPass = await encryptPassword(password);
-        if (!encPass) {
-            throw new Error("Error in Password Encryption");
-        }
-
-        const updatedUser = await prisma.user.update({
-            where: { id: id },
-            data: { password: encPass },
-        });
-
-        console.log("Updated User :=", updatedUser);
-
-        res.status(200).send(updatedUser);
     } catch (error) {
         reqER(error as Error);
 

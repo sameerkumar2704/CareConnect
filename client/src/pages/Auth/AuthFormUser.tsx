@@ -4,7 +4,7 @@ import { API_URL } from "../../utils/contants";
 import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faEye, faEyeSlash, faLock, faPerson, faPhone } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { validateName, validatePassword, validatePhone } from "../../utils/validations";
 import { verifyToken } from "../../utils/auth";
@@ -30,7 +30,7 @@ const AuthFormUser = () => {
         document.getElementById("errorWin")?.scrollIntoView({ behavior: "smooth" });
     }, [errors]);
 
-    const { setUser, setAdmin } = auth;
+    // const { setUser, setAdmin } = auth;
 
     const navigate = useNavigate();
 
@@ -135,19 +135,19 @@ const AuthFormUser = () => {
 
             const details = await verifyToken(response.data.token);
 
-            setUser(details);
+            // setUser(details);
 
-            if (details.role === "admin") {
-                setAdmin(details);
-            }
+            // if (details.role === "admin") {
+            //     setAdmin(details);
+            // }
 
-            localStorage.setItem("eWauthToken", response.data.token);
+            // localStorage.setItem("eWauthToken", response.data.token);
 
-            alert(isSignUp ? "Account Created, Redirecting to Home Page..." : "Login Success, Redirecting to Home Page...");
+            alert(isSignUp ? "Account Created, Redirecting to Email Verification Page..." : "Login Success, Redirecting to Home Page...");
 
             document.getElementById("sub")?.scrollIntoView({ behavior: "smooth" });
 
-            navigate("/dashboard");
+            navigate(`${isSignUp ? `/email-verification/${details._id}?role=PATIENT` : "/"}`);
 
         } catch (error) {
             setLoading(false);
@@ -286,9 +286,9 @@ const AuthFormUser = () => {
 
                     {/* Forgot Password Link */}
                     {!isSignUp && (
-                        <span className="text-[#00979D] text-sm block text-right cursor-pointer hover:underline">
+                        <Link to={"/reset-password?role=PATIENT"} className="text-[#00979D] text-sm block text-right cursor-pointer hover:underline">
                             Forgot Password?
-                        </span>
+                        </Link>
                     )}
 
                     {errors && <div id="errorWin" className="text-red-500 text-center mt-5">{errors}</div>}

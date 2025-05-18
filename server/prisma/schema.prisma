@@ -14,17 +14,20 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String?       @unique
-  name         String
-  password     String
-  phone        String        @unique
-  role         UserRole      @default(PATIENT)
-  currLocation Json          @default("{}")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  appointments Appointment[]
-  ratings      Ratings[]
+  id               String        @id @default(cuid())
+  email            String        @unique
+  name             String
+  password         String
+  phone            String        @unique
+  role             UserRole      @default(PATIENT)
+  currLocation     Json          @default("{}")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  appointments     Appointment[]
+  ratings          Ratings[]
+  isVerified       Boolean       @default(false)
+  verificationCode String?
+  isProfileChanged Boolean       @default(false)
 }
 
 model Hospital {
@@ -52,6 +55,9 @@ model Hospital {
   ratings              Ratings[]
   fees                 Int
   count                Json                                  @default("{\"doctorCount\": 0, \"lowSeverity\": 0, \"mediumSeverity\": 0, \"highSeverity\": 0}")
+  isVerified           Boolean                               @default(false)
+  verificationCode     String?
+  isProfileChanged     Boolean                               @default(false)
 }
 
 model Document {

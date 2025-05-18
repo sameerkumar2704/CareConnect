@@ -7,7 +7,8 @@ import {
     generateToken,
 } from "../utils/auth.utils";
 import { Decimal } from "@prisma/client/runtime/library";
-import { reqE, reqS } from "../utils/logger.utils";
+import { reqE, reqER, reqS } from "../utils/logger.utils";
+import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -542,6 +543,31 @@ router.post("/register", async (req, res) => {
             doctorCount: 0,
         };
 
+        const timings = {
+            mon: {
+                start: "09:00",
+                end: "17:00",
+            },
+            tue: {
+                start: "09:00",
+                end: "17:00",
+            },
+            wed: {
+                start: "09:00",
+                end: "17:00",
+            },
+            thu: {
+                start: "09:00",
+                end: "17:00",
+            },
+            fri: {
+                start: "09:00",
+                end: "17:00",
+            },
+            sat: null,
+            sun: null,
+        }
+
         const hospital = await prisma.hospital.create({
             data: {
                 ...newHospitalData,
@@ -549,6 +575,7 @@ router.post("/register", async (req, res) => {
                 fees: Number(newHospitalData.fees),
                 maxAppointments: Number(newHospitalData.maxAppointments),
                 count: countField,
+                timings: timings,
             },
             include: { parent: true },
         });
@@ -573,6 +600,173 @@ router.post("/register", async (req, res) => {
     }
 
     reqE();
+});
+
+router.post("/email/:id", async (req, res) => {
+    reqS("send email");
+
+    try {
+        const { id } = req.params;
+
+        console.log("ID := ", id);
+
+        const user = await prisma.hospital.findUnique({
+            where: { id: id },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Create a random 6 digit verification code as string
+        const verificationCode =
+            Math.floor(100000 + Math.random() * 900000) + "";
+
+        const updatedUser = await prisma.hospital.update({
+            where: { id: id },
+            data: { verificationCode: verificationCode },
+        });
+
+        console.log("Verification Code := ", verificationCode);
+        console.log("Updated User := ", updatedUser);
+
+        await sendVerificationEmail(user.email, verificationCode);
+
+        res.status(200).send({ message: "Email sent" });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/verify/:id", async (req, res) => {
+    reqS("email verify");
+
+    try {
+        const { code } = req.body;
+
+        const { id } = req.params;
+
+        console.log("Id := ", id);
+
+        const user = await prisma.hospital.findUnique({
+            where: { id: id },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (user.verificationCode !== code) {
+            await prisma.hospital.delete({
+                where: { id: id },
+            });
+
+            throw new Error("Invalid Verification Code");
+        }
+
+        await prisma.hospital.update({
+            where: { id: id },
+            data: { isVerified: true, verificationCode: null },
+        });
+
+        await sendWelcomeEmail(user.email, user.name);
+
+        const token = await generateToken({ userId: user.id });
+
+        console.log("Generated Token :=", token);
+
+        res.status(200).send({ token });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
+});
+
+router.post("/forgotpassword", async (req, res) => {
+    // Recieve an email and send a 6 digit code to the email
+    reqS("forgot password");
+
+    try {
+        const { email } = req.body;
+
+        console.log("Email := ", email);
+
+        const user = await prisma.hospital.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Create a random 6 digit verification code as string
+        const verificationCode =
+            Math.floor(100000 + Math.random() * 900000) + "";
+
+        const updatedUser = await prisma.hospital.update({
+            where: { id: user.id },
+            data: { verificationCode: verificationCode },
+        });
+
+        console.log("Verification Code := ", verificationCode);
+        console.log("Updated User := ", updatedUser);
+
+        await sendVerificationEmail(user.email, verificationCode);
+
+        res.status(200).send({ message: "Email sent" });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+});
+
+router.post("/verify-reset-code", async (req, res) => {
+    // Recieve an email and send a 6 digit code to the email
+    reqS("verify reset code");
+
+    try {
+        const { code, email } = req.body;
+
+        console.log("Code := ", code);
+        console.log("Email := ", email);
+
+        const user = await prisma.hospital.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (user.verificationCode !== code) {
+            throw new Error("Invalid Verification Code");
+        }
+
+        const resetToken = await generateToken({ userId: user.id });
+        console.log("Generated Reset Token :=", resetToken);
+
+        res.status(200).send({ message: "Code verified", resetToken });
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
 });
 
 router.post("/bulk-register", async (req, res) => {
@@ -922,6 +1116,48 @@ router.post("/documents/:id", async (req, res) => {
     } catch (error) {
         sendError(res, error as Error);
     }
+});
+
+router.put("/resetpassword", async (req, res) => {
+    reqS("reset password");
+
+    try {
+        const { email, password } = req.body;
+
+        console.log("Email := ", email);
+
+        const user = await prisma.hospital.findUnique({
+            where: { email: email },
+        });
+
+        console.log("User := ", user);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        console.log("Password := ", password);
+
+        const encPass = await encryptPassword(password);
+        if (!encPass) {
+            throw new Error("Error in Password Encryption");
+        }
+
+        const updatedUser = await prisma.hospital.update({
+            where: { id: user.id },
+            data: { password: encPass },
+        });
+
+        console.log("Updated User :=", updatedUser);
+
+        res.status(200).send(updatedUser);
+    } catch (error) {
+        reqER(error as Error);
+
+        sendError(res, error as Error);
+    }
+
+    reqE();
 });
 
 router.put("/date/:id", async (req, res) => {
