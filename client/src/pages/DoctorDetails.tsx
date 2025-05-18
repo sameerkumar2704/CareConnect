@@ -15,11 +15,12 @@ import {
     faStar,
     faQuoteLeft, faUser, faStethoscope,
     faHospitalAlt,
-    faLock
+    faLock,
+    faClock,
+    faCalendarWeek
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital, Specialty, User } from "../model/user.model";
 import { useAuth } from "../context/auth";
-// import { GoogleMap } from "../utils/location/GoogleMap";
 import MapWithCoordinates from "../utils/location/DirectionMap";
 import { getHighlyAccurateLocation } from "../utils/location/Location";
 import { mapNumberToDay } from "../utils/date";
@@ -44,6 +45,15 @@ interface Ratings {
     feedback: string;
 }
 
+interface DayTimings {
+    start: string;
+    end: string;
+}
+
+interface WeekTimings {
+    [key: string]: DayTimings | null;
+}
+
 const DoctorDetails = () => {
     const { id } = useParams<{ id: string }>();
     const [doctor, setDoctor] = useState<Hospital | null>(null);
@@ -52,6 +62,7 @@ const DoctorDetails = () => {
     const [address, setAddress] = useState<string>("");
     const [specialities, setSpecialities] = useState<Specialty[]>([]);
     const [ratings, setRatings] = useState<Ratings[]>([]);
+    const [weeklySchedule, setWeeklySchedule] = useState<WeekTimings>({});
 
     const auth = useAuth();
 
@@ -95,7 +106,7 @@ const DoctorDetails = () => {
     };
 
     const todayWeekday = mapNumberToDay(new Date().getDay());
-    console.log("Today Weekday", todayWeekday);
+    const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     useEffect(() => {
         fetch(`${API_URL}/hospitals/${id}`)
@@ -107,6 +118,11 @@ const DoctorDetails = () => {
                 // Set specialities
                 if (data.specialities && data.specialities.length > 0) {
                     setSpecialities(data.specialities);
+                }
+
+                // Set weekly schedule
+                if (data.timings) {
+                    setWeeklySchedule(data.timings);
                 }
 
                 // Fetch ratings from backend
@@ -153,6 +169,13 @@ const DoctorDetails = () => {
         if (rating >= 2.5) return 'bg-gradient-to-r from-yellow-400 to-orange-400';
         return 'bg-gradient-to-r from-orange-500 to-red-500';
     };
+
+    const getAverageRating = () => {
+        if (ratings.length === 0) return 0;
+        return ratings.reduce((acc, rating) => acc + rating.rating, 0) / ratings.length;
+    };
+
+    const isAvailableToday = weeklySchedule[todayWeekday] !== null && weeklySchedule[todayWeekday] !== undefined;
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-cyan-700 via-teal-500 to-blue-400">
@@ -211,26 +234,33 @@ const DoctorDetails = () => {
                                 </div>
                             )}
 
-                            {/* Last free date avalilable Date */}
+                            {/* Next free date available */}
                             <div className="flex items-start p-4 bg-gray-50 rounded-xl">
                                 <div className="bg-teal-100 p-3 rounded-full mr-4">
                                     <FontAwesomeIcon icon={faCalendarCheck} className="text-teal-600 text-xl" />
                                 </div>
                                 <div>
-                                    <p className="text-gray-500 font-medium">Free Date for Appointment</p>
+                                    <p className="text-gray-500 font-medium">Next Available Date</p>
                                     <p className="text-gray-800 font-semibold">{new Date(doctor.freeSlotDate).toLocaleDateString()}</p>
                                 </div>
                             </div>
 
-                            {/* Available Hours as Start Time and End time */}
+                            {/* Today's availability status */}
                             <div className="flex items-start p-4 bg-gray-50 rounded-xl">
-                                <div className="bg-teal-100 p-3 rounded-full mr-4">
-                                    <FontAwesomeIcon icon={faNotesMedical} className="text-teal-600 text-xl" />
+                                <div className={`${isAvailableToday ? "bg-green-100" : "bg-red-100"} p-3 rounded-full mr-4`}>
+                                    <FontAwesomeIcon
+                                        icon={faClock}
+                                        className={`${isAvailableToday ? "text-green-600" : "text-red-600"} text-xl`}
+                                    />
                                 </div>
                                 <div>
-                                    <p className="text-gray-500 font-medium">Available Hours</p>
-                                    {doctor.timings[todayWeekday] ? (<p className="text-gray-800 font-semibold">{doctor.timings[mapNumberToDay(new Date().getDay())]?.start} - {doctor.timings[mapNumberToDay(new Date().getDay())]?.end}</p>) : (
-                                        <p className="text-red-800 font-semibold">Not Available</p>
+                                    <p className="text-gray-500 font-medium">Today's Status</p>
+                                    {isAvailableToday ? (
+                                        <p className="text-green-600 font-semibold">
+                                            Available ({weeklySchedule[todayWeekday]?.start} - {weeklySchedule[todayWeekday]?.end})
+                                        </p>
+                                    ) : (
+                                        <p className="text-red-600 font-semibold">Not Available Today</p>
                                     )}
                                 </div>
                             </div>
@@ -245,20 +275,14 @@ const DoctorDetails = () => {
                                 </div>
                             </div>
 
-
-                            {doctor.parent.currLocation.latitude && doctor.parent.currLocation.longitude && userCoordinates && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
-                                {/* <GoogleMap
-                                    latitude={hospital.currLocation.latitude}
-                                    longitude={hospital.currLocation.longitude}
-                                    name={hospital.name}
-                                    mapId={hospital.id}
-                                /> */}
-
-                                <MapWithCoordinates
-                                    startCoords={{ lat: doctor.parent.currLocation.latitude, lng: doctor.parent.currLocation.longitude }}
-                                    endCoords={{ lat: userCoordinates.lat, lng: userCoordinates.lng }}
-                                />
-                            </div>}
+                            {doctor.parent.currLocation.latitude && doctor.parent.currLocation.longitude && userCoordinates && (
+                                <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
+                                    <MapWithCoordinates
+                                        startCoords={{ lat: doctor.parent.currLocation.latitude, lng: doctor.parent.currLocation.longitude }}
+                                        endCoords={{ lat: userCoordinates.lat, lng: userCoordinates.lng }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Go to Profile Link */}
@@ -275,6 +299,58 @@ const DoctorDetails = () => {
                     </div>
                 </div>
 
+                {/* Weekly Schedule Card */}
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-12">
+                    <div className="p-8">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <FontAwesomeIcon icon={faCalendarWeek} className="mr-4 text-teal-500" />
+                            Weekly Availability Schedule
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3">
+                            {weekdays.map((day) => {
+                                const myweekday = day.toLowerCase().slice(0, 3);
+                                const daySchedule = weeklySchedule[myweekday];
+                                console.log(myweekday)
+                                console.log(todayWeekday)
+                                const isToday = myweekday === todayWeekday;
+                                const isAvailable = daySchedule !== null && daySchedule !== undefined;
+
+                                return (
+                                    <div
+                                        key={day}
+                                        className={`p-4 rounded-xl shadow-sm ${isToday ? 'border-2 border-teal-500' : 'border border-gray-200'} ${isAvailable ? 'bg-white' : 'bg-gray-50'}`}
+                                    >
+                                        <div className="text-center">
+                                            <p className={`font-bold mb-2 ${isToday ? 'text-teal-600' : 'text-gray-700'}`}>
+                                                {day} {isToday && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full ml-1">Today</span>}
+                                            </p>
+
+                                            {isAvailable ? (
+                                                <div>
+                                                    <div className="bg-teal-50 p-2 rounded-lg mb-2">
+                                                        <p className="text-sm text-gray-600">Start Time</p>
+                                                        <p className="font-semibold text-teal-700">{daySchedule.start}</p>
+                                                    </div>
+                                                    <div className="bg-teal-50 p-2 rounded-lg">
+                                                        <p className="text-sm text-gray-600">End Time</p>
+                                                        <p className="font-semibold text-teal-700">{daySchedule.end}</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="py-6 flex items-center justify-center text-gray-500">
+                                                    <FontAwesomeIcon icon={faClock} className="mr-2" />
+                                                    <span>Not Available</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Doctor Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                     {/* Ratings Card */}
@@ -287,7 +363,7 @@ const DoctorDetails = () => {
                         </div>
                         <div className="text-center">
                             <div className="text-5xl font-bold mt-4 mb-2">
-                                {ratings.length > 0 ? (ratings.reduce((acc, rating) => acc + rating.rating, 0) / ratings.length).toFixed(2) : "0.0"}
+                                {getAverageRating().toFixed(2)}
                                 <span className="text-2xl">/5</span>
                             </div>
                             <div className="flex justify-center mb-3">
@@ -295,7 +371,7 @@ const DoctorDetails = () => {
                                     <FontAwesomeIcon
                                         key={star}
                                         icon={faStar}
-                                        className={`mx-1 ${star <= Math.round(ratings.reduce((acc, rating) => acc + rating.rating, 0) / ratings.length)
+                                        className={`mx-1 ${star <= Math.round(getAverageRating())
                                             ? "text-yellow-300"
                                             : "text-white/30"
                                             }`}
@@ -333,7 +409,6 @@ const DoctorDetails = () => {
                 </div>
 
                 {/* Ratings Section with full details name, rating and feedback  */}
-
                 <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl shadow-xl p-8 mb-12 border border-gray-100">
                     <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center">
                         <FontAwesomeIcon icon={faStar} className="mr-4 text-teal-500" />
@@ -404,26 +479,15 @@ const DoctorDetails = () => {
                 {
                     user ? (
                         user.role === "PATIENT" ? (
-                            doctor.timings[todayWeekday] ? (
-                                <div className="flex justify-center">
-                                    <Link
-                                        to={`/checkout/${doctor.id}`}
-                                        className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
-                                    >
-                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
-                                        Book an Appointment
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="flex justify-center">
-                                    <div
-                                        className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
-                                    >
-                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
-                                        Not Available
-                                    </div>
-                                </div>
-                            )
+                            <div className="flex justify-center">
+                                <Link
+                                    to={`/checkout/${doctor.id}`}
+                                    className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
+                                >
+                                    <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
+                                    Book an Appointment for {new Date(doctor.freeSlotDate).toLocaleDateString()}
+                                </Link>
+                            </div>
                         ) : (
                             <div className="flex justify-center">
                                 <div
@@ -446,7 +510,6 @@ const DoctorDetails = () => {
                         </div>
                     )
                 }
-
             </div>
         </div>
     );
