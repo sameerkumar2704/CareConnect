@@ -6,10 +6,11 @@ import { getHighlyAccurateLocation } from "../../utils/location/Location";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faEye, faEyeSlash, faHospital, faIndianRupee, faLock, faPhone, faUserDoctor, faCalendarCheck, faAmbulance } from "@fortawesome/free-solid-svg-icons";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { validateName, validatePassword, validatePhone } from "../../utils/validations";
 import { verifyToken } from "../../utils/auth";
+import { getRedirectPath } from "../../utils/redirect";
 
 const AuthFormHospital = () => {
     const [isSignUp, setIsSignUp] = useState<boolean>(false);
@@ -313,6 +314,12 @@ const AuthFormHospital = () => {
 
         setLoading(false);
     };
+
+    const location = useLocation();
+
+    const redirectPath = getRedirectPath(location.search, '/dashboard');
+
+    console.log("Redirect Path at Auth Form Hospital", redirectPath);
 
 
     return (

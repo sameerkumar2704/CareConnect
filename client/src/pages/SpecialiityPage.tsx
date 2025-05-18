@@ -154,7 +154,7 @@ const SpecialtyPage = () => {
             try {
                 // Replace with your actual API endpoint
                 const specialtyRes = await axios.get(`${API_URL}/speciality/${id}`);
-                console.log("Specialty data:", specialtyRes.data);
+                // console.log("Specialty data:", specialtyRes.data);
                 setSpecialty(specialtyRes.data);
 
                 // Fetch hospitals with this specialty
@@ -163,6 +163,9 @@ const SpecialtyPage = () => {
                 // Separate doctors (hospitals with parent) from actual hospitals
                 const hospitalsList = hospitalsRes.filter(h => !h.parentId);
                 const doctorsList = hospitalsRes.filter(h => h.parentId);
+
+                console.log("Hospitals data:", hospitalsList);
+                console.log("Doctors data:", doctorsList);
 
                 setHospitals(hospitalsList);
                 setDoctors(doctorsList);
@@ -253,12 +256,12 @@ const SpecialtyPage = () => {
                                 key={hospital.id}
                                 id={hospital.id}
                                 parentName={hospital.name}
-                                specialities={hospital.specialities.filter(s => s.id !== specialty.id)} // Exclude current specialty
+                                specialities={hospital.specialities} // Exclude current specialty
                                 email={hospital.email}
                                 image={"/Services/Hospital.jpg"}
                                 fees={hospital.fees}
                                 hasEmergency={hospital.emergency}
-                                doctorCount={hospital._count.children}
+                                doctorCount={hospital.count.doctorCount}
                                 isDoctor={false}
                             />
                         ))}
@@ -284,12 +287,12 @@ const SpecialtyPage = () => {
                                 key={doctor.id}
                                 id={doctor.id}
                                 parentName={doctor.name}
-                                specialities={doctor.specialities.filter(s => s.id !== specialty.id)} // Exclude current specialty
+                                specialities={doctor.specialities} // Exclude current specialty
                                 email={doctor.email}
                                 image={"/Auth/Doctor.png"}
                                 fees={doctor.fees}
                                 hasEmergency={false}
-                                doctorCount={0}
+                                doctorCount={doctor.doctorCount}
                                 isDoctor={true}
                             />
                         ))}

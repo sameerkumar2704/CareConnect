@@ -114,7 +114,7 @@ const Specialties = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {filteredSpecialties.map((specialty) => (
                                 <SpecialtyCard
-                                    count={specialty._count}
+                                    count={specialty.count}
                                     key={specialty.id}
                                     id={specialty.id}
                                     name={specialty.name}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-const SpecialtyCard = ({ name, description, id, count, tags }: { name: string; tags: [{ name: string, severity: string }], description: string; id: string; count: { parent: number, children: number }; }) => {
+const SpecialtyCard = ({ name, description, id, count, tags }: { name: string; tags: [{ name: string, severity: string }], description: string; id: string; count: { hospitalCount: number, doctorCount: number }; }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const navigate = useNavigate();
@@ -176,7 +176,7 @@ const SpecialtyCard = ({ name, description, id, count, tags }: { name: string; t
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
                                     <div>
-                                        <span className="font-medium">{count.parent}</span>{" "}Hospitals Available
+                                        <span className="font-medium">{count.hospitalCount}</span>{" "}Hospitals Available
                                     </div>
                                 </div>
                                 <div className="flex items-center text-gray-700">
@@ -184,7 +184,7 @@ const SpecialtyCard = ({ name, description, id, count, tags }: { name: string; t
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     <div>
-                                        <span className="font-medium">{count.children}</span>{" "}Doctors Available
+                                        <span className="font-medium">{count.doctorCount}</span>{" "}Doctors Available
                                     </div>
                                 </div>
                             </div>

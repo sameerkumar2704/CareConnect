@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import CreditCardForm from '../components/CreditCardForm';
 import DebitCardForm from '../components/DebitCardForm';
 import UPIForm from '../components/UPIForm';
@@ -15,6 +15,7 @@ import {
 import { API_URL } from '../utils/contants';
 import { useAuth } from '../context/auth';
 import { Appointment } from '../model/user.model';
+import { mapNumberToDay } from '../utils/date';
 
 // Define Hospital interface if not already defined elsewhere
 interface Hospital {
@@ -35,12 +36,25 @@ const CheckoutPage: React.FC = () => {
     const [parentHospital, setParentHospital] = useState<Hospital | null>(null);
     const [showPaymentProcessing, setShowPaymentProcessing] = useState(false); // Add this state
 
+    const navigate = useNavigate();
+
     const auth = useAuth();
 
     if (!auth) {
         return <LoadingSpinner />;
     }
 
+    const { user } = auth;
+
+    if (!user) {
+        return <LoadingSpinner />;
+    }
+
+    if (user && user.role !== "PATIENT") {
+        alert("You are not authorized to access this page.");
+        navigate("/dashboard")
+        return;
+    }
 
     // Calculate dates for appointment
     const [today, setToday] = useState(new Date());
@@ -62,7 +76,7 @@ const CheckoutPage: React.FC = () => {
             };
         }
 
-        const originalPrice = parentHospital.fees;
+        const originalPrice = parentHospital.fees + hospital.fees;
         const siteCompensation = originalPrice * 0.05;
         const totalAmount = originalPrice + siteCompensation;
 
@@ -86,6 +100,15 @@ const CheckoutPage: React.FC = () => {
             .then((response) => response.json())
             .then((data) => {
                 console.log("Checkout", data);
+
+                const todayWeekDay = mapNumberToDay(today.getDay());
+
+                if (!data.timings[todayWeekDay]) {
+                    alert("The doctor is not available now.");
+                    setLoading(false);
+                    return;
+                }
+
                 setHospital(data);
                 setParentHospital(data.parent);
                 setLoading(false);

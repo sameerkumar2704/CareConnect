@@ -130,7 +130,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 py-8 md:px-12">
           {!loading && specialists !== null && specialists !== undefined && specialists.length != 0 &&
             specialists.map((specialty) => (
-              <SpecialtyCard tags={specialty.tags} key={specialty.id} count={specialty._count} id={specialty.id} name={specialty.name} description={specialty.description} />
+              <SpecialtyCard tags={specialty.tags} key={specialty.id} count={specialty.count} id={specialty.id} name={specialty.name} description={specialty.description} />
             ))}
         </div>
         <Link to={"/services/specialties"} className="w-full text-2xl text-[#4fadb1] font-semibold text-center">View All <FontAwesomeIcon icon={faArrowRight} /></Link>

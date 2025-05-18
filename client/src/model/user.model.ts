@@ -16,15 +16,45 @@ export interface Specialty {
     hospitalCount: number;
     createdAt: Date;
     updatedAt: Date;
-    _count: {
-        parent: number;
-        children: number;
-    }
+    count: {
+        hospitalCount: number;
+        doctorCount: number;
+    };
 }
 
 export interface Hospital {
     id: string;
     name: string;
+    timings: {
+        mon: {
+            start: string;
+            end: string;
+        } | null;
+        tue: {
+            start: string;
+            end: string;
+        };
+        wed: {
+            start: string;
+            end: string;
+        } | null;
+        thu: {
+            start: string;
+            end: string;
+        };
+        fri: {
+            start: string;
+            end: string;
+        } | null;
+        sat: {
+            start: string;
+            end: string;
+        } | null;
+        sun: {
+            start: string;
+            end: string;
+        } | null;
+    };
     email: string;
     freeSlotDate: string;
     doctorCount: number;
@@ -34,6 +64,7 @@ export interface Hospital {
     locationId: string;
     appointments: Appointment[];
     specialities: Specialty[];
+    parent: Hospital;
     createdAt: Date;
     emergency: boolean;
     updatedAt: Date;
@@ -43,10 +74,13 @@ export interface Hospital {
     currLocation: {
         latitude: number;
         longitude: number;
-    }
+    };
     parentId: Hospital;
-    _count: {
-        children: number;
+    count: {
+        doctorCount: number;
+        lowSeverity: number;
+        mediumSeverity: number;
+        highSeverity: number;
     };
 }
 

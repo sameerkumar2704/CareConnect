@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faAt,
-    faQrcode,
     faCheckCircle,
     faShieldAlt,
 } from '@fortawesome/free-solid-svg-icons';
@@ -43,20 +42,6 @@ const UPIForm: React.FC = () => {
                                 <span>UPI ID</span>
                             </div>
                         </button>
-
-                        <button
-                            type="button"
-                            className={`flex-1 py-2 px-4 rounded-lg border ${upiMethod === 'qr'
-                                ? 'bg-green-50 border-green-500 text-green-700'
-                                : 'border-gray-300 hover:bg-gray-100'
-                                }`}
-                            onClick={() => setUpiMethod('qr')}
-                        >
-                            <div className="flex items-center justify-center">
-                                <FontAwesomeIcon icon={faQrcode} className="mr-2" />
-                                <span>QR Code</span>
-                            </div>
-                        </button>
                     </div>
 
                     {upiMethod === 'id' && (
@@ -86,13 +71,6 @@ const UPIForm: React.FC = () => {
                                     Example: yourname@okaxis, mobile@paytm
                                 </p>
                             </div>
-
-                            <button
-                                type="button"
-                                className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition font-medium"
-                            >
-                                Verify & Pay
-                            </button>
                         </div>
                     )}
 

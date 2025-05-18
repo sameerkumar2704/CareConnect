@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { ReactNode, useEffect } from "react";
 import Loading from "../../components/LoadingSpinner";
+import { getRedirectPath } from "../redirect";
 
 const UnProtectedRoute = ({ children }: { children: ReactNode }) => {
     const auth = useAuth();
@@ -9,10 +10,16 @@ const UnProtectedRoute = ({ children }: { children: ReactNode }) => {
     const loading = auth?.loading || false;
     const navigate = useNavigate();
 
+    const location = useLocation();
+
+    const redirectPath = getRedirectPath(location.search, '/dashboard');
+
+    console.log("Redirect Path at Context Unprotected", redirectPath);
+
     useEffect(() => {
         if (!loading) {
             if (user) {
-                navigate("/dashboard");
+                navigate(redirectPath, { replace: true });
             }
         }
     }, [user, loading, navigate]);

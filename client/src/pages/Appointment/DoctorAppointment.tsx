@@ -7,7 +7,6 @@ import {
     faUser,
     faClock,
     faMoneyBillWave,
-    faMapMarkerAlt,
     faPhoneAlt,
     faEnvelope,
     faArrowLeft,
@@ -314,6 +313,14 @@ const DoctorAppointmentView: React.FC = () => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+    const auth = useAuth();
+
+    if (!auth) {
+        <LoadingSpinner />;
+    }
+
+    const { user } = auth;
+
     useEffect(() => {
         if (!id) return;
 
@@ -332,6 +339,19 @@ const DoctorAppointmentView: React.FC = () => {
                     data.status = (data.doctorCharges > 0 || data.paidCharges > 0) ? "cancelled" : 'expired';
                 }
 
+                if (user.role === "PATIENT") {
+                    setError('You do not have permission to view this appointment.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (data.hospitalId !== user._id && data.Hospital.parent?.id !== user._id) {
+                    console.error('User does not have permission to view this appointment');
+                    setError('You do not have permission to view this appointment.');
+                    setLoading(false);
+                    return;
+                }
+
                 // Calculate fine amount if cancelled (10% of paid price)
                 if (data.status.toLowerCase() === 'cancelled') {
                     data.fineAmount = data.Hospital.paidPrice * 0.1;
@@ -348,7 +368,7 @@ const DoctorAppointmentView: React.FC = () => {
                 setLoading(false);
             });
     }, [id]);
-    
+
 
     const handleStatusChange = (newStatus: string) => {
         if (!appointment || appointment.status.toLowerCase() === newStatus) return;
@@ -530,13 +550,6 @@ const DoctorAppointmentView: React.FC = () => {
 
     if (loading) return <LoadingSpinner />;
     if (error || !appointment) return <NotFound />;
-
-    const auth = useAuth();
-
-    if (!auth) {
-        console.error("Auth context not found");
-        return null;
-    }
 
     return (
         <div className="bg-gradient-to-r from-teal-600 to-blue-500 min-h-screen py-10 px-4">
@@ -797,25 +810,6 @@ const DoctorAppointmentView: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Location Map */}
-                    <div className="p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-teal-500 mr-2" />
-                            Location
-                        </h2>
-
-                        {/* <div className="h-64 bg-gray-200 rounded-lg overflow-hidden">
-                            <HospitalMap
-                                position={appointment.Hospital.currLocation ? [appointment.Hospital.currLocation.latitude, appointment.Hospital.currLocation.longitude] : [0, 0]}
-                                name={appointment.Hospital.name}
-                            />
-                        </div> */}
-
-                        <div className="mt-3 text-gray-600">
-                            <p>{appointment.Hospital.address || "123 Healthcare Ave, Medical District"}</p>
                         </div>
                     </div>
 

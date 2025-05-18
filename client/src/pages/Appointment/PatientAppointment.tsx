@@ -25,7 +25,6 @@ import {
     faExclamationTriangle,
     faInfoCircle,
     faSync,
-    faExternalLinkAlt, // Add this for expired status
 } from '@fortawesome/free-solid-svg-icons';
 
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
@@ -37,8 +36,9 @@ import { jsPDF } from 'jspdf';
 
 // import { HospitalMap } from '../../components/HospitalMap';
 import { useAuth } from '../../context/auth';
-import { GoogleMap } from '../../utils/location/GoogleMap';
 import ReverseGeocoder from '../../utils/location/Address';
+import MapWithCoordinates from '../../utils/location/DirectionMap';
+import { getHighlyAccurateLocation } from '../../utils/location/Location';
 
 // Define interfaces based on your model
 interface Appointment {
@@ -123,9 +123,11 @@ const AppointmentDetailsPage: React.FC = () => {
     const auth = useAuth();
 
     if (!auth) {
-        console.error("Auth context not found");
-        <NotFound />;
+        <LoadingSpinner />;
+        return;
     }
+
+    const { user } = auth;
 
     const { id } = useParams<{ id: string }>();
     const [appointment, setAppointment] = useState<Appointment | null>(null);
@@ -134,6 +136,8 @@ const AppointmentDetailsPage: React.FC = () => {
     const [downloadingPdf, setDownloadingPdf] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     const pdfTemplateRef = useRef<HTMLDivElement>(null);
+
+    const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
     // New state for cancellation
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -212,11 +216,29 @@ const AppointmentDetailsPage: React.FC = () => {
         return appointmentDate < new Date(now.getDate() + 1) && appointment.status.toLowerCase() === 'pending';
     };
 
+    const fetchLocation = async () => {
+        const userCords = await getHighlyAccurateLocation();
+
+        if (userCords) {
+            setCoordinates({
+                lat: userCords.lat,
+                lng: userCords.lon,
+            });
+
+            console.log("User Coordinates", userCords);
+        } else {
+            console.error("Failed to get user coordinates");
+        }
+    }
+
 
     useEffect(() => {
         if (!id) return;
 
         setLoading(true);
+
+
+
         // Fetch appointment data from API
         fetch(`${API_URL}/appointments/${id}`)
             .then(response => {
@@ -227,6 +249,19 @@ const AppointmentDetailsPage: React.FC = () => {
             })
             .then(data => {
                 console.log('Fetched appointment data:', data);
+
+                if (user.role !== 'PATIENT') {
+                    alert("You are not authorized to view this appointment");
+                    return;
+                }
+
+                if (data.userId !== user._id) {
+                    alert("You are not authorized to view this appointment");
+                    return;
+                }
+
+                fetchLocation();
+
                 setAppointment(data);
 
                 const now = new Date();
@@ -946,8 +981,14 @@ const AppointmentDetailsPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <ReverseGeocoder latitude={Number(appointment.Hospital.currLocation?.latitude)}
-                                    longitude={Number(appointment.Hospital.currLocation?.longitude)} />
+                                {appointment.Hospital.parent && appointment.Hospital.parent.currLocation ? (
+                                    <ReverseGeocoder
+                                        latitude={Number(appointment.Hospital.parent.currLocation.latitude)}
+                                        longitude={Number(appointment.Hospital.parent.currLocation.longitude)}
+                                    />
+                                ) : (
+                                    <span className="text-sm text-gray-500">Location not available</span>
+                                )}
 
                                 <div className="mt-4 flex flex-col space-y-2">
                                     <div className="flex items-center">
@@ -965,24 +1006,15 @@ const AppointmentDetailsPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {appointment.Hospital.currLocation?.latitude &&
-                                appointment.Hospital.currLocation?.longitude && <div className="flex-col gap-2 h-60 rounded-lg flex items-center justify-center">
-                                    {/* <HospitalMap
-                                    position={appointment.Hospital.currLocation ? [appointment.Hospital.currLocation.latitude, appointment.Hospital.currLocation.longitude] : [0, 0]}
-                                    name={appointment.Hospital.name}
-                                /> */}
-                                    <GoogleMap
-                                        mapId={appointment.Hospital.id}
-                                        name={appointment.Hospital.name}
-                                        latitude={appointment.Hospital.currLocation ? appointment.Hospital.currLocation.latitude : 0}
-                                        longitude={appointment.Hospital.currLocation ? appointment.Hospital.currLocation.longitude : 0}
-                                    />
+                            {appointment.Hospital.parent && appointment.Hospital.parent.currLocation?.latitude &&
+                                appointment.Hospital.parent.currLocation?.longitude && <div className="flex-col gap-2 h-60 rounded-lg flex items-center justify-center">
 
-                                    <div className='py-2 text-sm text-bold hover:text-teal-500'>
-                                        <Link to={`https://www.google.com/maps?q=${appointment.Hospital.currLocation?.latitude},${appointment.Hospital.currLocation?.longitude}`} target="_blank" rel="noopener noreferrer">
-                                            Open in Google Maps <FontAwesomeIcon icon={faExternalLinkAlt} className="ml-1" />
-                                        </Link>
-                                    </div>
+                                    {coordinates && appointment.Hospital.parent && appointment.Hospital.parent.currLocation && (
+                                        <MapWithCoordinates
+                                            startCoords={{ lat: coordinates.lat, lng: coordinates.lng }}
+                                            endCoords={{ lat: appointment.Hospital.parent.currLocation.latitude, lng: appointment.Hospital.parent.currLocation.longitude }}
+                                        />
+                                    )}
                                 </div>}
                         </div>
                     </div>
@@ -1262,55 +1294,6 @@ const AppointmentDetailsPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Important Information Section - Enhanced Visibility */}
-                    <div style={{
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '30px',
-                        backgroundColor: '#fff9e6',
-                        marginBottom: '30px',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-                    }}>
-                        <h3 style={{
-                            color: '#d4a010',
-                            borderBottom: '2px solid #ffe082',
-                            paddingBottom: '15px',
-                            margin: '0 0 20px 0',
-                            fontSize: '22px',
-                            fontWeight: '600'
-                        }}>
-                            Important Information
-                        </h3>
-
-                        <ul style={{ paddingLeft: '15px', margin: '0' }}>
-                            <li style={{ margin: '15px 0', fontSize: '16px', color: '#555' }}>
-                                Please arrive 15 minutes before your appointment time for registration.
-                            </li>
-                            <li style={{ margin: '15px 0', fontSize: '16px', color: '#555' }}>
-                                Bring your government-issued ID and insurance card if applicable.
-                            </li>
-                            <li style={{ margin: '15px 0', fontSize: '16px', color: '#555' }}>
-                                If you're bringing medical records or test results, please have them ready.
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Important Note - More Attention-Grabbing */}
-                    <div style={{
-                        backgroundColor: '#ffebee',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        textAlign: 'center',
-                        fontWeight: 'bold',
-                        color: '#c62828',
-                        marginBottom: '30px',
-                        border: '2px solid #f44336',
-                        fontSize: '18px',
-                        letterSpacing: '0.5px'
-                    }}>
-                        PLEASE BRING THIS PRINTED DOCUMENT TO YOUR APPOINTMENT
-                    </div>
-
                     {/* Footer - Cleaner Layout */}
                     <div style={{
                         width: '100%',
@@ -1326,20 +1309,6 @@ const AppointmentDetailsPage: React.FC = () => {
                         <div style={{ fontSize: '14px', color: '#666' }}>
                             For assistance, call: +1 (234) 567-890
                         </div>
-                    </div>
-
-                    {/* Confidentiality Notice - Enhanced */}
-                    <div style={{
-                        backgroundColor: '#f5f5f5',
-                        padding: '15px',
-                        textAlign: 'center',
-                        fontSize: '12px',
-                        color: '#666',
-                        fontStyle: 'italic',
-                        marginTop: '25px',
-                        borderRadius: '5px'
-                    }}>
-                        CONFIDENTIAL: This document contains private patient information. Please keep secure.
                     </div>
                 </div>
             </div>

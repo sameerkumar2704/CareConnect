@@ -14,13 +14,15 @@ import {
     faLocationDot,
     faStar,
     faQuoteLeft, faUser, faStethoscope,
-    faHospitalAlt
+    faHospitalAlt,
+    faLock
 } from "@fortawesome/free-solid-svg-icons";
 import { Hospital, Specialty, User } from "../model/user.model";
 import { useAuth } from "../context/auth";
 // import { GoogleMap } from "../utils/location/GoogleMap";
 import MapWithCoordinates from "../utils/location/DirectionMap";
 import { getHighlyAccurateLocation } from "../utils/location/Location";
+import { mapNumberToDay } from "../utils/date";
 
 // Interface for reverse geocoding response
 interface GeocodingResult {
@@ -92,6 +94,9 @@ const DoctorDetails = () => {
         }
     };
 
+    const todayWeekday = mapNumberToDay(new Date().getDay());
+    console.log("Today Weekday", todayWeekday);
+
     useEffect(() => {
         fetch(`${API_URL}/hospitals/${id}`)
             .then((response) => response.json())
@@ -111,8 +116,8 @@ const DoctorDetails = () => {
                 setParentHospital(data.parent);
 
                 // Fetch address if coordinates are available
-                if (data.currLocation && data.currLocation.latitude && data.currLocation.longitude) {
-                    fetchAddress(data.currLocation.latitude, data.currLocation.longitude);
+                if (data.parent.currLocation && data.parent.currLocation.latitude && data.parent.currLocation.longitude) {
+                    fetchAddress(data.parent.currLocation.latitude, data.parent.currLocation.longitude);
                 }
 
                 setLoading(false);
@@ -212,8 +217,21 @@ const DoctorDetails = () => {
                                     <FontAwesomeIcon icon={faCalendarCheck} className="text-teal-600 text-xl" />
                                 </div>
                                 <div>
-                                    <p className="text-gray-500 font-medium">Last Free Date</p>
+                                    <p className="text-gray-500 font-medium">Free Date for Appointment</p>
                                     <p className="text-gray-800 font-semibold">{new Date(doctor.freeSlotDate).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+
+                            {/* Available Hours as Start Time and End time */}
+                            <div className="flex items-start p-4 bg-gray-50 rounded-xl">
+                                <div className="bg-teal-100 p-3 rounded-full mr-4">
+                                    <FontAwesomeIcon icon={faNotesMedical} className="text-teal-600 text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 font-medium">Available Hours</p>
+                                    {doctor.timings[todayWeekday] ? (<p className="text-gray-800 font-semibold">{doctor.timings[mapNumberToDay(new Date().getDay())]?.start} - {doctor.timings[mapNumberToDay(new Date().getDay())]?.end}</p>) : (
+                                        <p className="text-red-800 font-semibold">Not Available</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -228,7 +246,7 @@ const DoctorDetails = () => {
                             </div>
 
 
-                            {doctor.currLocation.latitude && doctor.currLocation.longitude && userCoordinates && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
+                            {doctor.parent.currLocation.latitude && doctor.parent.currLocation.longitude && userCoordinates && <div className="flex h-60 justify-center items-center p-4 bg-gray-50 rounded-xl md:col-span-2 lg:col-span-3">
                                 {/* <GoogleMap
                                     latitude={hospital.currLocation.latitude}
                                     longitude={hospital.currLocation.longitude}
@@ -237,7 +255,7 @@ const DoctorDetails = () => {
                                 /> */}
 
                                 <MapWithCoordinates
-                                    startCoords={{ lat: doctor.currLocation.latitude, lng: doctor.currLocation.longitude }}
+                                    startCoords={{ lat: doctor.parent.currLocation.latitude, lng: doctor.parent.currLocation.longitude }}
                                     endCoords={{ lat: userCoordinates.lat, lng: userCoordinates.lng }}
                                 />
                             </div>}
@@ -383,15 +401,52 @@ const DoctorDetails = () => {
                 </div>
 
                 {/* Book Appointment Button */}
-                {user && user.role !== "HOSPITAL" && (user._id !== doctor.id) && <div className="flex justify-center">
-                    <Link
-                        to={`/checkout/${doctor.id}`}
-                        className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
-                    >
-                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
-                        Book an Appointment
-                    </Link>
-                </div>}
+                {
+                    user ? (
+                        user.role === "PATIENT" ? (
+                            doctor.timings[todayWeekday] ? (
+                                <div className="flex justify-center">
+                                    <Link
+                                        to={`/checkout/${doctor.id}`}
+                                        className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
+                                    >
+                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
+                                        Book an Appointment
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="flex justify-center">
+                                    <div
+                                        className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
+                                    >
+                                        <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
+                                        Not Available
+                                    </div>
+                                </div>
+                            )
+                        ) : (
+                            <div className="flex justify-center">
+                                <div
+                                    className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
+                                >
+                                    <FontAwesomeIcon icon={faLock} className="mr-3 text-xl" />
+                                    Please Login as Patient to Book an Appointment
+                                </div>
+                            </div>
+                        )
+                    ) : (
+                        <div className="flex justify-center">
+                            <Link
+                                to={`/auth?redirect=/checkout/${doctor.id}`}
+                                className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
+                            >
+                                <FontAwesomeIcon icon={faLock} className="mr-3 text-xl" />
+                                Please Login to Book an Appointment
+                            </Link>
+                        </div>
+                    )
+                }
+
             </div>
         </div>
     );
