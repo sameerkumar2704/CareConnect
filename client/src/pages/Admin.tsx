@@ -57,6 +57,11 @@ const AdminApprovalPanel: React.FC = () => {
 
             const coords = await getHighlyAccurateLocation();
 
+            if (!coords) {
+                console.error('Failed to get coordinates');
+                return;
+            }
+
             // Fetch hospitals, doctors, and refund appointments in parallel
             const [hospitalsResponse, doctorsResponse, refundsResponse] = await Promise.all([
                 axios.get<Profile[]>(ENDPOINTS.hospitals + `&latitude=${coords.lat}&longitude=${coords.lon}`),
