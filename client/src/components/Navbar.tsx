@@ -21,13 +21,15 @@ const Navbar = () => {
     setIsOpen(false);
   }, [location]);
 
+  const fetchLocation = async () => {
+    const currCords = await getHighlyAccurateLocation();
+
+    setCoordinates(currCords);
+  }
+
+
   useEffect(() => {
 
-    const fetchLocation = async () => {
-      const currCords = await getHighlyAccurateLocation();
-
-      setCoordinates(currCords);
-    }
 
     fetchLocation();
   }, [])
@@ -65,6 +67,14 @@ const Navbar = () => {
           </div>
           {coordinates && <div className="text-white">
             {coordinates?.lat + " " + coordinates?.lon}
+
+            {/* Update location button */}
+            <button
+              onClick={fetchLocation}
+              className="text-sm md:text-base bg-[#26B9C0] hover:bg-white text-white hover:text-[#26B9C0] px-2 py-1 rounded ml-2"
+            >
+              Update Location
+            </button>
           </div>}
         </div>
 

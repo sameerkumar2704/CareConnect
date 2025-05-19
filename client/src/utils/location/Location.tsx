@@ -59,6 +59,14 @@ export const getHighlyAccurateLocation = async () => {
         return { lat, lon };
 
     } catch (error) {
+
+        const res = localStorage.getItem("coordinates");
+
+        if (res) {
+            const { lat, lon } = JSON.parse(res);
+            return { lat, lon };
+        }
+
         console.warn("GPS failed, trying IP-based geolocation...");
         return await fetchLocationFromIP();
     }
