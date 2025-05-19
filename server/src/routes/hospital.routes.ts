@@ -79,7 +79,7 @@ router.get("/", async (req, res) => {
             FROM "Hospital" h
             LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
-            WHERE h."parentId" IS NULL AND h."emergency" = true
+            WHERE h."parentId" IS NULL AND h."emergency" = true And h."approved" = true
 
             GROUP BY 
                 h.id, h.email, h.name, h.password, h."parentId",
@@ -90,12 +90,11 @@ router.get("/", async (req, res) => {
             ORDER BY "doctorCount" DESC, distance;
         `);
         else if (role && approved) {
-
             console.log("Inside role and approved");
 
             console.log("Role:", role);
             console.log("Approved:", approved);
-            
+
             hospitals = await prisma.$queryRawUnsafe<any[]>(` 
                 SELECT h.id, h.email, h.name, h.password, h."parentId",
                     ST_AsText(h."location") AS location,  
@@ -134,8 +133,8 @@ router.get("/", async (req, res) => {
                 GROUP BY h.id
                 ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
-        
-        console.log("Hospitals fetched:", hospitals.length);
+
+            console.log("Hospitals fetched:", hospitals.length);
         } else {
             hospitals = await prisma.$queryRawUnsafe<any[]>(`
             SELECT h.id, h.email, h.name, h.password, h."parentId",
@@ -169,7 +168,7 @@ router.get("/", async (req, res) => {
             FROM "Hospital" h
             LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
-            WHERE h."parentId" IS NULL
+            WHERE h."parentId" IS NULL and h."approved" = true
             GROUP BY h.id
             ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
@@ -189,6 +188,23 @@ router.get("/", async (req, res) => {
         console.error("Error fetching hospitals:", error);
         res.status(500).send({ message: "Internal Server Error" });
     }
+});
+
+router.get("/testingapp", async (req, res) => {
+    reqS("Testing database connection");
+
+    try {
+        const hospitals = await prisma.hospital.updateMany({
+            data: {
+                approved: true,
+            },
+        });
+        res.status(200).send(hospitals);
+    } catch (error) {
+        res.status(500).send({ error: "Something went wrong" });
+    }
+
+    reqE();
 });
 
 router.get("/testing", async (req, res) => {
@@ -258,7 +274,7 @@ router.get("/top", async (req, res) => {
             FROM "Hospital" h
             LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
             LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
-            WHERE h."parentId" IS NULL
+            WHERE h."parentId" IS NULL and h."approved" = true
             GROUP BY h.id
             ORDER BY h."count"->>'doctorCount' DESC, distance
             LIMIT 8;
@@ -294,6 +310,7 @@ router.get("/doctors", async (req, res) => {
                 freeSlotDate: {
                     lte: nextSevenDays,
                 },
+                approved: true,
             },
         });
 
@@ -576,7 +593,7 @@ router.post("/register", async (req, res) => {
             },
             sat: null,
             sun: null,
-        }
+        };
 
         const hospital = await prisma.hospital.create({
             data: {
