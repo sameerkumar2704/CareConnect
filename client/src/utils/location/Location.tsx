@@ -2,7 +2,23 @@ import axios from "axios";
 
 const fetchLocationFromIP = async () => {
     const response = await axios.get("https://ipapi.co/json/");
+
+    if (response.status !== 200) {
+
+        const coordinates = localStorage.getItem("coordinates");
+
+        if (coordinates) {
+            const { lat, lon } = JSON.parse(coordinates);
+            return { lat, lon };
+        }
+
+        throw new Error("Failed to fetch location from IP");
+    }
+
     const data = response.data;
+
+    localStorage.setItem("coordinates", JSON.stringify({ lat: data.latitude, lon: data.longitude }));
+
     return { lat: data.latitude, lon: data.longitude };
 };
 
@@ -34,7 +50,14 @@ const getAccurateLocation = () => {
 
 export const getHighlyAccurateLocation = async () => {
     try {
-        return await getAccurateLocation();
+        const res = await getAccurateLocation();
+
+        const { lat, lon } = res;
+
+        localStorage.setItem("coordinates", JSON.stringify({ lat, lon }));
+
+        return { lat, lon };
+
     } catch (error) {
         console.warn("GPS failed, trying IP-based geolocation...");
         return await fetchLocationFromIP();
