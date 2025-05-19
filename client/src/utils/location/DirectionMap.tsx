@@ -46,8 +46,8 @@ const MapWithCoordinates: React.FC<MapWithCoordinatesProps> = ({
 
         directionsService.route(
             {
-                origin: startCoords,
-                destination: endCoords,
+                origin: endCoords,
+                destination: startCoords,
                 travelMode: google.maps.TravelMode.DRIVING,
             },
             (result, status) => {
@@ -67,7 +67,7 @@ const MapWithCoordinates: React.FC<MapWithCoordinatesProps> = ({
             <div className="w-full max-w-5xl rounded-xl overflow-hidden shadow-lg">
                 <GoogleMap
                     mapContainerStyle={containerStyle}
-                    center={startCoords}
+                    center={endCoords}
                     zoom={13}
                 >
                     {directions && <DirectionsRenderer directions={directions} />}
