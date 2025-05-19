@@ -12,6 +12,7 @@ const User = () => {
     const { user, admin } = auth;
 
     console.log("User At Main", user)
+    console.log("Admin At Main", admin)
 
     if (!admin && !user) {
         return <LoadingSpinner />

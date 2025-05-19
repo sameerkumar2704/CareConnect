@@ -27,6 +27,7 @@ import ProviderTimingsTab from "./HospitalTimings";
 import DocumentVerificationTab from "./DocumentVerificationTab";
 import { GoogleMap } from "../../utils/location/GoogleMap";
 import ReverseGeocoder from "../../utils/location/Address";
+import AdminApprovalPanel from "../Admin";
 
 interface Appointment {
     id: string;
@@ -218,6 +219,11 @@ const UserProfile = ({ userId, role }: { userId: string; role: string; }) => {
 
     const fetchUser = async () => {
         try {
+
+            if (role === "ADMIN") {
+                return <AdminApprovalPanel />;
+            }
+
             const res = await axios.get(`${API_URL}/${role === "PATIENT" ? "users" : "hospitals"}/${userId}`);
             setUser(res.data);
             console.log("User at User Profile", res.data);

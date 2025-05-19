@@ -13,8 +13,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 import { ReactNode } from "react";
-import { verifyToken } from "../utils/auth";
-import { SECRET_KEY } from "../utils/contants";
+import { verifyToken } from "../utils/auth";    
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     interface UserType {
@@ -68,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (response.ok) {
                     setUser(response);
 
-                    if (response.role === SECRET_KEY) {
+                    if (response.role === "ADMIN") {
                         setAdmin(response);
                     } else {
                         setAdmin(null);
