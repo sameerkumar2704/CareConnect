@@ -6,10 +6,10 @@ const features = [
 ];
 
 const teamMembers = [
-    { name: "Harshit Singla", image: "/Services/placeholder-male.jpg" },
-    { name: "Sameer Kumar", image: "/Services/placeholder-male.jpg" },
-    { name: "Karan Kapoor", image: "/Services/placeholder-male.jpg" },
-    { name: "Harshit Behal", image: "/Services/placeholder-male.jpg" }
+    { name: "Harshit Singla", image: "/People/singla.png" },
+    { name: "Karan Kapoor", image: "/People/kapoor.png" },
+    { name: "Harshit Behal", image: "/People/behal.png" },
+    { name: "Sameer Kumar", image: "/People/sameer.jpg" }
 ];
 
 const About = () => {
@@ -21,7 +21,7 @@ const About = () => {
             <div className="max-w-4xl mx-auto text-center text-white">
                 <h1 className="text-2xl md:text-4xl font-bold mb-4">About CareConnect</h1>
                 <p className="text-sm md:text-lg">
-                    CareConnect is a healthcare platform designed to bridge the gap between patients and professionals. 
+                    CareConnect is a healthcare platform designed to bridge the gap between patients and professionals.
                     Our goal is to provide seamless access to medical care through technology.
                 </p>
             </div>
@@ -45,9 +45,9 @@ const About = () => {
             <div className="mt-8 max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {teamMembers.map((member, index) => (
                     <div key={index} className="bg-white shadow-lg rounded-lg p-6 text-center border-t-4 border-[#00979D]">
-                        <img 
-                            src={member.image} 
-                            alt={member.name} 
+                        <img
+                            src={member.image}
+                            alt={member.name}
                             className="w-24 h-24 mx-auto rounded-full object-cover border-4 border-[#00979D]"
                         />
                         <h2 className="text-md md:text-xl font-semibold text-gray-800 mt-4">{member.name}</h2>
