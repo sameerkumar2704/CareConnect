@@ -106,7 +106,8 @@ const HospitalDetails = () => {
         fetch(`${API_URL}/hospitals/${id}`)
             .then((response) => response.json())
             .then((data) => {
-                console.log(data.children);
+                // console.log(data.children);
+                console.log(data);
                 setHospital(data);
                 setDoctors(data.children); // Assuming doctors are part of the hospital response
 
@@ -186,6 +187,11 @@ const HospitalDetails = () => {
                                 <FontAwesomeIcon icon={faHospitalAlt} className="mr-4 text-teal-500" />
                                 Hospital Information
                             </h2>
+
+                            {/* Warning Sign of Not verified if Hospital is not approved */}
+                            {!hospital.approved && <div className="text-white max-w-max rounded py-2 px-2 bg-red-500">
+                                This Hospital has not been approved till Now !
+                            </div>}
 
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div className="flex items-start p-4 bg-gray-50 rounded-xl">

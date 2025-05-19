@@ -112,7 +112,8 @@ const DoctorDetails = () => {
         fetch(`${API_URL}/hospitals/${id}`)
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
+                console.log(data)
+
                 setDoctor(data);
 
                 // Set specialities
@@ -479,7 +480,7 @@ const DoctorDetails = () => {
                 {
                     user ? (
                         user.role === "PATIENT" ? (
-                            <div className="flex justify-center">
+                            doctor.approved ? <div className="flex justify-center">
                                 <Link
                                     to={`/checkout/${doctor.id}`}
                                     className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
@@ -487,6 +488,13 @@ const DoctorDetails = () => {
                                     <FontAwesomeIcon icon={faCalendarCheck} className="mr-3 text-xl" />
                                     Book an Appointment for {new Date(doctor.freeSlotDate).toLocaleDateString()}
                                 </Link>
+                            </div> : <div className="flex justify-center">
+                                <div
+                                    className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-1 text-lg flex items-center"
+                                >
+                                    <FontAwesomeIcon icon={faLock} className="mr-3 text-xl" />
+                                    Doctor has not been approved yet for taking Appointments
+                                </div>
                             </div>
                         ) : (
                             <div className="flex justify-center">

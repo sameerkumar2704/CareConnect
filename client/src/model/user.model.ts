@@ -60,6 +60,7 @@ export interface Hospital {
     doctorCount: number;
     password: string;
     phone: string;
+    approved: true;
     address: string;
     locationId: string;
     appointments: Appointment[];
