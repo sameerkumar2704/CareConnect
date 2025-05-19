@@ -113,10 +113,10 @@ const AdminApprovalPanel: React.FC = () => {
     const handleReject = async (id: string, role: Role | 'REFUND'): Promise<void> => {
         try {
             if (role === 'HOSPITAL') {
-                await axios.post(ENDPOINTS.rejectHospital(id));
+                await axios.put(ENDPOINTS.rejectHospital(id));
                 setHospitals(hospitals.filter(hospital => hospital.id !== id));
             } else if (role === 'DOCTOR') {
-                await axios.post(ENDPOINTS.rejectDoctor(id));
+                await axios.put(ENDPOINTS.rejectDoctor(id));
                 setDoctors(doctors.filter(doctor => doctor.id !== id));
             } else if (role === 'REFUND') {
                 await axios.put(ENDPOINTS.rejectRefund(id));
