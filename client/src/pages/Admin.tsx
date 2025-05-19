@@ -50,10 +50,13 @@ const AdminApprovalPanel: React.FC = () => {
 
     const fetchUnapprovedProfiles = async (): Promise<void> => {
 
-        const coords = await getHighlyAccurateLocation();
+
 
         setIsLoading(true);
         try {
+
+            const coords = await getHighlyAccurateLocation();
+
             // Fetch hospitals, doctors, and refund appointments in parallel
             const [hospitalsResponse, doctorsResponse, refundsResponse] = await Promise.all([
                 axios.get<Profile[]>(ENDPOINTS.hospitals + `&latitude=${coords.lat}&longitude=${coords.lon}`),
