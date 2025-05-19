@@ -40,10 +40,10 @@ const AdminApprovalPanel: React.FC = () => {
         hospitals: `${API_URL}/hospitals?role=HOSPITAL&approved=false`,
         doctors: `${API_URL}/hospitals?role=DOCTOR&approved=false`,
         refundAppointments: `${API_URL}/appointments?status=REFUND_IN_PROGRESS`,
-        approveHospital: (id: string) => `${API_URL}/hospitals/${id}/approve`,
-        rejectHospital: (id: string) => `${API_URL}/hospitals/${id}/reject`,
-        approveDoctor: (id: string) => `${API_URL}/doctors/${id}/approve`,
-        rejectDoctor: (id: string) => `${API_URL}/doctors/${id}/reject`,
+        approveHospital: (id: string) => `${API_URL}/hospitals/approve/${id}`,
+        rejectHospital: (id: string) => `${API_URL}/hospitals/reject/${id}`,
+        approveDoctor: (id: string) => `${API_URL}/hospitals/approve/${id}`,
+        rejectDoctor: (id: string) => `${API_URL}/hospitals/reject/${id}`,
         approveRefund: (id: string) => `${API_URL}/appointments/${id}/approve-refund`,
         rejectRefund: (id: string) => `${API_URL}/appointments/${id}/reject-refund`
     };
@@ -82,10 +82,10 @@ const AdminApprovalPanel: React.FC = () => {
     const handleApprove = async (id: string, role: Role | 'REFUND'): Promise<void> => {
         try {
             if (role === 'HOSPITAL') {
-                await axios.post(ENDPOINTS.approveHospital(id));
+                await axios.put(ENDPOINTS.approveHospital(id));
                 setHospitals(hospitals.filter(hospital => hospital.id !== id));
             } else if (role === 'DOCTOR') {
-                await axios.post(ENDPOINTS.approveDoctor(id));
+                await axios.put(ENDPOINTS.approveDoctor(id));
                 setDoctors(doctors.filter(doctor => doctor.id !== id));
             } else if (role === 'REFUND') {
                 await axios.put(ENDPOINTS.approveRefund(id));
