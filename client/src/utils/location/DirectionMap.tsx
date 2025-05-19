@@ -30,8 +30,8 @@ const MapWithCoordinates: React.FC<MapWithCoordinatesProps> = ({
     });
 
     const openInGoogleMaps = () => {
-        const origin = `${startCoords.lat},${startCoords.lng}`;
-        const destination = `${endCoords.lat},${endCoords.lng}`;
+        const origin = `${endCoords.lat},${endCoords.lng}`;
+        const destination = `${startCoords.lat},${startCoords.lng}`;
         const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
         window.open(url, '_blank');
     };
