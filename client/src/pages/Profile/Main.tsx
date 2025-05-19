@@ -7,23 +7,25 @@ const User = () => {
 
     const auth = useAuth();
 
-    if (!auth) return <LoadingSpinner />
+    console.log("Auth At Main", auth)
 
-    const { user, admin } = auth;
+    if (auth) {
 
-    console.log("User At Main", user)
-    console.log("Admin At Main", admin)
+        const { user, admin } = auth;
 
-    if (!admin && !user) {
-        return <LoadingSpinner />
+        console.log("User At Main", user)
+        console.log("Admin At Main", admin)
+
+        if (!admin && !user) {
+            return <LoadingSpinner />
+        }
+
+        if (!admin && user)
+            return <UserProfile userId={user._id} role={user.role} />
+
+        if (admin && user)
+            return <AdminApprovalPanel />
     }
-
-    if (!admin && user)
-        return <UserProfile userId={user._id} role={user.role} />
-
-    if (admin && user)
-        return <AdminApprovalPanel />
-
     return <LoadingSpinner />
 }
 
