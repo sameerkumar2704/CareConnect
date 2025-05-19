@@ -304,7 +304,7 @@ const AuthFormHospital = () => {
             if (!isSignUp) {
                 setUser(details);
 
-                if (details.role === "admin") {
+                if (details.role === "ADMIN") {
                     setAdmin(details);
                 }
 
