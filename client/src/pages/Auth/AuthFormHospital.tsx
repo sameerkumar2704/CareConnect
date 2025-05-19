@@ -62,7 +62,7 @@ const AuthFormHospital = () => {
         return;
     }
 
-    // const { setUser, setAdmin } = auth;
+    const { setUser, setAdmin } = auth;
 
     useEffect(() => {
         fetchHospitals("");
@@ -300,6 +300,16 @@ const AuthFormHospital = () => {
             alert(isSignUp ? "Account Created, Redirecting to Email Verification Page..." : "Login Success, Redirecting to Home Page...");
 
             document.getElementById("sub")?.scrollIntoView({ behavior: "smooth" });
+
+            if (!isSignUp) {
+                setUser(details);
+
+                if (details.role === "admin") {
+                    setAdmin(details);
+                }
+
+                localStorage.setItem("eWauthToken", response.data.token);
+            }
 
             navigate(`${isSignUp ? `/email-verification/${details._id}` : "/"}`);
 

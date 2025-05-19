@@ -90,44 +90,52 @@ router.get("/", async (req, res) => {
             ORDER BY "doctorCount" DESC, distance;
         `);
         else if (role && approved) {
-            hospitals = await prisma.$queryRawUnsafe<any[]>(`
-            SELECT h.id, h.email, h.name, h.password, h."parentId",
-                ST_AsText(h."location") AS location,  
-                h."currLocation", h."createdAt", h."updatedAt", h."timings",
-                h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
-                h."fees", h."phone",
-                ST_DistanceSphere(
-                    ST_MakePoint(CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION), 
-                                CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION)),
-                    ST_MakePoint(${latitude}, ${longitude})
-                ) AS distance,
 
-                (
-                    SELECT COUNT(*)::INT
-                    FROM "Hospital" AS child 
-                    WHERE child."parentId" = h.id
-                ) AS "doctorCount",
+            console.log("Inside role and approved");
 
-                COALESCE(
-                    json_agg(
-                        DISTINCT jsonb_build_object(
-                            'id', s.id,
-                            'name', s.name,
-                            'description', s.description
-                        )
-                    ) FILTER (WHERE s.id IS NOT NULL),
-                    '[]'
-                ) AS specialities
+            console.log("Role:", role);
+            console.log("Approved:", approved);
+            
+            hospitals = await prisma.$queryRawUnsafe<any[]>(` 
+                SELECT h.id, h.email, h.name, h.password, h."parentId",
+                    ST_AsText(h."location") AS location,  
+                    h."currLocation", h."createdAt", h."updatedAt", h."timings",
+                    h."approved", h."freeSlotDate", h."maxAppointments", h."emergency",
+                    h."fees", h."phone", h."count",
+                    ST_DistanceSphere(
+                        ST_MakePoint(CAST(h."currLocation"->>'longitude' AS DOUBLE PRECISION), 
+                                    CAST(h."currLocation"->>'latitude' AS DOUBLE PRECISION)),
+                        ST_MakePoint(${longitude}, ${latitude})
+                    ) AS distance,
 
-            FROM "Hospital" h
-            LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
-            LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
-            WHERE h."parentId" IS ${
-                role === "HOSPITAL" ? "null" : "not null"
-            } and h."approved" = ${approved}
-            GROUP BY h.id
-            ORDER BY h."count"->>'doctorCount' DESC,distance;
+                    (
+                        SELECT COUNT(*)::INT
+                        FROM "Hospital" AS child 
+                        WHERE child."parentId" = h.id
+                    ) AS "doctorCount",
+
+                    COALESCE(
+                        json_agg(
+                            DISTINCT jsonb_build_object(
+                                'id', s.id,
+                                'name', s.name,
+                                'description', s.description
+                            )
+                        ) FILTER (WHERE s.id IS NOT NULL),
+                        '[]'
+                    ) AS specialities
+
+                FROM "Hospital" h
+                LEFT JOIN "HospitalSpeciality" hs ON hs."hospitalId" = h.id
+                LEFT JOIN "Speciality" s ON s.id = hs."specialityId"
+                WHERE h."parentId" IS ${
+                    role === "HOSPITAL" ? "null" : "not null"
+                } and h."approved" = ${approved}
+                GROUP BY h.id
+                ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
+        
+        console.log("Hospitals fetched:", hospitals.length);
         } else {
             hospitals = await prisma.$queryRawUnsafe<any[]>(`
             SELECT h.id, h.email, h.name, h.password, h."parentId",
@@ -166,6 +174,8 @@ router.get("/", async (req, res) => {
             ORDER BY h."count"->>'doctorCount' DESC,distance;
         `);
         }
+
+        console.log("Hospitals fetched:", hospitals.length);
 
         if (!hospitals) {
             res.status(404).send({ message: "No hospitals found" });

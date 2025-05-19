@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_URL } from '../utils/contants';
 import { Link } from 'react-router-dom';
+import { getHighlyAccurateLocation } from '../utils/location/Location';
 
 // Define TypeScript interfaces
 interface Profile {
@@ -48,12 +49,15 @@ const AdminApprovalPanel: React.FC = () => {
     };
 
     const fetchUnapprovedProfiles = async (): Promise<void> => {
+
+        const coords = await getHighlyAccurateLocation();
+
         setIsLoading(true);
         try {
             // Fetch hospitals, doctors, and refund appointments in parallel
             const [hospitalsResponse, doctorsResponse, refundsResponse] = await Promise.all([
-                axios.get<Profile[]>(ENDPOINTS.hospitals),
-                axios.get<Profile[]>(ENDPOINTS.doctors),
+                axios.get<Profile[]>(ENDPOINTS.hospitals + `&latitude=${coords.lat}&longitude=${coords.lon}`),
+                axios.get<Profile[]>(ENDPOINTS.doctors + `&latitude=${coords.lat}&longitude=${coords.lon}`),
                 axios.get<Appointment[]>(ENDPOINTS.refundAppointments)
             ]);
 

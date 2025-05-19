@@ -30,7 +30,7 @@ const AuthFormUser = () => {
         document.getElementById("errorWin")?.scrollIntoView({ behavior: "smooth" });
     }, [errors]);
 
-    // const { setUser, setAdmin } = auth;
+    const { setUser, setAdmin } = auth;
 
     const navigate = useNavigate();
 
@@ -135,13 +135,15 @@ const AuthFormUser = () => {
 
             const details = await verifyToken(response.data.token);
 
-            // setUser(details);
+            if (!isSignUp) {
+                setUser(details);
 
-            // if (details.role === "admin") {
-            //     setAdmin(details);
-            // }
+                if (details.role === "admin") {
+                    setAdmin(details);
+                }
 
-            // localStorage.setItem("eWauthToken", response.data.token);
+                localStorage.setItem("eWauthToken", response.data.token);
+            }
 
             alert(isSignUp ? "Account Created, Redirecting to Email Verification Page..." : "Login Success, Redirecting to Home Page...");
 
