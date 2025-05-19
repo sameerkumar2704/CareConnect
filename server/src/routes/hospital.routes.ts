@@ -1211,6 +1211,8 @@ router.put("/date/:id", async (req, res) => {
 router.put("/approve/:id", async (req, res) => {
     const { id } = req.params;
 
+    console.log("ID := ", id);
+
     try {
         const hospital = await prisma.hospital.update({
             where: { id: id },
