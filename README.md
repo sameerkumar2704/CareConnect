@@ -91,13 +91,3 @@ The platform addresses the current limitations in online healthcare services by 
 * Real-time patient triage and automated routing to specialized facilities.
 * Multi-language support for broader accessibility.
 * Enhanced analytics dashboards for hospitals and doctors.
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
----
-
-Would you like me to also **add diagrams** (like architecture or workflow) using `Mermaid.js` inside the README? That would make it more technical and publication-ready.
